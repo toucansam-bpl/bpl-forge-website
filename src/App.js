@@ -1,21 +1,47 @@
 import React, { Component } from 'react'
-import logo from './logo.svg'
+import cx from 'classnames'
+
+import { withStyles, AppBar, Toolbar, Button } from '@material-ui/core'
+
 import './App.css'
+import logo from 'assets/img/bpl-logo.png'
+import appStyle from 'assets/jss/material-dashboard-react/appStyle.jsx'
+
+import CalculatorScreen from 'screens/CalculatorScreen'
+
+const mainPanelClasses = cx({
+  width: 'auto',
+})
 
 class App extends Component {
   render() {
+    const { classes } = this.props
+
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
+      <div className={classes.wrapper}>
+        <div className={classes.mainPanel + mainPanelClasses} ref="mainPanel">
+          <AppBar className={classes.appBar}>
+            <Toolbar className={classes.container}>
+              <div className={classes.flex}>
+                <img
+                  src={logo}
+                  alt="BPL logo"
+                  style={{ float: 'left', height: '40px' }}
+                />
+                <Button href="#" className={classes.title}>
+                  Delegate Reward Calculator
+                </Button>
+              </div>
+            </Toolbar>
+          </AppBar>
+
+          <div className={classes.content}>
+            <CalculatorScreen />
+          </div>
+        </div>
       </div>
     )
   }
 }
 
-export default App
+export default withStyles(appStyle)(App)
