@@ -1,19 +1,22 @@
 import React, { Component } from 'react'
+import { inject, observer } from 'mobx-react'
 
 import { Tab, Tabs, withStyles } from '@material-ui/core'
 import tasksCardStyle from 'assets/jss/material-dashboard-react/tasksCardStyle'
 
-class DateRangeTabs extends Component {
-  state = {
-    selectedDateRangeIndex: 2,
-  }
+const timeSpans = ['Per Day', 'Per Week', 'Per Month', 'Rest Of Year']
 
-  handleChange(selectedDateRangeIndex) {
-    this.setState(s => Object.assign({}, s, { selectedDateRangeIndex }))
+@inject('ui')
+@observer
+class DateRangeTabs extends Component {
+  onTimeSpanChange = (_, i) => {
+    const { ui } = this.props
+
+    ui.setTimeSpan(timeSpans[i])
   }
 
   render() {
-    const { classes } = this.props
+    const { classes, ui } = this.props
 
     return (
       <Tabs
@@ -21,11 +24,11 @@ class DateRangeTabs extends Component {
           flexContainer: classes.tabsContainer,
           indicator: classes.displayNone,
         }}
-        value={this.state.selectedDateRangeIndex}
-        onChange={(_, i) => this.handleChange(i)}
+        value={timeSpans.indexOf(ui.timeSpan)}
+        onChange={this.onTimeSpanChange}
         textColor="inherit"
       >
-        {['Per Day', 'Per Week', 'Per Month', 'Rest Of Year'].map(label => (
+        {timeSpans.map(label => (
           <Tab
             classes={{
               wrapper: classes.tabWrapper,

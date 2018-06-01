@@ -1,22 +1,27 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import './index.css'
-import App from './App'
-import registerServiceWorker from './registerServiceWorker'
 
 import { createBrowserHistory } from 'history'
+import { Provider } from 'mobx-react'
 import { Router, Route, Switch } from 'react-router-dom'
 
+import App from './App'
 import 'assets/css/material-dashboard-react.css?v=1.2.0'
+import './index.css'
+import registerServiceWorker from './registerServiceWorker'
+import UiStore from './stores/UiStore'
 
 const hist = createBrowserHistory()
+const uiStore = new UiStore()
 
 ReactDOM.render(
-  <Router history={hist}>
-    <Switch>
-      <Route path="/" component={App} />
-    </Switch>
-  </Router>,
+  <Provider ui={uiStore}>
+    <Router history={hist}>
+      <Switch>
+        <Route path="/" component={App} />
+      </Switch>
+    </Router>
+  </Provider>,
   document.getElementById('root')
 )
 registerServiceWorker()

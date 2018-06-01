@@ -1,18 +1,21 @@
 import React, { Component, Fragment } from 'react'
+import { inject, observer } from 'mobx-react'
 
 import { TextField } from '@material-ui/core'
 import { RegularCard } from 'components'
 
+@inject('ui')
+@observer
 export default class DelegateStake extends Component {
-  state = {
-    stake: 75000,
-  }
+  onStakeChange = evt => {
+    const { ui } = this.props
 
-  onStakeChange(stake) {
-    this.setState(s => Object.assign({}, { stake }))
+    ui.setStake(evt.target.value)
   }
 
   render() {
+    const { ui } = this.props
+
     return (
       <RegularCard
         raised
@@ -22,8 +25,8 @@ export default class DelegateStake extends Component {
           <Fragment>
             <TextField
               type="number"
-              onChange={evt => this.onStakeChange(evt.target.value)}
-              value={this.state.stake}
+              onChange={this.onStakeChange}
+              value={ui.delegateStake.toString()}
             />
           </Fragment>
         }

@@ -1,24 +1,24 @@
 import React, { Component } from 'react'
 
+import { inject, observer } from 'mobx-react'
 import { Grid, Select, TextField } from '@material-ui/core'
 import { ItemGrid, RegularCard } from 'components'
 
-export default class BplPrice extends Component {
-  state = {
-    currencies: ['AUD', 'BTC', 'CNY', 'EUR', 'GBP', 'USD'],
-    price: '0.0000',
-    selectedCurrency: 'USD',
+@inject('ui')
+@observer
+class BplPrice extends Component {
+  onCurrencyChange = evt => {
+    this.props.ui.setCurrency(evt.target.value)
   }
 
-  onCurrencyChange(val) {
-    this.setState(s => Object.assign({}, s, { selectedCurrency: val }))
-  }
-
-  onPriceChange(price) {
-    this.setState(s => Object.assign({}, s, { price }))
+  onPriceChange = evt => {
+    this.props.ui.setPrice(evt.target.value)
   }
 
   render() {
+    const { ui } = this.props
+    const currencies = ['AUD', 'BTC', 'CNY', 'EUR', 'GBP', 'USD']
+
     return (
       <RegularCard
         raised
@@ -29,17 +29,17 @@ export default class BplPrice extends Component {
             <ItemGrid xs={12} sm={7}>
               <TextField
                 type="number"
-                onChange={evt => this.onPriceChange(evt.target.value)}
-                value={this.state.price}
+                onChange={this.onPriceChange}
+                value={ui.bplPrice.toString()}
               />
             </ItemGrid>
             <ItemGrid xs={12} sm={5}>
               <Select
                 native
-                onChange={evt => this.onCurrencyChange(evt.target.value)}
-                value={this.state.selectedCurrency}
+                onChange={this.onCurrencyChange}
+                value={ui.currency}
               >
-                {this.state.currencies.map(currency => (
+                {currencies.map(currency => (
                   <option key={currency}>{currency}</option>
                 ))}
               </Select>
@@ -52,6 +52,7 @@ export default class BplPrice extends Component {
   }
 }
 
+export default BplPrice
 /*
 
                 <div className="card-footer text-muted">
