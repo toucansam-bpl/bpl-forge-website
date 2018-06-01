@@ -8,25 +8,53 @@ import FixedReward from '../domain/rewards/rewardParts/FixedReward'
 import InterestReward from '../domain/rewards/rewardParts/InterestReward'
 
 export default class UiStore {
-  constructor() {
-    const feeReward = new FeeReward()
+  constructor(bitApi, nodeApi, priceApi) {
+    const feeReward = new FeeReward(nodeApi)
     const fixedReward = new FixedReward(this)
     const interestReward = new InterestReward(this)
 
+    this.bitApi = bitApi
+    this.nodeApi = nodeApi
+    this.priceApi = priceApi
     this.rewardCalculator = new BlockRewardCalculator([
+      feeReward,
       fixedReward,
       interestReward,
     ])
 
-    feeReward.addBlockFee('0.00100862')
+    this.init()
   }
 
-  @observable bplPrice = Big(0.1254)
-  @observable bplSupply = Big(25000000)
+  async init() {
+    const bplInfo = await this.bitApi.getCurrentSupply()
+
+    this.bplSupply = Big(bplInfo.supply)
+    this.prices = await this.priceApi.getBplPrice(this.prices)
+  }
+
+  @observable bplSupply = Big(0)
   @observable currency = 'USD'
   @observable delegateStake = Big(75000)
+  @observable enteredPrice = 0
+  @observable isUsingEnteredPrice = false
   @observable isUsingFixedReward = false
+  @observable
+  prices = {
+    AUD: 0,
+    BTC: 0,
+    CNY: 0,
+    EUR: 0,
+    GBP: 0,
+    USD: 0,
+  }
   @observable timeSpan = 'Per Month'
+
+  @computed
+  get activePrice() {
+    return this.isUsingEnteredPrice
+      ? this.enteredPrice
+      : this.prices[this.currency]
+  }
 
   @computed
   get blockReward() {
@@ -40,12 +68,17 @@ export default class UiStore {
 
   @computed
   get estimatedCurrencyReward() {
-    return this.estimatedBplReward.times(this.bplPrice)
+    return this.estimatedBplReward.times(this.activePrice)
   }
 
   @computed
   get marketCap() {
-    return this.bplPrice.times(this.bplSupply)
+    return this.bplSupply.times(this.activePrice)
+  }
+
+  @action
+  resetPrice() {
+    this.isUsingEnteredPrice = false
   }
 
   @action
@@ -59,8 +92,14 @@ export default class UiStore {
   }
 
   @action
-  setPrice(price) {
-    this.bplPrice = Big(price)
+  setEnteredPrice(price) {
+    this.isUsingEnteredPrice = true
+    this.enteredPrice = price
+  }
+
+  @action
+  setPrices(prices) {
+    this.prices = prices
   }
 
   @action

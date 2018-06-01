@@ -12,7 +12,7 @@ class BplPrice extends Component {
   }
 
   onPriceChange = evt => {
-    this.props.ui.setPrice(evt.target.value)
+    this.props.ui.setEnteredPrice(evt.target.value)
   }
 
   render() {
@@ -30,7 +30,7 @@ class BplPrice extends Component {
               <TextField
                 type="number"
                 onChange={this.onPriceChange}
-                value={ui.bplPrice.toString()}
+                value={ui.activePrice}
               />
             </ItemGrid>
             <ItemGrid xs={12} sm={5}>
