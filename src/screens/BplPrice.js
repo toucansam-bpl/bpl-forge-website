@@ -1,8 +1,21 @@
 import React, { Component } from 'react'
 
 import { inject, observer } from 'mobx-react'
-import { Grid, Select, TextField } from '@material-ui/core'
+import { Button, Grid, Select, TextField } from '@material-ui/core'
 import { ItemGrid, RegularCard } from 'components'
+
+const EnteredPrice = inject('ui')(
+  observer(({ ui }) => (
+    <div>
+      This price has been entered, it may not be the current actual price.
+      <Button onClick={() => ui.resetPrice()}>Reload Current Price</Button>
+    </div>
+  ))
+)
+
+const CurrentPrice = inject('ui')(
+  observer(({ ui }) => <div>As of {ui.priceLoadedDate}</div>)
+)
 
 @inject('ui')
 @observer
@@ -46,23 +59,10 @@ class BplPrice extends Component {
             </ItemGrid>
           </Grid>
         }
-        statText="Stake includes BPL held by the delegate as well as BPL from all addresses voting for the delegate."
+        footer={ui.isUsingEnteredPrice ? <EnteredPrice /> : <CurrentPrice />}
       />
     )
   }
 }
 
 export default BplPrice
-/*
-
-                <div className="card-footer text-muted">
-                  <div id="price-loading">Loading...</div>
-                  <div id="price-load-date" style={{ display: 'none'}}>
-                    As of May 2, 2018 1:09 PM
-                  </div>
-                  <div id="user-entered-price" className="text-info" style={{display: 'none'}}>
-                    This price has been entered, it may not be the current actual price.
-                    <button type="button" id="reset-price" className="btn btn-primary">Reload Current Price</button>
-                  </div>
-                </div>
-                */

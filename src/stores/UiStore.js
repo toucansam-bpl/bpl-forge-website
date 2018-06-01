@@ -38,6 +38,7 @@ export default class UiStore {
   @observable enteredPrice = 0
   @observable isUsingEnteredPrice = false
   @observable isUsingFixedReward = false
+  @observable priceLoadedDate = new Date().toLocaleString()
   @observable
   prices = {
     AUD: 0,

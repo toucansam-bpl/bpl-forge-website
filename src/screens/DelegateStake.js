@@ -30,7 +30,12 @@ export default class DelegateStake extends Component {
             />
           </Fragment>
         }
-        statText="Stake includes BPL held by the delegate as well as BPL from all addresses voting for the delegate."
+        footer={
+          <div>
+            Stake includes BPL held by the delegate as well as BPL from all
+            addresses voting for the delegate.
+          </div>
+        }
       />
     )
   }
