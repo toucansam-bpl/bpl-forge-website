@@ -47,6 +47,7 @@ class BplInfoDisplay extends Component {
               <FormControlLabel
                 control={
                   <Checkbox
+                    color="primary"
                     checked={ui.isUsingFixedReward}
                     onChange={this.onFixedRewardChange}
                     value="isIncludingFixedReward"

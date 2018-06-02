@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import cx from 'classnames'
 
-import { withStyles, AppBar, Toolbar, Button } from '@material-ui/core'
+import { AppBar, Toolbar, Typography, withStyles } from '@material-ui/core'
 
 import './App.css'
 import logo from 'assets/img/bpl-logo.png'
@@ -21,17 +21,17 @@ class App extends Component {
       <div className={classes.wrapper}>
         <div className={classes.mainPanel + mainPanelClasses} ref="mainPanel">
           <AppBar className={classes.appBar}>
-            <Toolbar className={classes.container}>
-              <div className={classes.flex}>
+            <Toolbar>
+              <Typography variant="title" color="inherit">
                 <img
                   src={logo}
                   alt="BPL logo"
-                  style={{ float: 'left', height: '40px' }}
+                  style={{ height: '1.16667em', verticalAlign: 'bottom' }}
                 />
-                <Button href="#" className={classes.title}>
+                <span style={{ marginLeft: '15px' }}>
                   Delegate Reward Calculator
-                </Button>
-              </div>
+                </span>
+              </Typography>
             </Toolbar>
           </AppBar>
 

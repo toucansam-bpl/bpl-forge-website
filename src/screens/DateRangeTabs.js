@@ -9,10 +9,10 @@ const timeSpans = ['Per Day', 'Per Week', 'Per Month', 'Rest Of Year']
 @inject('ui')
 @observer
 class DateRangeTabs extends Component {
-  onTimeSpanChange = (_, i) => {
+  onTimeSpanChange = (_, timeSpan) => {
     const { ui } = this.props
 
-    ui.setTimeSpan(timeSpans[i])
+    ui.setTimeSpan(timeSpan)
   }
 
   render() {
@@ -24,7 +24,7 @@ class DateRangeTabs extends Component {
           flexContainer: classes.tabsContainer,
           indicator: classes.displayNone,
         }}
-        value={timeSpans.indexOf(ui.timeSpan)}
+        value={ui.timeSpan}
         onChange={this.onTimeSpanChange}
         textColor="inherit"
       >
@@ -37,6 +37,7 @@ class DateRangeTabs extends Component {
             }}
             key={label}
             label={label}
+            value={label}
           />
         ))}
       </Tabs>

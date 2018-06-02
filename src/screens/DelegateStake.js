@@ -19,7 +19,7 @@ export default class DelegateStake extends Component {
     return (
       <RegularCard
         raised
-        headerColor="orange"
+        headerColor="purple"
         cardTitle="Delegate Stake (BPL)"
         content={
           <Fragment>
