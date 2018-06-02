@@ -24,6 +24,7 @@ export default class DelegateStake extends Component {
         content={
           <Fragment>
             <TextField
+              fullWidth
               type="number"
               onChange={this.onStakeChange}
               value={ui.delegateStake.toString()}

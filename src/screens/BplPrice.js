@@ -38,16 +38,18 @@ class BplPrice extends Component {
         headerColor="purple"
         cardTitle="BPL Price"
         content={
-          <Grid>
-            <ItemGrid xs={12} sm={7}>
+          <Grid container spacing={16}>
+            <Grid item xs={12} sm={7}>
               <TextField
-                type="number"
+                fullWidth
                 onChange={this.onPriceChange}
+                type="number"
                 value={ui.activePrice}
               />
-            </ItemGrid>
-            <ItemGrid xs={12} sm={5}>
+            </Grid>
+            <Grid item xs={12} sm={5}>
               <Select
+                fullWidth
                 native
                 onChange={this.onCurrencyChange}
                 value={ui.currency}
@@ -56,7 +58,7 @@ class BplPrice extends Component {
                   <option key={currency}>{currency}</option>
                 ))}
               </Select>
-            </ItemGrid>
+            </Grid>
           </Grid>
         }
         footer={ui.isUsingEnteredPrice ? <EnteredPrice /> : <CurrentPrice />}
