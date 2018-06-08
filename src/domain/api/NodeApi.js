@@ -26,6 +26,10 @@ async function makeApiRequest(url, params) {
 }
 
 export default class NodeApi {
+  async getActiveDelegates() {
+    return makeApiRequest('delegates', 0, 201)
+  }
+
   async getBlocks(offset = 0, limit = 100) {
     return makeApiRequest('blocks', { limit, offset })
   }

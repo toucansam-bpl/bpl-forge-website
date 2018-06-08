@@ -22,3 +22,6 @@ https://medium.com/dailyjs/mobx-react-best-practices-17e01cec4140
 ## VS Code
 https://ihatetomatoes.net/how-to-remove-experimentaldecorators-warning-in-vscode/
 
+## Server
+https://medium.com/@timmykko/deploying-create-react-app-with-nginx-and-ubuntu-e6fe83c5e9e7
+
