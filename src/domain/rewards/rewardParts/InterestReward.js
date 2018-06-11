@@ -4,12 +4,12 @@ import { computed } from 'mobx'
 const interestPerBlock = Big('0.000005235866863')
 
 export default class InterestReward {
-  constructor(uiStore) {
-    this.uiStore = uiStore
+  constructor(stakeProvider) {
+    this.stakeProvider = stakeProvider
   }
 
   @computed
   get reward() {
-    return this.uiStore.delegateStake.times(interestPerBlock)
+    return this.stakeProvider.delegateStake.times(interestPerBlock)
   }
 }

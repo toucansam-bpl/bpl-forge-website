@@ -12,14 +12,25 @@ import DelegateStore from './stores/DelegateStore'
 import './index.css'
 import NodeApi from './domain/api/NodeApi'
 import PriceApi from './domain/api/PriceApi'
+import FeeReward from './domain/rewards/rewardParts/FeeReward'
 import registerServiceWorker from './registerServiceWorker'
+import SelectedDelegateStore from './stores/SelectedDelegateStore'
 import UiStore from './stores/UiStore'
 
 const hist = createBrowserHistory()
 const nodeApi = new NodeApi()
+const feeReward = new FeeReward(nodeApi)
+const delegateStore = new DelegateStore(nodeApi)
+const priceApi = new PriceApi()
 const stores = {
-  ui: new UiStore(new BitApi(), nodeApi, new PriceApi()),
-  delegateStore: new DelegateStore(nodeApi),
+  delegateStore,
+  selectedDelegateStore: new SelectedDelegateStore(
+    feeReward,
+    delegateStore,
+    nodeApi,
+    priceApi
+  ),
+  ui: new UiStore(new BitApi(), nodeApi, priceApi),
 }
 
 ReactDOM.render(

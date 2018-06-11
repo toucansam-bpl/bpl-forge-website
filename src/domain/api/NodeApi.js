@@ -33,4 +33,15 @@ export default class NodeApi {
   async getBlocks(offset = 0, limit = 100) {
     return makeApiRequest('blocks', { limit, offset })
   }
+
+  async getRewardBlocks(generatorPublicKey) {
+    return makeApiRequest('blocks', { generatorPublicKey })
+  }
+
+  async getTransactions(address) {
+    return makeApiRequest('transactions', {
+      senderId: address,
+      recipientId: address,
+    })
+  }
 }
