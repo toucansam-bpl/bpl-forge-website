@@ -1,7 +1,7 @@
 import Big from 'big-js'
 import { computed } from 'mobx'
 
-const interestPerBlock = Big('0.000005235866863')
+const interestPerBlock = Big('0.000005395150484435337')
 
 export default class InterestReward {
   constructor(stakeProvider) {
