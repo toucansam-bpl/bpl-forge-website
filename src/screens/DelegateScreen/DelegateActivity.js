@@ -1,10 +1,18 @@
 import React, { Component } from 'react'
 
-import { Grid } from '@material-ui/core'
-import { RegularCard, Table, ItemGrid } from 'components'
+import {
+  Grid,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+} from '@material-ui/core'
+import { RegularCard, Table as DashboardTable, ItemGrid } from 'components'
 import { inject, observer } from 'mobx-react'
 import { Link } from 'react-router-dom'
 
+import { getMilliseconds } from '../../util/apiConverter'
 import toCryptoFormat from '../../util/toCryptoFormat'
 import fromApiString from '../../util/fromApiString'
 
@@ -12,7 +20,8 @@ import fromApiString from '../../util/fromApiString'
 @observer
 export default class DelegateActivity extends Component {
   render() {
-    const { selectedDelegateStore } = this.props
+    const { selectedDelegateStore: sds } = this.props
+    const classes = {}
 
     return (
       <Grid container>
@@ -21,13 +30,13 @@ export default class DelegateActivity extends Component {
             cardTitle="Latest Rewards"
             cardSubtitle=""
             content={
-              <Table
+              <DashboardTable
                 tableHeaderColor="primary"
                 tableHead={['Date', 'Block', 'Amount']}
-                tableData={selectedDelegateStore.rewardBlocks.map(b => [
-                  b.timestamp,
+                tableData={sds.rewardBlocks.map(b => [
+                  new Date(getMilliseconds(b.timestamp)).toLocaleString(),
                   b.id,
-                  toCryptoFormat(fromApiString(b.reward)),
+                  toCryptoFormat(fromApiString(b.reward)).toLocaleString(),
                 ])}
               />
             }
@@ -38,18 +47,44 @@ export default class DelegateActivity extends Component {
             cardTitle="Latest Transactions"
             cardSubtitle=""
             content={
-              <Table
-                tableHeaderColor="primary"
-                tableHead={['Date', 'From', 'To', 'Transaction', 'Amount']}
-                tableData={selectedDelegateStore.transactions.map(t => [
-                  t.timestamp,
-                  t.recipientId,
-                  t.senderId,
-                  t.id,
-                  toCryptoFormat(fromApiString(t.amount)),
-                  toCryptoFormat(fromApiString(t.fee)),
-                ])}
-              />
+              <Table className={classes.table}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Transaction</TableCell>
+                    <TableCell>From</TableCell>
+                    <TableCell>To</TableCell>
+                    <TableCell numeric>Amount</TableCell>
+                    <TableCell numeric>Fee</TableCell>
+                    <TableCell>Date</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {sds.transactionsByDate.map(t => {
+                    return (
+                      <TableRow className={classes.row} key={t.id}>
+                        <TableCell component="th" scope="row">
+                          {t.id}
+                        </TableCell>
+                        <TableCell>{t.senderId}</TableCell>
+                        <TableCell>{t.recipientId}</TableCell>
+                        <TableCell numeric>
+                          {toCryptoFormat(
+                            fromApiString(t.amount)
+                          ).toLocaleString()}
+                        </TableCell>
+                        <TableCell numeric>
+                          {toCryptoFormat(fromApiString(t.fee))}
+                        </TableCell>
+                        <TableCell>
+                          {new Date(
+                            getMilliseconds(t.timestamp)
+                          ).toLocaleString()}
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
             }
           />
         </ItemGrid>

@@ -1,11 +1,10 @@
 import React, { Component } from 'react'
 
 import { Grid } from '@material-ui/core'
-import { RegularCard, Table, ItemGrid } from 'components'
+import { Table, ItemGrid } from 'components'
 import { inject, observer } from 'mobx-react'
-import { Link } from 'react-router-dom'
 
-import toCryptoFormat from '../../util/toCryptoFormat'
+import toCryptoFormat, { formatWithoutDigits } from '../../util/toCryptoFormat'
 import fromApiString from '../../util/fromApiString'
 import toCurrencyFormat from '../../util/toCurrencyFormat'
 
@@ -13,26 +12,33 @@ import toCurrencyFormat from '../../util/toCurrencyFormat'
 @observer
 export default class DelegateInfo extends Component {
   render() {
-    const { selectedDelegateStore } = this.props
-    const sds = selectedDelegateStore
+    const { selectedDelegateStore: sds } = this.props
 
     return (
       <Grid container>
         <ItemGrid xs={12} sm={6}>
           <div>
-            <h2>Delegate Stake</h2>
-            <h3>
-              {toCryptoFormat(
-                fromApiString(selectedDelegateStore.selectedDelegate.vote)
-              )}{' '}
-              BPL
-            </h3>
+            <h5>
+              {formatWithoutDigits(fromApiString(sds.selectedDelegate.vote))}{' '}
+              BPL ({toCurrencyFormat(
+                sds.delegateCurrencyValue,
+                sds.price.currency
+              )})
+            </h5>
+
+            <Table
+              tableHeaderColor="primary"
+              tableHead={['Voter', 'BPL']}
+              tableData={sds.voters.map(v => [
+                v.username || v.address,
+                formatWithoutDigits(fromApiString(v.balance)),
+              ])}
+            />
           </div>
         </ItemGrid>
 
         <ItemGrid xs={12} sm={6}>
           <div>
-            <h2>Estimated Reward</h2>
             <Table
               tableHeaderColor="primary"
               tableHead={['Time Period', 'BPL', 'Currency']}

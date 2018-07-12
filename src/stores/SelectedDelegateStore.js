@@ -1,6 +1,5 @@
 import { action, computed, observable } from 'mobx'
 import { asyncComputed } from 'computed-async-mobx'
-import { fromPromise } from 'mobx-utils'
 
 import fromApiString from '../util/fromApiString'
 import PriceStore from './PriceStore'
@@ -30,7 +29,19 @@ export default class SelectedDelegateStore {
     return transactions
   })
 
+  votersGetter = asyncComputed({ accounts: [] }, 500, async () => {
+    if (!this.hasSelectedDelegate) return { accounts: [] }
+
+    const voters = await this.nodeApi.getVoters(this.selectedDelegate.publicKey)
+    return voters
+  })
+
   @observable address = ''
+
+  @computed
+  get delegateCurrencyValue() {
+    return this.delegateStake.times(this.price.activePrice)
+  }
 
   @computed
   get delegateStake() {
@@ -55,6 +66,16 @@ export default class SelectedDelegateStore {
   @computed
   get transactions() {
     return this.transactionsGetter.get().transactions
+  }
+
+  @computed
+  get transactionsByDate() {
+    return this.transactions.sort((a, b) => b.timestamp - a.timestamp)
+  }
+
+  @computed
+  get voters() {
+    return this.votersGetter.get().accounts
   }
 
   @action

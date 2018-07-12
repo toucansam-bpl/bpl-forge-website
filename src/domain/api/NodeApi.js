@@ -44,4 +44,8 @@ export default class NodeApi {
       recipientId: address,
     })
   }
+
+  async getVoters(publicKey) {
+    return makeApiRequest('delegates/voters', { publicKey })
+  }
 }
