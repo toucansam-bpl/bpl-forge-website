@@ -3,6 +3,7 @@ import { asyncComputed } from 'computed-async-mobx'
 
 import fromApiString from '../util/fromApiString'
 import PriceStore from './PriceStore'
+import { BottomNavigation } from '../../node_modules/@material-ui/core'
 
 export default class SelectedDelegateStore {
   constructor(feeReward, delegateStore, nodeApi, priceApi) {
@@ -75,7 +76,13 @@ export default class SelectedDelegateStore {
 
   @computed
   get voters() {
-    return this.votersGetter.get().accounts
+    const accounts = this.votersGetter.get().accounts
+    accounts.sort((aRaw, bRaw) => {
+      const a = fromApiString(aRaw.balance)
+      const b = fromApiString(bRaw.balance)
+      return a.gt(b) ? -1 : a.lt(b) ? 1 : 0
+    })
+    return accounts
   }
 
   @action
