@@ -14,6 +14,7 @@ import tableStyle from "assets/jss/material-dashboard-react/tableStyle";
 
 function CustomTable({ ...props }) {
   const { classes, tableHead, tableData, tableHeaderColor } = props;
+  const columnFormat = props.columnFormat || {}
   return (
     <div className={classes.tableResponsive}>
       <Table className={classes.table}>
@@ -25,6 +26,7 @@ function CustomTable({ ...props }) {
                   <TableCell
                     className={classes.tableCell + " " + classes.tableHeadCell}
                     key={key}
+                    numeric={columnFormat[key]}
                   >
                     {prop}
                   </TableCell>
@@ -39,7 +41,7 @@ function CustomTable({ ...props }) {
               <TableRow key={key}>
                 {prop.map((prop, key) => {
                   return (
-                    <TableCell className={classes.tableCell} key={key}>
+                    <TableCell className={classes.tableCell} key={key} numeric={columnFormat[key]}>
                       {prop}
                     </TableCell>
                   );

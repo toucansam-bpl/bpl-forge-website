@@ -3,13 +3,11 @@ import React, { Component, Fragment } from 'react'
 import { Grid } from '@material-ui/core'
 import { RegularCard, Table, ItemGrid } from 'components'
 import { inject, observer } from 'mobx-react'
-import { Link } from 'react-router-dom'
 
-import toCryptoFormat from '../../util/toCryptoFormat'
-import fromApiString from '../../util/fromApiString'
 import BplPrice from '../BplPrice'
 import DelegateActivity from './DelegateActivity'
 import DelegateInfo from './DelegateInfo'
+import EstimatedReward from './EstimatedReward'
 
 @inject('selectedDelegateStore')
 @observer
@@ -44,6 +42,7 @@ export default class DelegateScreen extends Component {
 
           <ItemGrid xs={12} sm={3}>
             <BplPrice />
+            <EstimatedReward />
           </ItemGrid>
         </Grid>
         <DelegateActivity />
