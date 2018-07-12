@@ -26,7 +26,7 @@ export default class DelegateScreen extends Component {
     return (
       <Fragment>
         <Grid container>
-          <ItemGrid xs={12} sm={9}>
+          <ItemGrid xs={12} sm={8}>
             <RegularCard
               cardTitle={title}
               cardSubtitle=""
@@ -40,7 +40,7 @@ export default class DelegateScreen extends Component {
             />
           </ItemGrid>
 
-          <ItemGrid xs={12} sm={3}>
+          <ItemGrid xs={12} sm={4}>
             <BplPrice />
             <EstimatedReward />
           </ItemGrid>
