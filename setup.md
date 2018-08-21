@@ -1,27 +1,27 @@
-# Setup Notes for the app
+# BPL Forge Website
 
-## Initial Creation
-https://github.com/facebook/create-react-app
+## Initial Project Setup
 
-https://medium.com/@eliotjunior/prettier-eslint-facebook-code-quality-the-auto-magical-react-styling-tutorial-19481acb10dd
+### SSR Tutorials
 
-https://prettier.io/docs/en/options.html
-https://medium.com/@BoweiHan/instantly-improve-your-code-by-setting-up-eslint-in-your-react-npm-project-34face702cbe
-https://medium.com/@BoweiHan/instantly-improve-your-code-by-setting-up-eslint-in-your-react-npm-project-34face702cbe
+#### [react router ssr](https://tylermcginnis.com/react-router-server-rendering/)
 
-### Rewire UI to enable decorators
-https://github.com/timarney/react-app-rewired#how-to-rewire-your-create-react-app-project
-https://github.com/timarney/react-app-rewired/tree/master/packages/react-app-rewire-mobx
+This was modified to use the latest versions babel and webpack. I also had to update the babel section of the `package.json` file.
 
-## UI
-Material Dashboard React
+#### [react code splitting ssr](https://medium.com/bucharestjs/upgrading-a-create-react-app-project-to-a-ssr-code-splitting-setup-9da57df2040a)
 
-## State Management
-https://medium.com/dailyjs/mobx-react-best-practices-17e01cec4140
+I used the response logic from this to make it easier to serve up an html file from public directory.
 
-## VS Code
-https://ihatetomatoes.net/how-to-remove-experimentaldecorators-warning-in-vscode/
 
-## Server
-https://medium.com/@timmykko/deploying-create-react-app-with-nginx-and-ubuntu-e6fe83c5e9e7
+#### [material-ui ssr](https://material-ui.com/guides/server-rendering/)
+
+
+To get async/await working: https://babeljs.io/docs/en/next/babel-polyfill
+
+To get __dirname working: https://github.com/webpack/webpack/issues/1599
+
+### State Management
+
+Async tasks with Mobx https://github.com/jeffijoe/mobx-task
+
 
