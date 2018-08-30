@@ -77,7 +77,8 @@ const serverConfig = {
     new webpack.DefinePlugin({
       __isBrowser__: "false"
     })
-  ]
+  ],
+  devtool: 'source-map',
 }
 
 module.exports = [browserConfig, serverConfig]

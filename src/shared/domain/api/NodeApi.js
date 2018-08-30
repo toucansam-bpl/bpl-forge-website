@@ -17,6 +17,7 @@ async function makeApiRequest(url, params) {
       if (response.success) {
         resolve(response)
       } else {
+        console.log(response)
         reject(new Error(`Request did not complete successfully.`))
       }
     } catch (err) {

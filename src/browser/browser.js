@@ -8,8 +8,10 @@ import red from '@material-ui/core/colors/red'
 
 
 import App from '../shared/App'
+import BlockStore from '../shared/stores/BlockStore'
 import NodeApi from '../shared/domain/api/NodeApi'
 import RoundStore from '../shared/stores/RoundStore'
+import SlotStore from '../shared/stores/SlotStore'
 
 
 class Main extends React.Component {
@@ -35,13 +37,19 @@ const theme = createMuiTheme({
   },
 })
 
-const roundStore = new RoundStore(new NodeApi())
+const nodeApi = new NodeApi()
+const roundStore = new RoundStore(nodeApi)
+const blockStore = new BlockStore(nodeApi, roundStore)
+const slotStore = new SlotStore(nodeApi, blockStore, roundStore)
 
 const stores = {
+  blockStore,
   roundStore,
+  slotStore,
 }
 
 roundStore.init()
+slotStore.init()
 
 hydrate(
   <MuiThemeProvider theme={theme}>

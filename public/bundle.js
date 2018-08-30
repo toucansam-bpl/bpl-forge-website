@@ -83110,9 +83110,13 @@ var _red = _interopRequireDefault(__webpack_require__(/*! @material-ui/core/colo
 
 var _App = _interopRequireDefault(__webpack_require__(/*! ../shared/App */ "./src/shared/App.js"));
 
+var _BlockStore = _interopRequireDefault(__webpack_require__(/*! ../shared/stores/BlockStore */ "./src/shared/stores/BlockStore.js"));
+
 var _NodeApi = _interopRequireDefault(__webpack_require__(/*! ../shared/domain/api/NodeApi */ "./src/shared/domain/api/NodeApi.js"));
 
 var _RoundStore = _interopRequireDefault(__webpack_require__(/*! ../shared/stores/RoundStore */ "./src/shared/stores/RoundStore.js"));
+
+var _SlotStore = _interopRequireDefault(__webpack_require__(/*! ../shared/stores/SlotStore */ "./src/shared/stores/SlotStore.js"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -83173,11 +83177,17 @@ var theme = (0, _styles.createMuiTheme)({
     type: 'light'
   }
 });
-var roundStore = new _RoundStore.default(new _NodeApi.default());
+var nodeApi = new _NodeApi.default();
+var roundStore = new _RoundStore.default(nodeApi);
+var blockStore = new _BlockStore.default(nodeApi, roundStore);
+var slotStore = new _SlotStore.default(nodeApi, blockStore, roundStore);
 var stores = {
-  roundStore: roundStore
+  blockStore: blockStore,
+  roundStore: roundStore,
+  slotStore: slotStore
 };
 roundStore.init();
+slotStore.init();
 (0, _reactDom.hydrate)(_react.default.createElement(_styles.MuiThemeProvider, {
   theme: theme
 }, _react.default.createElement(_mobxReact.Provider, stores, _react.default.createElement(_reactRouterDom.BrowserRouter, null, _react.default.createElement(Main, null)))), document.querySelector('#root'));
@@ -83442,10 +83452,10 @@ exports.default = DelegateScreen;
 
 /***/ }),
 
-/***/ "./src/shared/RoundScreen/RoundScreen.js":
-/*!***********************************************!*\
-  !*** ./src/shared/RoundScreen/RoundScreen.js ***!
-  \***********************************************/
+/***/ "./src/shared/RoundScreen/CompletedSlots.js":
+/*!**************************************************!*\
+  !*** ./src/shared/RoundScreen/CompletedSlots.js ***!
+  \**************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -83471,17 +83481,11 @@ var _Announcement = _interopRequireDefault(__webpack_require__(/*! @material-ui/
 
 var _CheckCircle = _interopRequireDefault(__webpack_require__(/*! @material-ui/icons/CheckCircle */ "./node_modules/@material-ui/icons/CheckCircle.js"));
 
-var _Update = _interopRequireDefault(__webpack_require__(/*! @material-ui/icons/Update */ "./node_modules/@material-ui/icons/Update.js"));
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -83547,15 +83551,109 @@ var CompletedMissedSlot = function CompletedMissedSlot(_ref3) {
   }));
 };
 
-var UpcomingSlot = function UpcomingSlot(_ref4) {
-  var slot = _ref4.slot,
-      name = _ref4.name,
-      timestamp = _ref4.timestamp;
-  return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(_Avatar.default, null, _react.default.createElement(_Update.default, null)), _react.default.createElement(_ListItemText.default, {
-    primary: "".concat(slot, " - ").concat(name),
-    secondary: "Expected at: ".concat(new Date(timestamp).toLocaleString())
-  }));
-};
+var CollapsableSlot = (0, _mobxReact.inject)('slotStore')((0, _mobxReact.observer)(function (_ref4) {
+  var slotStore = _ref4.slotStore;
+  return _react.default.createElement(_core.Collapse, {
+    component: _core.ListItem,
+    in: slotStore.slotInProcess.shouldBeVisible,
+    key: slotStore.slotInProcess.slot.slot,
+    timeout: 500,
+    onEntered: function onEntered() {
+      return slotStore.slotJoinedCompleted();
+    }
+  }, _react.default.createElement(CompletedSlot, slotStore.slotInProcess.slot));
+}));
+
+var CompletedSlots =
+/*#__PURE__*/
+function (_Component) {
+  _inherits(CompletedSlots, _Component);
+
+  function CompletedSlots() {
+    _classCallCheck(this, CompletedSlots);
+
+    return _possibleConstructorReturn(this, _getPrototypeOf(CompletedSlots).apply(this, arguments));
+  }
+
+  _createClass(CompletedSlots, [{
+    key: "render",
+    value: function render() {
+      var slotStore = this.props.slotStore;
+      var Incoming = slotStore.hasSlotInProcess && slotStore.slotInProcess.hasLeftUpcoming ? _react.default.createElement(CollapsableSlot, {
+        slot: slotStore.slotInProcess.slot,
+        store: slotStore
+      }) : null;
+      return _react.default.createElement(_react.default.Fragment, null, slotStore.init.match({
+        pending: function pending() {
+          return _react.default.createElement("div", null, "Loading, please wait..");
+        },
+        rejected: function rejected(err) {
+          return _react.default.createElement("div", null, "Error: ", err.message);
+        },
+        resolved: function resolved() {
+          return _react.default.createElement(_core.List, null, Incoming, slotStore.completedSlots.map(function (forger) {
+            return _react.default.createElement(_core.ListItem, {
+              key: forger.slot
+            }, _react.default.createElement(CompletedSlot, forger));
+          }));
+        }
+      }));
+    }
+  }]);
+
+  return CompletedSlots;
+}(_react.Component);
+
+var _default = (0, _mobxReact.inject)('slotStore')((0, _mobxReact.observer)(CompletedSlots));
+
+exports.default = _default;
+
+/***/ }),
+
+/***/ "./src/shared/RoundScreen/RoundScreen.js":
+/*!***********************************************!*\
+  !*** ./src/shared/RoundScreen/RoundScreen.js ***!
+  \***********************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _react = _interopRequireWildcard(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
+
+var _core = __webpack_require__(/*! @material-ui/core */ "./node_modules/@material-ui/core/index.es.js");
+
+var _CompletedSlots = _interopRequireDefault(__webpack_require__(/*! ./CompletedSlots */ "./src/shared/RoundScreen/CompletedSlots.js"));
+
+var _UpcomingSlots = _interopRequireDefault(__webpack_require__(/*! ./UpcomingSlots */ "./src/shared/RoundScreen/UpcomingSlots.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 var RoundScreen =
 /*#__PURE__*/
@@ -83563,126 +83661,146 @@ function (_Component) {
   _inherits(RoundScreen, _Component);
 
   function RoundScreen() {
-    var _getPrototypeOf2;
-
-    var _this;
-
     _classCallCheck(this, RoundScreen);
 
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-
-    _this = _possibleConstructorReturn(this, (_getPrototypeOf2 = _getPrototypeOf(RoundScreen)).call.apply(_getPrototypeOf2, [this].concat(args)));
-    _this.state = {
-      hasProcessedIncoming: false,
-      hasProcessedOutgoing: false
-    };
-    return _this;
+    return _possibleConstructorReturn(this, _getPrototypeOf(RoundScreen).apply(this, arguments));
   }
 
   _createClass(RoundScreen, [{
-    key: "incomingComplete",
-    value: function incomingComplete() {
-      console.log('incoming complete', this.state);
-
-      if (!this.state.hasProcessedIncoming) {
-        this.props.roundStore.completeSlotTransition();
-        this.setState(function (s) {
-          return _objectSpread({}, s, {
-            hasProcessedIncoming: true,
-            hasProcessedOutgoing: false
-          });
-        });
-      }
-    }
-  }, {
-    key: "outgoingComplete",
-    value: function outgoingComplete() {
-      console.log('outgoing complete', this.state);
-
-      if (!this.state.hasProcessedOutgoing) {
-        this.props.roundStore.transferSlots();
-        this.setState(function (s) {
-          return _objectSpread({}, s, {
-            hasProcessedIncoming: false,
-            hasProcessedOutgoing: true
-          });
-        });
-      }
-    }
-  }, {
     key: "render",
     value: function render() {
-      var _this2 = this;
-
-      var _this$props = this.props,
-          classes = _this$props.classes,
-          roundStore = _this$props.roundStore;
       return _react.default.createElement(_core.Grid, {
         container: true
       }, _react.default.createElement(_core.Grid, {
         item: true,
         xs: 8
-      }, roundStore.init.match({
-        pending: function pending() {
-          return _react.default.createElement("div", null, "Loading, please wait..");
-        },
-        rejected: function rejected(err) {
-          return _react.default.createElement("div", null, "Error: ", err.message);
-        },
-        resolved: function resolved() {
-          return _react.default.createElement(_core.List, null, roundStore.outgoingUpcomingSlots.map(function (forger) {
-            return _react.default.createElement(_core.Collapse, {
-              component: _core.ListItem,
-              in: !roundStore.hasOutgoingSlots,
-              key: forger.slot,
-              timeout: 500,
-              onExited: function onExited() {
-                return _this2.outgoingComplete();
-              }
-            }, _react.default.createElement(UpcomingSlot, forger));
-          }), roundStore.upcomingSlots.map(function (forger) {
-            return _react.default.createElement(_core.ListItem, {
-              key: forger.slot
-            }, _react.default.createElement(UpcomingSlot, forger));
-          }));
-        }
-      })), _react.default.createElement(_core.Grid, {
+      }, _react.default.createElement(_UpcomingSlots.default, null)), _react.default.createElement(_core.Grid, {
         item: true,
         xs: 4
-      }, roundStore.init.match({
-        pending: function pending() {
-          return _react.default.createElement("div", null, "Loading, please wait..");
-        },
-        rejected: function rejected(err) {
-          return _react.default.createElement("div", null, "Error: ", err.message);
-        },
-        resolved: function resolved() {
-          return _react.default.createElement(_core.List, null, roundStore.incomingCompletedSlots.map(function (forger) {
-            return _react.default.createElement(_core.Collapse, {
-              component: _core.ListItem,
-              in: roundStore.hasIncomingSlots,
-              key: forger.slot,
-              timeout: 500,
-              onEntered: function onEntered() {
-                return _this2.incomingComplete();
-              }
-            }, _react.default.createElement(CompletedSlot, forger));
-          }), roundStore.completedSlots.map(function (forger) {
-            return _react.default.createElement(_core.ListItem, {
-              key: forger.slot
-            }, _react.default.createElement(CompletedSlot, forger));
-          }));
-        }
-      })));
+      }, _react.default.createElement(_CompletedSlots.default, null)));
     }
   }]);
 
   return RoundScreen;
 }(_react.Component);
 
-var _default = (0, _core.withStyles)(styles)((0, _mobxReact.inject)('roundStore')((0, _mobxReact.observer)(RoundScreen)));
+exports.default = RoundScreen;
+
+/***/ }),
+
+/***/ "./src/shared/RoundScreen/UpcomingSlots.js":
+/*!*************************************************!*\
+  !*** ./src/shared/RoundScreen/UpcomingSlots.js ***!
+  \*************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _react = _interopRequireWildcard(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
+
+var _mobxReact = __webpack_require__(/*! mobx-react */ "./node_modules/mobx-react/index.module.js");
+
+var _core = __webpack_require__(/*! @material-ui/core */ "./node_modules/@material-ui/core/index.es.js");
+
+var _Avatar = _interopRequireDefault(__webpack_require__(/*! @material-ui/core/Avatar */ "./node_modules/@material-ui/core/Avatar/index.js"));
+
+var _ListItemText = _interopRequireDefault(__webpack_require__(/*! @material-ui/core/ListItemText */ "./node_modules/@material-ui/core/ListItemText/index.js"));
+
+var _Update = _interopRequireDefault(__webpack_require__(/*! @material-ui/icons/Update */ "./node_modules/@material-ui/icons/Update.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+var UpcomingSlot = function UpcomingSlot(_ref) {
+  var slot = _ref.slot,
+      name = _ref.name,
+      timestamp = _ref.timestamp;
+  return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(_Avatar.default, null, _react.default.createElement(_Update.default, null)), _react.default.createElement(_ListItemText.default, {
+    primary: "".concat(slot, " - ").concat(name),
+    secondary: "Expected at: ".concat(new Date(timestamp).toLocaleString())
+  }));
+};
+
+var CollapsableSlot = (0, _mobxReact.inject)('slotStore')((0, _mobxReact.observer)(function (_ref2) {
+  var slotStore = _ref2.slotStore;
+  return _react.default.createElement(_core.Collapse, {
+    component: _core.ListItem,
+    in: slotStore.slotInProcess.shouldBeVisible,
+    key: slotStore.slotInProcess.slot.slot,
+    timeout: 500,
+    onExited: function onExited() {
+      return slotStore.slotLeftUpcoming();
+    }
+  }, _react.default.createElement(UpcomingSlot, slotStore.slotInProcess.slot));
+}));
+
+var UpcomingSlots =
+/*#__PURE__*/
+function (_Component) {
+  _inherits(UpcomingSlots, _Component);
+
+  function UpcomingSlots() {
+    _classCallCheck(this, UpcomingSlots);
+
+    return _possibleConstructorReturn(this, _getPrototypeOf(UpcomingSlots).apply(this, arguments));
+  }
+
+  _createClass(UpcomingSlots, [{
+    key: "render",
+    value: function render() {
+      var slotStore = this.props.slotStore;
+      var Outgoing = slotStore.hasSlotInProcess && !slotStore.slotInProcess.hasLeftUpcoming ? _react.default.createElement(CollapsableSlot, {
+        slot: slotStore.slotInProcess.slot,
+        store: slotStore
+      }) : null;
+      return _react.default.createElement(_react.default.Fragment, null, slotStore.init.match({
+        pending: function pending() {
+          return _react.default.createElement("div", null, "Loading, please wait..");
+        },
+        rejected: function rejected(err) {
+          return _react.default.createElement("div", null, "Error: ", err.message);
+        },
+        resolved: function resolved() {
+          return _react.default.createElement(_core.List, null, Outgoing, slotStore.upcomingSlots.concat(slotStore.unprocessedSlots).map(function (forger) {
+            return _react.default.createElement(_core.ListItem, {
+              key: forger.slot
+            }, _react.default.createElement(UpcomingSlot, forger));
+          }));
+        }
+      }));
+    }
+  }]);
+
+  return UpcomingSlots;
+}(_react.Component);
+
+var _default = (0, _mobxReact.inject)('slotStore')((0, _mobxReact.observer)(UpcomingSlots));
 
 exports.default = _default;
 
@@ -83763,6 +83881,7 @@ function _makeApiRequest() {
                         if (response.success) {
                           resolve(response);
                         } else {
+                          console.log(response);
                           reject(new Error("Request did not complete successfully."));
                         }
 
@@ -83972,6 +84091,60 @@ exports.default = NodeApi;
 
 /***/ }),
 
+/***/ "./src/shared/domain/util/logger.js":
+/*!******************************************!*\
+  !*** ./src/shared/domain/util/logger.js ***!
+  \******************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.log = log;
+
+function log() {
+  console.log.apply(console, Array.prototype.slice.call(arguments, 0));
+}
+
+/***/ }),
+
+/***/ "./src/shared/domain/util/sorters.js":
+/*!*******************************************!*\
+  !*** ./src/shared/domain/util/sorters.js ***!
+  \*******************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.byDescending = exports.byAscending = void 0;
+
+var byAscending = function byAscending(prop) {
+  return function (a, b) {
+    return a[prop] > b[prop] ? 1 : b[prop] > a[prop] ? -1 : 0;
+  };
+};
+
+exports.byAscending = byAscending;
+
+var byDescending = function byDescending(prop) {
+  return function (a, b) {
+    return a[prop] > b[prop] ? -11 : b[prop] > a[prop] ? 1 : 0;
+  };
+};
+
+exports.byDescending = byDescending;
+
+/***/ }),
+
 /***/ "./src/shared/domain/util/time.js":
 /*!****************************************!*\
   !*** ./src/shared/domain/util/time.js ***!
@@ -84021,6 +84194,147 @@ function getTimestamp(apiTimestamp) {
 
 /***/ }),
 
+/***/ "./src/shared/stores/BlockStore.js":
+/*!*****************************************!*\
+  !*** ./src/shared/stores/BlockStore.js ***!
+  \*****************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _mobx = __webpack_require__(/*! mobx */ "./node_modules/mobx/lib/mobx.module.js");
+
+var _logger = __webpack_require__(/*! ../domain/util/logger */ "./src/shared/domain/util/logger.js");
+
+var _sorters = __webpack_require__(/*! ../domain/util/sorters */ "./src/shared/domain/util/sorters.js");
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var blockInterval = 15 * 1000;
+
+var BlockStore =
+/*#__PURE__*/
+function () {
+  function BlockStore(nodeApi, roundStore) {
+    var _this = this;
+
+    _classCallCheck(this, BlockStore);
+
+    this.blockListener = void 0;
+    this.lastProcessedBlockHeight = void 0;
+    this.unprocessedBlocks = [];
+
+    this.resume = function () {
+      (0, _logger.log)('Resuming block listener.');
+      _this.blockListener = setInterval(function () {
+        return _this.listenForNewBlocks();
+      }, blockInterval);
+    };
+
+    this.suspend = function () {
+      (0, _logger.log)('Suspending block listener.');
+      clearInterval(_this.blockListener);
+    };
+
+    this.nodeApi = nodeApi;
+    this.roundStore = roundStore;
+    (0, _mobx.when)(function () {
+      return _this.roundStore.hasNewRound;
+    }, function () {
+      return _this.init();
+    });
+  }
+
+  _createClass(BlockStore, [{
+    key: "init",
+    value: function init() {
+      (0, _logger.log)('Initializing Block Store.');
+      this.lastProcessedBlockHeight = this.roundStore.initialBlockHeight;
+      (0, _logger.log)("Block store will load blocks after height ".concat(this.lastProcessedBlockHeight));
+      (0, _mobx.onBecomeObserved)(this, 'hasNextBlock', this.resume);
+      (0, _mobx.onBecomeUnobserved)(this, 'hasNextBlock', this.suspend);
+    }
+  }, {
+    key: "listenForNewBlocks",
+    value: function () {
+      var _listenForNewBlocks = _asyncToGenerator(
+      /*#__PURE__*/
+      regeneratorRuntime.mark(function _callee() {
+        var _this2 = this;
+
+        var blocks, newBlocks, newUnprocessed;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.next = 2;
+                return this.nodeApi.getBlocks(0, 10);
+
+              case 2:
+                blocks = _context.sent;
+                newBlocks = blocks.blocks.filter(function (b) {
+                  return b.height > _this2.lastProcessedBlockHeight;
+                });
+                newBlocks.sort((0, _sorters.byAscending)('height'));
+                newUnprocessed = this.unprocessedBlocks.concat(newBlocks);
+                (0, _logger.log)("There are ".concat(newBlocks.length, " new blocks awaiting processing out of ").concat(newUnprocessed.length, " total."));
+                this.unprocessedBlocks.replace(newUnprocessed);
+
+              case 8:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      return function listenForNewBlocks() {
+        return _listenForNewBlocks.apply(this, arguments);
+      };
+    }()
+  }, {
+    key: "nextBlock",
+    value: function nextBlock() {
+      var next = this.unprocessedBlocks.shift();
+      this.lastProcessedBlockHeight = next.height;
+      (0, _logger.log)("Processing block height ".concat(this.lastProcessedBlockHeight));
+      return next;
+    }
+  }, {
+    key: "hasNextBlock",
+    get: function get() {
+      return this.unprocessedBlocks.length > 0;
+    }
+  }]);
+
+  return BlockStore;
+}();
+
+exports.default = BlockStore;
+(0, _mobx.decorate)(BlockStore, {
+  hasNextBlock: _mobx.computed,
+  listenForNewBlocks: _mobx.action,
+  nextBlock: _mobx.action,
+  unprocessedBlocks: _mobx.observable
+});
+
+/***/ }),
+
 /***/ "./src/shared/stores/RoundStore.js":
 /*!*****************************************!*\
   !*** ./src/shared/stores/RoundStore.js ***!
@@ -84038,9 +84352,112 @@ exports.default = void 0;
 
 var _mobx = __webpack_require__(/*! mobx */ "./node_modules/mobx/lib/mobx.module.js");
 
+var _logger = __webpack_require__(/*! ../domain/util/logger */ "./src/shared/domain/util/logger.js");
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var RoundStore =
+/*#__PURE__*/
+function () {
+  function RoundStore(nodeApi) {
+    _classCallCheck(this, RoundStore);
+
+    this.newRound = null;
+    this.nodeApi = nodeApi;
+  }
+
+  _createClass(RoundStore, [{
+    key: "init",
+    value: function () {
+      var _init = _asyncToGenerator(
+      /*#__PURE__*/
+      regeneratorRuntime.mark(function _callee() {
+        var currentRound;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                (0, _logger.log)("Loading initial current round.");
+                _context.next = 3;
+                return this.nodeApi.getCurrentRound();
+
+              case 3:
+                currentRound = _context.sent;
+                (0, _logger.log)("Initial current round loaded.", currentRound);
+                this.newRound = currentRound;
+
+              case 6:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      return function init() {
+        return _init.apply(this, arguments);
+      };
+    }()
+  }, {
+    key: "hasNewRound",
+    get: function get() {
+      return this.newRound !== null;
+    }
+  }, {
+    key: "initialBlockHeight",
+    get: function get() {
+      return this.hasNewRound ? this.newRound.delegateActivity.reduce(function (initialHeight, slot) {
+        var slotValue = slot.hasMissedBlock ? 0 : 1;
+        return initialHeight + slotValue;
+      }, this.newRound.fromBlock - 1) : 0;
+    }
+  }]);
+
+  return RoundStore;
+}();
+
+exports.default = RoundStore;
+(0, _mobx.decorate)(RoundStore, {
+  hasNewRound: _mobx.computed,
+  init: _mobx.action,
+  initialBlockHeight: _mobx.computed,
+  newRound: _mobx.observable
+});
+
+/***/ }),
+
+/***/ "./src/shared/stores/SlotStore.js":
+/*!****************************************!*\
+  !*** ./src/shared/stores/SlotStore.js ***!
+  \****************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _mobx = __webpack_require__(/*! mobx */ "./node_modules/mobx/lib/mobx.module.js");
+
 var _mobxTask = __webpack_require__(/*! mobx-task */ "./node_modules/mobx-task/lib/index.js");
 
+var _logger = __webpack_require__(/*! ../domain/util/logger */ "./src/shared/domain/util/logger.js");
+
 var _time = __webpack_require__(/*! ../domain/util/time */ "./src/shared/domain/util/time.js");
+
+var _sorters = __webpack_require__(/*! ../domain/util/sorters */ "./src/shared/domain/util/sorters.js");
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
 
@@ -84056,126 +84473,63 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-var blockInterval = 15 * 1000;
-
-var byAscending = function byAscending(prop) {
-  return function (a, b) {
-    return a[prop] > b[prop] ? 1 : b[prop] > a[prop] ? -1 : 0;
-  };
-};
-
-var byDescending = function byDescending(prop) {
-  return function (a, b) {
-    return a[prop] > b[prop] ? -11 : b[prop] > a[prop] ? 1 : 0;
-  };
-};
-
-var RoundStore =
+var SlotStore =
 /*#__PURE__*/
 function () {
-  function RoundStore(nodeApi) {
-    var _this = this;
-
-    _classCallCheck(this, RoundStore);
-
-    this.resume = function () {
-      console.log('Resuming block listener.');
-      _this.interval = setInterval(function () {
-        return _this.listenForNewBlocks();
-      }, blockInterval);
-    };
-
-    this.suspend = function () {
-      console.log('Suspending block listener.');
-      clearInterval(_this.interval);
-    };
+  function SlotStore(nodeApi, blockStore, roundStore) {
+    _classCallCheck(this, SlotStore);
 
     this.completedSlots = [];
-    this.currentHeight = void 0;
-    this.hasIncomingSlots = false;
-    this.hasOutgoingSlots = false;
-    this.incomingCompletedSlots = [];
-    this.interval = void 0;
-    this.outgoingUpcomingSlots = [];
+    this.isAwaitingBlock = true;
+    this.isAwaitingSlot = true;
+    this.slotInProcess = null;
     this.upcomingSlots = [];
+    this.unprocessedSlots = [];
+    this.blockStore = blockStore;
     this.nodeApi = nodeApi;
-    (0, _mobx.onBecomeObserved)(this, 'outgoingUpcomingSlots', this.resume);
-    (0, _mobx.onBecomeUnobserved)(this, 'outgoingUpcomingSlots', this.suspend);
+    this.roundStore = roundStore;
   }
 
-  _createClass(RoundStore, [{
+  _createClass(SlotStore, [{
     key: "init",
     value: function () {
       var _init = _asyncToGenerator(
       /*#__PURE__*/
       regeneratorRuntime.mark(function _callee() {
-        var _this2 = this;
+        var _this = this;
 
-        var currentRound, delegates, delegatesById, result;
+        var delegates, delegatesById, result;
         return regeneratorRuntime.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                _context.next = 2;
-                return this.nodeApi.getCurrentRound();
-
-              case 2:
-                currentRound = _context.sent;
-                _context.next = 5;
+                (0, _logger.log)('Initializing Slot Store.');
+                _context.next = 3;
                 return this.nodeApi.getActiveDelegates();
 
-              case 5:
+              case 3:
                 delegates = _context.sent;
                 delegatesById = delegates.delegates.reduce(function (all, delegate) {
                   all[delegate.publicKey] = delegate.username;
                   return all;
                 }, {});
-                result = {
-                  completed: [],
-                  currentHeight: currentRound.fromBlock - 1,
-                  round: currentRound.roundNumber,
-                  fromBlock: currentRound.fromBlock,
-                  lastTimestamp: (0, _time.currentMsTimestamp)(),
-                  toBlock: currentRound.toBlock,
-                  upcoming: []
-                };
-                result = currentRound.delegateActivity.reduce(function (all, delegate) {
-                  if (delegate.hasMissedBlock) {
-                    all.lastTimestamp = (0, _time.nextMsTimestamp)(all.lastTimestamp);
-                  } else {
-                    all.currentHeight = delegate.blockHeight;
-                    all.lastTimestamp = (0, _time.fromApiToMs)(delegate.timestamp);
-                  }
-
-                  all.completed.push({
-                    name: delegatesById[delegate.publicKey],
-                    hasMissedBlock: delegate.hasMissedBlock,
-                    publicKey: delegate.publicKey,
-                    slot: delegate.roundSlot,
-                    timestamp: all.lastTimestamp,
-                    totalForged: delegate.totalForged
-                  });
-                  return all;
-                }, result);
-                result = currentRound.expectedForgers.reduce(function (all, delegate) {
-                  all.lastTimestamp = (0, _time.nextMsTimestamp)(all.lastTimestamp);
-                  all.upcoming.push({
-                    name: delegatesById[delegate.publicKey],
-                    publicKey: delegate.publicKey,
-                    slot: delegate.blockRoundSlot,
-                    timestamp: all.lastTimestamp
-                  });
-                  return all;
-                }, result);
-                result.completed.sort(byDescending('slot'));
-                this.currentHeight = result.currentHeight;
-                (0, _mobx.runInAction)(function () {
-                  _this2.completedSlots.replace(result.completed);
-
-                  _this2.upcomingSlots.replace(result.upcoming);
+                _context.next = 7;
+                return (0, _mobx.when)(function () {
+                  return _this.roundStore.hasNewRound;
                 });
 
-              case 13:
+              case 7:
+                result = getSlotsFromInitialData(this.roundStore.newRound, delegatesById);
+                this.currentHeight = result.currentHeight;
+                this.watchForNextBlock();
+                this.watchForUnprocessedSlot();
+                (0, _mobx.runInAction)(function () {
+                  _this.completedSlots.replace(result.completed);
+
+                  _this.upcomingSlots.replace(result.upcoming);
+                });
+
+              case 12:
               case "end":
                 return _context.stop();
             }
@@ -84188,138 +84542,176 @@ function () {
       };
     }()
   }, {
-    key: "listenForNewBlocks",
-    value: function () {
-      var _listenForNewBlocks = _asyncToGenerator(
-      /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee2() {
-        var _this3 = this;
+    key: "watchForNextBlock",
+    value: function watchForNextBlock() {
+      var _this2 = this;
 
-        var blocks, newBlocks;
-        return regeneratorRuntime.wrap(function _callee2$(_context2) {
-          while (1) {
-            switch (_context2.prev = _context2.next) {
-              case 0:
-                _context2.next = 2;
-                return this.nodeApi.getBlocks(0, 5);
-
-              case 2:
-                blocks = _context2.sent;
-                newBlocks = blocks.blocks.filter(function (b) {
-                  return b.height > _this3.currentHeight;
-                });
-                newBlocks.sort(byAscending('height'));
-
-                if (newBlocks.length) {
-                  this.addBlocks(newBlocks);
-                }
-
-              case 6:
-              case "end":
-                return _context2.stop();
-            }
-          }
-        }, _callee2, this);
-      }));
-
-      return function listenForNewBlocks() {
-        return _listenForNewBlocks.apply(this, arguments);
-      };
-    }()
+      (0, _mobx.when)(function () {
+        return _this2.isAwaitingBlock && _this2.blockStore.hasNextBlock;
+      }, function () {
+        return _this2.processReceivedBlock();
+      });
+    }
   }, {
-    key: "addBlocks",
-    value: function addBlocks(blocks) {
-      var _this4 = this;
-
-      console.log("New blocks (".concat(blocks.length, ") added at height ").concat(this.currentHeight), blocks);
-      blocks.forEach(function (block) {
-        var hasMissedBlock = true;
-
-        while (hasMissedBlock && _this4.upcomingSlots.length > 0) {
-          var slot = _this4.upcomingSlots.shift();
-
-          console.log(slot.publicKey, block.publicKey);
-          hasMissedBlock = slot.publicKey !== block.generatorPublicKey;
+    key: "processReceivedBlock",
+    value: function processReceivedBlock() {
+      this.isAwaitingBlock = false;
+      this.watchForNextBlock();
+      var nextBlock = this.blockStore.nextBlock();
+      (0, _logger.log)('Processing next block.', nextBlock);
+      var blockSlots = this.upcomingSlots.reduce(function (all, slot) {
+        if (all.hasFoundProcessedSlot) {
+          all.upcomingSlots.push(slot);
+        } else {
+          var hasMissedBlock = slot.publicKey !== all.block.generatorPublicKey;
           var blockProps = hasMissedBlock ? {} : {
-            totalForged: block.totalForged
+            totalForged: all.block.totalForged
           };
-          console.log('Adding slot', slot);
-
-          _this4.outgoingUpcomingSlots.push(_objectSpread({}, slot, {
+          all.hasFoundProcessedSlot = !hasMissedBlock;
+          all.unprocessedSlots.push(_objectSpread({}, slot, {
             hasMissedBlock: hasMissedBlock
           }, blockProps));
         }
 
-        _this4.currentHeight = block.height;
-        console.log("Updated current height to ".concat(_this4.currentHeight));
+        return all;
+      }, {
+        block: nextBlock,
+        hasFoundProcessedSlot: false,
+        unprocessedSlots: this.unprocessedSlots,
+        upcomingSlots: []
       });
+      this.unprocessedSlots.replace(blockSlots.unprocessedSlots);
+      this.upcomingSlots.replace(blockSlots.upcomingSlots);
+    }
+  }, {
+    key: "watchForUnprocessedSlot",
+    value: function watchForUnprocessedSlot() {
+      var _this3 = this;
+
+      (0, _mobx.when)(function () {
+        return _this3.isAwaitingSlot && _this3.hasUnprocessedSlots;
+      }, function () {
+        return _this3.processNextSlot();
+      });
+    }
+  }, {
+    key: "nextUnprocessedSlot",
+    value: function nextUnprocessedSlot() {
+      return this.unprocessedSlots.shift();
+    }
+  }, {
+    key: "processNextSlot",
+    value: function processNextSlot() {
+      var _this4 = this;
+
+      this.isAwaitingSlot = false;
+      this.watchForUnprocessedSlot();
+      var nextSlot = this.nextUnprocessedSlot();
+      (0, _logger.log)('Processing next slot.', nextSlot);
+      this.slotInProcess = {
+        hasLeftUpcoming: false,
+        shouldBeVisible: true,
+        slot: nextSlot
+      };
       setTimeout(function () {
-        return _this4.startSlotTransfer();
+        return _this4.slotInProcess.shouldBeVisible = false;
       }, 0);
     }
   }, {
-    key: "startSlotTransfer",
-    value: function startSlotTransfer() {
-      console.log('Starting slot transfer');
-      this.hasOutgoingSlots = true;
+    key: "slotJoinedCompleted",
+    value: function slotJoinedCompleted() {
+      this.isAwaitingSlot = true;
+      this.completedSlots.unshift(this.slotInProcess.slot);
+      this.slotInProcess = null;
+
+      if (!this.hasUnprocessedSlots) {
+        this.isAwaitingBlock = true;
+      }
     }
   }, {
-    key: "transferSlots",
-    value: function transferSlots() {
+    key: "slotLeftUpcoming",
+    value: function slotLeftUpcoming() {
       var _this5 = this;
 
-      console.log('Transferring slots');
-      var slot;
-
-      while (slot = this.outgoingUpcomingSlots.pop()) {
-        this.incomingCompletedSlots.push(slot);
-      }
-
-      this.hasOutgoingSlots = false;
+      this.slotInProcess.hasLeftUpcoming = true;
       setTimeout(function () {
-        return _this5.startTransferCompletion();
+        return _this5.slotInProcess.shouldBeVisible = true;
       }, 0);
     }
   }, {
-    key: "startTransferCompletion",
-    value: function startTransferCompletion() {
-      console.log('Starting slot transfer completion');
-      this.hasIncomingSlots = true;
+    key: "hasUnprocessedSlots",
+    get: function get() {
+      return this.unprocessedSlots.length > 0;
     }
   }, {
-    key: "completeSlotTransition",
-    value: function completeSlotTransition() {
-      console.log('Completing slot transition.');
-      var slot;
-      var toTransfer = [];
-
-      while (slot = this.incomingCompletedSlots.shift()) {
-        toTransfer.push(slot);
-      }
-
-      this.completedSlots.replace(toTransfer.concat(this.completedSlots));
-      this.hasIncomingSlots = false;
+    key: "hasSlotInProcess",
+    get: function get() {
+      return this.slotInProcess !== null;
     }
   }]);
 
-  return RoundStore;
+  return SlotStore;
 }();
 
-exports.default = RoundStore;
-(0, _mobx.decorate)(RoundStore, {
-  addBlocks: _mobx.action,
+exports.default = SlotStore;
+(0, _mobx.decorate)(SlotStore, {
   completedSlots: _mobx.observable,
-  completeSlotTransition: _mobx.action,
-  hasIncomingSlots: _mobx.observable,
-  hasOutgoingSlots: _mobx.observable,
-  incomingCompletedSlots: _mobx.observable,
+  hasSlotInProcess: _mobx.computed,
+  hasUnprocessedSlots: _mobx.computed,
   init: _mobxTask.task,
-  outgoingUpcomingSlots: _mobx.observable,
-  startSlotTransfer: _mobx.action,
-  startTransferCompletion: _mobx.action,
-  transferSlots: _mobx.action,
-  upcomingSlots: _mobx.observable
+  isAwaitingBlock: _mobx.observable,
+  isAwaitingSlot: _mobx.observable,
+  nextUnprocessedSlot: _mobx.action,
+  processReceivedBlock: _mobx.action,
+  processNextSlot: _mobx.action,
+  slotInProcess: _mobx.observable,
+  slotJoinedCompleted: _mobx.action,
+  slotLeftUpcoming: _mobx.action,
+  upcomingSlots: _mobx.observable,
+  unprocessedSlots: _mobx.observable
 });
+
+function getSlotsFromInitialData(currentRound, delegatesById) {
+  var result = {
+    completed: [],
+    currentHeight: currentRound.fromBlock - 1,
+    round: currentRound.roundNumber,
+    fromBlock: currentRound.fromBlock,
+    lastTimestamp: (0, _time.currentMsTimestamp)(),
+    toBlock: currentRound.toBlock,
+    upcoming: []
+  };
+  result = currentRound.delegateActivity.reduce(function (all, delegate) {
+    if (delegate.hasMissedBlock) {
+      all.lastTimestamp = (0, _time.nextMsTimestamp)(all.lastTimestamp);
+    } else {
+      all.currentHeight = delegate.blockHeight;
+      all.lastTimestamp = (0, _time.fromApiToMs)(delegate.timestamp);
+    }
+
+    all.completed.push({
+      name: delegatesById[delegate.publicKey],
+      hasMissedBlock: delegate.hasMissedBlock,
+      publicKey: delegate.publicKey,
+      slot: delegate.roundSlot,
+      timestamp: all.lastTimestamp,
+      totalForged: delegate.totalForged
+    });
+    return all;
+  }, result);
+  result = currentRound.expectedForgers.reduce(function (all, delegate) {
+    all.lastTimestamp = (0, _time.nextMsTimestamp)(all.lastTimestamp);
+    all.upcoming.push({
+      name: delegatesById[delegate.publicKey],
+      publicKey: delegate.publicKey,
+      slot: delegate.blockRoundSlot,
+      timestamp: all.lastTimestamp
+    });
+    return all;
+  }, result);
+  result.completed.sort((0, _sorters.byDescending)('slot'));
+  return result;
+}
 
 /***/ }),
 
