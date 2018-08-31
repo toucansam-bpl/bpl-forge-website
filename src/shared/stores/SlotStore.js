@@ -8,8 +8,7 @@ import { action,
 import { task } from 'mobx-task'
 
 import { log } from '../domain/util/logger'
-import { currentMsTimestamp, fromApiToMs, nextMsTimestamp } from '../domain/util/time'
-import { byDescending } from '../domain/util/sorters'
+import getSlotsFromInitialData, { createSlotFromBlock } from './slotFactory'
 
 
 export default class SlotStore {
@@ -30,14 +29,14 @@ export default class SlotStore {
     log('Initializing Slot Store.')
     const delegates = await this.nodeApi.getActiveDelegates()
     const delegatesById = delegates.delegates.reduce((all, delegate) => {
-      all[delegate.publicKey] = delegate.username
+      all[delegate.publicKey] = delegate
       return all
     }, {})
 
+    console.log(delegates.delegates[0])
     await when(() => this.roundStore.hasNewRound)
 
     const result = getSlotsFromInitialData(this.roundStore.newRound, delegatesById)    
-    this.currentHeight = result.currentHeight
     this.watchForNextBlock()
     this.watchForUnprocessedSlot()
 
@@ -62,16 +61,9 @@ export default class SlotStore {
       if (all.hasFoundProcessedSlot) {
         all.upcomingSlots.push(slot)
       } else {
-        let hasMissedBlock = slot.publicKey !== all.block.generatorPublicKey
-        let blockProps = hasMissedBlock ? {} : {
-          totalForged: all.block.totalForged
-        }
-        all.hasFoundProcessedSlot = !hasMissedBlock
-        all.unprocessedSlots.push({
-          ... slot,
-          hasMissedBlock,
-          ... blockProps,
-        })
+        const completedSlot = createSlotFromBlock(slot, all.block)
+        all.hasFoundProcessedSlot = !completedSlot.hasMissedBlock
+        all.unprocessedSlots.push(completedSlot)
       }
       return all
     }, {
@@ -150,49 +142,3 @@ decorate(SlotStore, {
   upcomingSlots: observable,
   unprocessedSlots: observable,
 })
-
-
-function getSlotsFromInitialData(currentRound, delegatesById) {
-  let result = {
-    completed: [],
-    currentHeight: currentRound.fromBlock - 1,
-    round: currentRound.roundNumber,
-    fromBlock: currentRound.fromBlock,
-    lastTimestamp: currentMsTimestamp(),
-    toBlock: currentRound.toBlock,
-    upcoming: [],
-  }
-
-  result = currentRound.delegateActivity.reduce((all, delegate) => {
-    if (delegate.hasMissedBlock) {
-      all.lastTimestamp = nextMsTimestamp(all.lastTimestamp)
-    } else {
-      all.currentHeight = delegate.blockHeight
-      all.lastTimestamp = fromApiToMs(delegate.timestamp)
-    }
-    all.completed.push({
-      name: delegatesById[delegate.publicKey],
-      hasMissedBlock: delegate.hasMissedBlock,
-      publicKey: delegate.publicKey,
-      slot: delegate.roundSlot,
-      timestamp: all.lastTimestamp,
-      totalForged: delegate.totalForged,
-    })
-    return all
-  }, result)
-
-  result = currentRound.expectedForgers.reduce((all, delegate) => {
-    all.lastTimestamp = nextMsTimestamp(all.lastTimestamp)
-    all.upcoming.push({
-      name: delegatesById[delegate.publicKey],
-      publicKey: delegate.publicKey,
-      slot: delegate.blockRoundSlot,
-      timestamp: all.lastTimestamp,
-    })
-    return all
-  }, result)
-
-  result.completed.sort(byDescending('slot'))
-
-  return result
-}

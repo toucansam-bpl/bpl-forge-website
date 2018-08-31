@@ -32460,6 +32460,1154 @@ exports.default = _default;
 
 /***/ }),
 
+/***/ "./node_modules/big-js/big.js":
+/*!************************************!*\
+  !*** ./node_modules/big-js/big.js ***!
+  \************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_RESULT__;/* big.js v3.1.3 https://github.com/MikeMcl/big.js/LICENCE */
+;(function (global) {
+    'use strict';
+
+/*
+  big.js v3.1.3
+  A small, fast, easy-to-use library for arbitrary-precision decimal arithmetic.
+  https://github.com/MikeMcl/big.js/
+  Copyright (c) 2014 Michael Mclaughlin <M8ch88l@gmail.com>
+  MIT Expat Licence
+*/
+
+/***************************** EDITABLE DEFAULTS ******************************/
+
+    // The default values below must be integers within the stated ranges.
+
+    /*
+     * The maximum number of decimal places of the results of operations
+     * involving division: div and sqrt, and pow with negative exponents.
+     */
+    var DP = 20,                           // 0 to MAX_DP
+
+        /*
+         * The rounding mode used when rounding to the above decimal places.
+         *
+         * 0 Towards zero (i.e. truncate, no rounding).       (ROUND_DOWN)
+         * 1 To nearest neighbour. If equidistant, round up.  (ROUND_HALF_UP)
+         * 2 To nearest neighbour. If equidistant, to even.   (ROUND_HALF_EVEN)
+         * 3 Away from zero.                                  (ROUND_UP)
+         */
+        RM = 1,                            // 0, 1, 2 or 3
+
+        // The maximum value of DP and Big.DP.
+        MAX_DP = 1E6,                      // 0 to 1000000
+
+        // The maximum magnitude of the exponent argument to the pow method.
+        MAX_POWER = 1E6,                   // 1 to 1000000
+
+        /*
+         * The exponent value at and beneath which toString returns exponential
+         * notation.
+         * JavaScript's Number type: -7
+         * -1000000 is the minimum recommended exponent value of a Big.
+         */
+        E_NEG = -7,                   // 0 to -1000000
+
+        /*
+         * The exponent value at and above which toString returns exponential
+         * notation.
+         * JavaScript's Number type: 21
+         * 1000000 is the maximum recommended exponent value of a Big.
+         * (This limit is not enforced or checked.)
+         */
+        E_POS = 21,                   // 0 to 1000000
+
+/******************************************************************************/
+
+        // The shared prototype object.
+        P = {},
+        isValid = /^-?(\d+(\.\d*)?|\.\d+)(e[+-]?\d+)?$/i,
+        Big;
+
+
+    /*
+     * Create and return a Big constructor.
+     *
+     */
+    function bigFactory() {
+
+        /*
+         * The Big constructor and exported function.
+         * Create and return a new instance of a Big number object.
+         *
+         * n {number|string|Big} A numeric value.
+         */
+        function Big(n) {
+            var x = this;
+
+            // Enable constructor usage without new.
+            if (!(x instanceof Big)) {
+                return n === void 0 ? bigFactory() : new Big(n);
+            }
+
+            // Duplicate.
+            if (n instanceof Big) {
+                x.s = n.s;
+                x.e = n.e;
+                x.c = n.c.slice();
+            } else {
+                parse(x, n);
+            }
+
+            /*
+             * Retain a reference to this Big constructor, and shadow
+             * Big.prototype.constructor which points to Object.
+             */
+            x.constructor = Big;
+        }
+
+        Big.prototype = P;
+        Big.DP = DP;
+        Big.RM = RM;
+        Big.E_NEG = E_NEG;
+        Big.E_POS = E_POS;
+
+        return Big;
+    }
+
+
+    // Private functions
+
+
+    /*
+     * Return a string representing the value of Big x in normal or exponential
+     * notation to dp fixed decimal places or significant digits.
+     *
+     * x {Big} The Big to format.
+     * dp {number} Integer, 0 to MAX_DP inclusive.
+     * toE {number} 1 (toExponential), 2 (toPrecision) or undefined (toFixed).
+     */
+    function format(x, dp, toE) {
+        var Big = x.constructor,
+
+            // The index (normal notation) of the digit that may be rounded up.
+            i = dp - (x = new Big(x)).e,
+            c = x.c;
+
+        // Round?
+        if (c.length > ++dp) {
+            rnd(x, i, Big.RM);
+        }
+
+        if (!c[0]) {
+            ++i;
+        } else if (toE) {
+            i = dp;
+
+        // toFixed
+        } else {
+            c = x.c;
+
+            // Recalculate i as x.e may have changed if value rounded up.
+            i = x.e + i + 1;
+        }
+
+        // Append zeros?
+        for (; c.length < i; c.push(0)) {
+        }
+        i = x.e;
+
+        /*
+         * toPrecision returns exponential notation if the number of
+         * significant digits specified is less than the number of digits
+         * necessary to represent the integer part of the value in normal
+         * notation.
+         */
+        return toE === 1 || toE && (dp <= i || i <= Big.E_NEG) ?
+
+          // Exponential notation.
+          (x.s < 0 && c[0] ? '-' : '') +
+            (c.length > 1 ? c[0] + '.' + c.join('').slice(1) : c[0]) +
+              (i < 0 ? 'e' : 'e+') + i
+
+          // Normal notation.
+          : x.toString();
+    }
+
+
+    /*
+     * Parse the number or string value passed to a Big constructor.
+     *
+     * x {Big} A Big number instance.
+     * n {number|string} A numeric value.
+     */
+    function parse(x, n) {
+        var e, i, nL;
+
+        // Minus zero?
+        if (n === 0 && 1 / n < 0) {
+            n = '-0';
+
+        // Ensure n is string and check validity.
+        } else if (!isValid.test(n += '')) {
+            throwErr(NaN);
+        }
+
+        // Determine sign.
+        x.s = n.charAt(0) == '-' ? (n = n.slice(1), -1) : 1;
+
+        // Decimal point?
+        if ((e = n.indexOf('.')) > -1) {
+            n = n.replace('.', '');
+        }
+
+        // Exponential form?
+        if ((i = n.search(/e/i)) > 0) {
+
+            // Determine exponent.
+            if (e < 0) {
+                e = i;
+            }
+            e += +n.slice(i + 1);
+            n = n.substring(0, i);
+
+        } else if (e < 0) {
+
+            // Integer.
+            e = n.length;
+        }
+
+        // Determine leading zeros.
+        for (i = 0; n.charAt(i) == '0'; i++) {
+        }
+
+        if (i == (nL = n.length)) {
+
+            // Zero.
+            x.c = [ x.e = 0 ];
+        } else {
+
+            // Determine trailing zeros.
+            for (; n.charAt(--nL) == '0';) {
+            }
+
+            x.e = e - i - 1;
+            x.c = [];
+
+            // Convert string to array of digits without leading/trailing zeros.
+            for (e = 0; i <= nL; x.c[e++] = +n.charAt(i++)) {
+            }
+        }
+
+        return x;
+    }
+
+
+    /*
+     * Round Big x to a maximum of dp decimal places using rounding mode rm.
+     * Called by div, sqrt and round.
+     *
+     * x {Big} The Big to round.
+     * dp {number} Integer, 0 to MAX_DP inclusive.
+     * rm {number} 0, 1, 2 or 3 (DOWN, HALF_UP, HALF_EVEN, UP)
+     * [more] {boolean} Whether the result of division was truncated.
+     */
+    function rnd(x, dp, rm, more) {
+        var u,
+            xc = x.c,
+            i = x.e + dp + 1;
+
+        if (rm === 1) {
+
+            // xc[i] is the digit after the digit that may be rounded up.
+            more = xc[i] >= 5;
+        } else if (rm === 2) {
+            more = xc[i] > 5 || xc[i] == 5 &&
+              (more || i < 0 || xc[i + 1] !== u || xc[i - 1] & 1);
+        } else if (rm === 3) {
+            more = more || xc[i] !== u || i < 0;
+        } else {
+            more = false;
+
+            if (rm !== 0) {
+                throwErr('!Big.RM!');
+            }
+        }
+
+        if (i < 1 || !xc[0]) {
+
+            if (more) {
+
+                // 1, 0.1, 0.01, 0.001, 0.0001 etc.
+                x.e = -dp;
+                x.c = [1];
+            } else {
+
+                // Zero.
+                x.c = [x.e = 0];
+            }
+        } else {
+
+            // Remove any digits after the required decimal places.
+            xc.length = i--;
+
+            // Round up?
+            if (more) {
+
+                // Rounding up may mean the previous digit has to be rounded up.
+                for (; ++xc[i] > 9;) {
+                    xc[i] = 0;
+
+                    if (!i--) {
+                        ++x.e;
+                        xc.unshift(1);
+                    }
+                }
+            }
+
+            // Remove trailing zeros.
+            for (i = xc.length; !xc[--i]; xc.pop()) {
+            }
+        }
+
+        return x;
+    }
+
+
+    /*
+     * Throw a BigError.
+     *
+     * message {string} The error message.
+     */
+    function throwErr(message) {
+        var err = new Error(message);
+        err.name = 'BigError';
+
+        throw err;
+    }
+
+
+    // Prototype/instance methods
+
+
+    /*
+     * Return a new Big whose value is the absolute value of this Big.
+     */
+    P.abs = function () {
+        var x = new this.constructor(this);
+        x.s = 1;
+
+        return x;
+    };
+
+
+    /*
+     * Return
+     * 1 if the value of this Big is greater than the value of Big y,
+     * -1 if the value of this Big is less than the value of Big y, or
+     * 0 if they have the same value.
+    */
+    P.cmp = function (y) {
+        var xNeg,
+            x = this,
+            xc = x.c,
+            yc = (y = new x.constructor(y)).c,
+            i = x.s,
+            j = y.s,
+            k = x.e,
+            l = y.e;
+
+        // Either zero?
+        if (!xc[0] || !yc[0]) {
+            return !xc[0] ? !yc[0] ? 0 : -j : i;
+        }
+
+        // Signs differ?
+        if (i != j) {
+            return i;
+        }
+        xNeg = i < 0;
+
+        // Compare exponents.
+        if (k != l) {
+            return k > l ^ xNeg ? 1 : -1;
+        }
+
+        i = -1;
+        j = (k = xc.length) < (l = yc.length) ? k : l;
+
+        // Compare digit by digit.
+        for (; ++i < j;) {
+
+            if (xc[i] != yc[i]) {
+                return xc[i] > yc[i] ^ xNeg ? 1 : -1;
+            }
+        }
+
+        // Compare lengths.
+        return k == l ? 0 : k > l ^ xNeg ? 1 : -1;
+    };
+
+
+    /*
+     * Return a new Big whose value is the value of this Big divided by the
+     * value of Big y, rounded, if necessary, to a maximum of Big.DP decimal
+     * places using rounding mode Big.RM.
+     */
+    P.div = function (y) {
+        var x = this,
+            Big = x.constructor,
+            // dividend
+            dvd = x.c,
+            //divisor
+            dvs = (y = new Big(y)).c,
+            s = x.s == y.s ? 1 : -1,
+            dp = Big.DP;
+
+        if (dp !== ~~dp || dp < 0 || dp > MAX_DP) {
+            throwErr('!Big.DP!');
+        }
+
+        // Either 0?
+        if (!dvd[0] || !dvs[0]) {
+
+            // If both are 0, throw NaN
+            if (dvd[0] == dvs[0]) {
+                throwErr(NaN);
+            }
+
+            // If dvs is 0, throw +-Infinity.
+            if (!dvs[0]) {
+                throwErr(s / 0);
+            }
+
+            // dvd is 0, return +-0.
+            return new Big(s * 0);
+        }
+
+        var dvsL, dvsT, next, cmp, remI, u,
+            dvsZ = dvs.slice(),
+            dvdI = dvsL = dvs.length,
+            dvdL = dvd.length,
+            // remainder
+            rem = dvd.slice(0, dvsL),
+            remL = rem.length,
+            // quotient
+            q = y,
+            qc = q.c = [],
+            qi = 0,
+            digits = dp + (q.e = x.e - y.e) + 1;
+
+        q.s = s;
+        s = digits < 0 ? 0 : digits;
+
+        // Create version of divisor with leading zero.
+        dvsZ.unshift(0);
+
+        // Add zeros to make remainder as long as divisor.
+        for (; remL++ < dvsL; rem.push(0)) {
+        }
+
+        do {
+
+            // 'next' is how many times the divisor goes into current remainder.
+            for (next = 0; next < 10; next++) {
+
+                // Compare divisor and remainder.
+                if (dvsL != (remL = rem.length)) {
+                    cmp = dvsL > remL ? 1 : -1;
+                } else {
+
+                    for (remI = -1, cmp = 0; ++remI < dvsL;) {
+
+                        if (dvs[remI] != rem[remI]) {
+                            cmp = dvs[remI] > rem[remI] ? 1 : -1;
+                            break;
+                        }
+                    }
+                }
+
+                // If divisor < remainder, subtract divisor from remainder.
+                if (cmp < 0) {
+
+                    // Remainder can't be more than 1 digit longer than divisor.
+                    // Equalise lengths using divisor with extra leading zero?
+                    for (dvsT = remL == dvsL ? dvs : dvsZ; remL;) {
+
+                        if (rem[--remL] < dvsT[remL]) {
+                            remI = remL;
+
+                            for (; remI && !rem[--remI]; rem[remI] = 9) {
+                            }
+                            --rem[remI];
+                            rem[remL] += 10;
+                        }
+                        rem[remL] -= dvsT[remL];
+                    }
+                    for (; !rem[0]; rem.shift()) {
+                    }
+                } else {
+                    break;
+                }
+            }
+
+            // Add the 'next' digit to the result array.
+            qc[qi++] = cmp ? next : ++next;
+
+            // Update the remainder.
+            if (rem[0] && cmp) {
+                rem[remL] = dvd[dvdI] || 0;
+            } else {
+                rem = [ dvd[dvdI] ];
+            }
+
+        } while ((dvdI++ < dvdL || rem[0] !== u) && s--);
+
+        // Leading zero? Do not remove if result is simply zero (qi == 1).
+        if (!qc[0] && qi != 1) {
+
+            // There can't be more than one zero.
+            qc.shift();
+            q.e--;
+        }
+
+        // Round?
+        if (qi > digits) {
+            rnd(q, dp, Big.RM, rem[0] !== u);
+        }
+
+        return q;
+    };
+
+
+    /*
+     * Return true if the value of this Big is equal to the value of Big y,
+     * otherwise returns false.
+     */
+    P.eq = function (y) {
+        return !this.cmp(y);
+    };
+
+
+    /*
+     * Return true if the value of this Big is greater than the value of Big y,
+     * otherwise returns false.
+     */
+    P.gt = function (y) {
+        return this.cmp(y) > 0;
+    };
+
+
+    /*
+     * Return true if the value of this Big is greater than or equal to the
+     * value of Big y, otherwise returns false.
+     */
+    P.gte = function (y) {
+        return this.cmp(y) > -1;
+    };
+
+
+    /*
+     * Return true if the value of this Big is less than the value of Big y,
+     * otherwise returns false.
+     */
+    P.lt = function (y) {
+        return this.cmp(y) < 0;
+    };
+
+
+    /*
+     * Return true if the value of this Big is less than or equal to the value
+     * of Big y, otherwise returns false.
+     */
+    P.lte = function (y) {
+         return this.cmp(y) < 1;
+    };
+
+
+    /*
+     * Return a new Big whose value is the value of this Big minus the value
+     * of Big y.
+     */
+    P.sub = P.minus = function (y) {
+        var i, j, t, xLTy,
+            x = this,
+            Big = x.constructor,
+            a = x.s,
+            b = (y = new Big(y)).s;
+
+        // Signs differ?
+        if (a != b) {
+            y.s = -b;
+            return x.plus(y);
+        }
+
+        var xc = x.c.slice(),
+            xe = x.e,
+            yc = y.c,
+            ye = y.e;
+
+        // Either zero?
+        if (!xc[0] || !yc[0]) {
+
+            // y is non-zero? x is non-zero? Or both are zero.
+            return yc[0] ? (y.s = -b, y) : new Big(xc[0] ? x : 0);
+        }
+
+        // Determine which is the bigger number.
+        // Prepend zeros to equalise exponents.
+        if (a = xe - ye) {
+
+            if (xLTy = a < 0) {
+                a = -a;
+                t = xc;
+            } else {
+                ye = xe;
+                t = yc;
+            }
+
+            t.reverse();
+            for (b = a; b--; t.push(0)) {
+            }
+            t.reverse();
+        } else {
+
+            // Exponents equal. Check digit by digit.
+            j = ((xLTy = xc.length < yc.length) ? xc : yc).length;
+
+            for (a = b = 0; b < j; b++) {
+
+                if (xc[b] != yc[b]) {
+                    xLTy = xc[b] < yc[b];
+                    break;
+                }
+            }
+        }
+
+        // x < y? Point xc to the array of the bigger number.
+        if (xLTy) {
+            t = xc;
+            xc = yc;
+            yc = t;
+            y.s = -y.s;
+        }
+
+        /*
+         * Append zeros to xc if shorter. No need to add zeros to yc if shorter
+         * as subtraction only needs to start at yc.length.
+         */
+        if (( b = (j = yc.length) - (i = xc.length) ) > 0) {
+
+            for (; b--; xc[i++] = 0) {
+            }
+        }
+
+        // Subtract yc from xc.
+        for (b = i; j > a;){
+
+            if (xc[--j] < yc[j]) {
+
+                for (i = j; i && !xc[--i]; xc[i] = 9) {
+                }
+                --xc[i];
+                xc[j] += 10;
+            }
+            xc[j] -= yc[j];
+        }
+
+        // Remove trailing zeros.
+        for (; xc[--b] === 0; xc.pop()) {
+        }
+
+        // Remove leading zeros and adjust exponent accordingly.
+        for (; xc[0] === 0;) {
+            xc.shift();
+            --ye;
+        }
+
+        if (!xc[0]) {
+
+            // n - n = +0
+            y.s = 1;
+
+            // Result must be zero.
+            xc = [ye = 0];
+        }
+
+        y.c = xc;
+        y.e = ye;
+
+        return y;
+    };
+
+
+    /*
+     * Return a new Big whose value is the value of this Big modulo the
+     * value of Big y.
+     */
+    P.mod = function (y) {
+        var yGTx,
+            x = this,
+            Big = x.constructor,
+            a = x.s,
+            b = (y = new Big(y)).s;
+
+        if (!y.c[0]) {
+            throwErr(NaN);
+        }
+
+        x.s = y.s = 1;
+        yGTx = y.cmp(x) == 1;
+        x.s = a;
+        y.s = b;
+
+        if (yGTx) {
+            return new Big(x);
+        }
+
+        a = Big.DP;
+        b = Big.RM;
+        Big.DP = Big.RM = 0;
+        x = x.div(y);
+        Big.DP = a;
+        Big.RM = b;
+
+        return this.minus( x.times(y) );
+    };
+
+
+    /*
+     * Return a new Big whose value is the value of this Big plus the value
+     * of Big y.
+     */
+    P.add = P.plus = function (y) {
+        var t,
+            x = this,
+            Big = x.constructor,
+            a = x.s,
+            b = (y = new Big(y)).s;
+
+        // Signs differ?
+        if (a != b) {
+            y.s = -b;
+            return x.minus(y);
+        }
+
+        var xe = x.e,
+            xc = x.c,
+            ye = y.e,
+            yc = y.c;
+
+        // Either zero?
+        if (!xc[0] || !yc[0]) {
+
+            // y is non-zero? x is non-zero? Or both are zero.
+            return yc[0] ? y : new Big(xc[0] ? x : a * 0);
+        }
+        xc = xc.slice();
+
+        // Prepend zeros to equalise exponents.
+        // Note: Faster to use reverse then do unshifts.
+        if (a = xe - ye) {
+
+            if (a > 0) {
+                ye = xe;
+                t = yc;
+            } else {
+                a = -a;
+                t = xc;
+            }
+
+            t.reverse();
+            for (; a--; t.push(0)) {
+            }
+            t.reverse();
+        }
+
+        // Point xc to the longer array.
+        if (xc.length - yc.length < 0) {
+            t = yc;
+            yc = xc;
+            xc = t;
+        }
+        a = yc.length;
+
+        /*
+         * Only start adding at yc.length - 1 as the further digits of xc can be
+         * left as they are.
+         */
+        for (b = 0; a;) {
+            b = (xc[--a] = xc[a] + yc[a] + b) / 10 | 0;
+            xc[a] %= 10;
+        }
+
+        // No need to check for zero, as +x + +y != 0 && -x + -y != 0
+
+        if (b) {
+            xc.unshift(b);
+            ++ye;
+        }
+
+         // Remove trailing zeros.
+        for (a = xc.length; xc[--a] === 0; xc.pop()) {
+        }
+
+        y.c = xc;
+        y.e = ye;
+
+        return y;
+    };
+
+
+    /*
+     * Return a Big whose value is the value of this Big raised to the power n.
+     * If n is negative, round, if necessary, to a maximum of Big.DP decimal
+     * places using rounding mode Big.RM.
+     *
+     * n {number} Integer, -MAX_POWER to MAX_POWER inclusive.
+     */
+    P.pow = function (n) {
+        var x = this,
+            one = new x.constructor(1),
+            y = one,
+            isNeg = n < 0;
+
+        if (n !== ~~n || n < -MAX_POWER || n > MAX_POWER) {
+            throwErr('!pow!');
+        }
+
+        n = isNeg ? -n : n;
+
+        for (;;) {
+
+            if (n & 1) {
+                y = y.times(x);
+            }
+            n >>= 1;
+
+            if (!n) {
+                break;
+            }
+            x = x.times(x);
+        }
+
+        return isNeg ? one.div(y) : y;
+    };
+
+
+    /*
+     * Return a new Big whose value is the value of this Big rounded to a
+     * maximum of dp decimal places using rounding mode rm.
+     * If dp is not specified, round to 0 decimal places.
+     * If rm is not specified, use Big.RM.
+     *
+     * [dp] {number} Integer, 0 to MAX_DP inclusive.
+     * [rm] 0, 1, 2 or 3 (ROUND_DOWN, ROUND_HALF_UP, ROUND_HALF_EVEN, ROUND_UP)
+     */
+    P.round = function (dp, rm) {
+        var x = this,
+            Big = x.constructor;
+
+        if (dp == null) {
+            dp = 0;
+        } else if (dp !== ~~dp || dp < 0 || dp > MAX_DP) {
+            throwErr('!round!');
+        }
+        rnd(x = new Big(x), dp, rm == null ? Big.RM : rm);
+
+        return x;
+    };
+
+
+    /*
+     * Return a new Big whose value is the square root of the value of this Big,
+     * rounded, if necessary, to a maximum of Big.DP decimal places using
+     * rounding mode Big.RM.
+     */
+    P.sqrt = function () {
+        var estimate, r, approx,
+            x = this,
+            Big = x.constructor,
+            xc = x.c,
+            i = x.s,
+            e = x.e,
+            half = new Big('0.5');
+
+        // Zero?
+        if (!xc[0]) {
+            return new Big(x);
+        }
+
+        // If negative, throw NaN.
+        if (i < 0) {
+            throwErr(NaN);
+        }
+
+        // Estimate.
+        i = Math.sqrt(x.toString());
+
+        // Math.sqrt underflow/overflow?
+        // Pass x to Math.sqrt as integer, then adjust the result exponent.
+        if (i === 0 || i === 1 / 0) {
+            estimate = xc.join('');
+
+            if (!(estimate.length + e & 1)) {
+                estimate += '0';
+            }
+
+            r = new Big( Math.sqrt(estimate).toString() );
+            r.e = ((e + 1) / 2 | 0) - (e < 0 || e & 1);
+        } else {
+            r = new Big(i.toString());
+        }
+
+        i = r.e + (Big.DP += 4);
+
+        // Newton-Raphson iteration.
+        do {
+            approx = r;
+            r = half.times( approx.plus( x.div(approx) ) );
+        } while ( approx.c.slice(0, i).join('') !==
+                       r.c.slice(0, i).join('') );
+
+        rnd(r, Big.DP -= 4, Big.RM);
+
+        return r;
+    };
+
+
+    /*
+     * Return a new Big whose value is the value of this Big times the value of
+     * Big y.
+     */
+    P.mul = P.times = function (y) {
+        var c,
+            x = this,
+            Big = x.constructor,
+            xc = x.c,
+            yc = (y = new Big(y)).c,
+            a = xc.length,
+            b = yc.length,
+            i = x.e,
+            j = y.e;
+
+        // Determine sign of result.
+        y.s = x.s == y.s ? 1 : -1;
+
+        // Return signed 0 if either 0.
+        if (!xc[0] || !yc[0]) {
+            return new Big(y.s * 0);
+        }
+
+        // Initialise exponent of result as x.e + y.e.
+        y.e = i + j;
+
+        // If array xc has fewer digits than yc, swap xc and yc, and lengths.
+        if (a < b) {
+            c = xc;
+            xc = yc;
+            yc = c;
+            j = a;
+            a = b;
+            b = j;
+        }
+
+        // Initialise coefficient array of result with zeros.
+        for (c = new Array(j = a + b); j--; c[j] = 0) {
+        }
+
+        // Multiply.
+
+        // i is initially xc.length.
+        for (i = b; i--;) {
+            b = 0;
+
+            // a is yc.length.
+            for (j = a + i; j > i;) {
+
+                // Current sum of products at this digit position, plus carry.
+                b = c[j] + yc[i] * xc[j - i - 1] + b;
+                c[j--] = b % 10;
+
+                // carry
+                b = b / 10 | 0;
+            }
+            c[j] = (c[j] + b) % 10;
+        }
+
+        // Increment result exponent if there is a final carry.
+        if (b) {
+            ++y.e;
+        }
+
+        // Remove any leading zero.
+        if (!c[0]) {
+            c.shift();
+        }
+
+        // Remove trailing zeros.
+        for (i = c.length; !c[--i]; c.pop()) {
+        }
+        y.c = c;
+
+        return y;
+    };
+
+
+    /*
+     * Return a string representing the value of this Big.
+     * Return exponential notation if this Big has a positive exponent equal to
+     * or greater than Big.E_POS, or a negative exponent equal to or less than
+     * Big.E_NEG.
+     */
+    P.toString = P.valueOf = P.toJSON = function () {
+        var x = this,
+            Big = x.constructor,
+            e = x.e,
+            str = x.c.join(''),
+            strL = str.length;
+
+        // Exponential notation?
+        if (e <= Big.E_NEG || e >= Big.E_POS) {
+            str = str.charAt(0) + (strL > 1 ? '.' + str.slice(1) : '') +
+              (e < 0 ? 'e' : 'e+') + e;
+
+        // Negative exponent?
+        } else if (e < 0) {
+
+            // Prepend zeros.
+            for (; ++e; str = '0' + str) {
+            }
+            str = '0.' + str;
+
+        // Positive exponent?
+        } else if (e > 0) {
+
+            if (++e > strL) {
+
+                // Append zeros.
+                for (e -= strL; e-- ; str += '0') {
+                }
+            } else if (e < strL) {
+                str = str.slice(0, e) + '.' + str.slice(e);
+            }
+
+        // Exponent zero.
+        } else if (strL > 1) {
+            str = str.charAt(0) + '.' + str.slice(1);
+        }
+
+        // Avoid '-0'
+        return x.s < 0 && x.c[0] ? '-' + str : str;
+    };
+
+
+    /*
+     ***************************************************************************
+     * If toExponential, toFixed, toPrecision and format are not required they
+     * can safely be commented-out or deleted. No redundant code will be left.
+     * format is used only by toExponential, toFixed and toPrecision.
+     ***************************************************************************
+     */
+
+
+    /*
+     * Return a string representing the value of this Big in exponential
+     * notation to dp fixed decimal places and rounded, if necessary, using
+     * Big.RM.
+     *
+     * [dp] {number} Integer, 0 to MAX_DP inclusive.
+     */
+    P.toExponential = function (dp) {
+
+        if (dp == null) {
+            dp = this.c.length - 1;
+        } else if (dp !== ~~dp || dp < 0 || dp > MAX_DP) {
+            throwErr('!toExp!');
+        }
+
+        return format(this, dp, 1);
+    };
+
+
+    /*
+     * Return a string representing the value of this Big in normal notation
+     * to dp fixed decimal places and rounded, if necessary, using Big.RM.
+     *
+     * [dp] {number} Integer, 0 to MAX_DP inclusive.
+     */
+    P.toFixed = function (dp) {
+        var str,
+            x = this,
+            Big = x.constructor,
+            neg = Big.E_NEG,
+            pos = Big.E_POS;
+
+        // Prevent the possibility of exponential notation.
+        Big.E_NEG = -(Big.E_POS = 1 / 0);
+
+        if (dp == null) {
+            str = x.toString();
+        } else if (dp === ~~dp && dp >= 0 && dp <= MAX_DP) {
+            str = format(x, x.e + dp);
+
+            // (-0).toFixed() is '0', but (-0.1).toFixed() is '-0'.
+            // (-0).toFixed(1) is '0.0', but (-0.01).toFixed(1) is '-0.0'.
+            if (x.s < 0 && x.c[0] && str.indexOf('-') < 0) {
+        //E.g. -0.5 if rounded to -0 will cause toString to omit the minus sign.
+                str = '-' + str;
+            }
+        }
+        Big.E_NEG = neg;
+        Big.E_POS = pos;
+
+        if (!str) {
+            throwErr('!toFix!');
+        }
+
+        return str;
+    };
+
+
+    /*
+     * Return a string representing the value of this Big rounded to sd
+     * significant digits using Big.RM. Use exponential notation if sd is less
+     * than the number of digits necessary to represent the integer part of the
+     * value in normal notation.
+     *
+     * sd {number} Integer, 1 to MAX_DP inclusive.
+     */
+    P.toPrecision = function (sd) {
+
+        if (sd == null) {
+            return this.toString();
+        } else if (sd !== ~~sd || sd < 1 || sd > MAX_DP) {
+            throwErr('!toPre!');
+        }
+
+        return format(this, sd - 1, 2);
+    };
+
+
+    // Export
+
+
+    Big = bigFactory();
+
+    //AMD.
+    if (true) {
+        !(__WEBPACK_AMD_DEFINE_RESULT__ = (function () {
+            return Big;
+        }).call(exports, __webpack_require__, exports, module),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+    // Node and other CommonJS-like environments that support module.exports.
+    } else {}
+})(this);
+
+
+/***/ }),
+
 /***/ "./node_modules/brcast/dist/brcast.es.js":
 /*!***********************************************!*\
   !*** ./node_modules/brcast/dist/brcast.es.js ***!
@@ -45403,6 +46551,1598 @@ module.exports = function isObject(val) {
   return val != null && typeof val === 'object' && Array.isArray(val) === false;
 };
 
+
+/***/ }),
+
+/***/ "./node_modules/javascript-time-ago/index.js":
+/*!***************************************************!*\
+  !*** ./node_modules/javascript-time-ago/index.js ***!
+  \***************************************************/
+/*! exports provided: default, intlDateTimeFormatSupported, intlDateTimeFormatSupportedLocale, RelativeTimeFormat */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _modules_JavascriptTimeAgo__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./modules/JavascriptTimeAgo */ "./node_modules/javascript-time-ago/modules/JavascriptTimeAgo.js");
+/* harmony import */ var _modules_JavascriptTimeAgo__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_modules_JavascriptTimeAgo__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony reexport (default from non-harmony) */ __webpack_require__.d(__webpack_exports__, "default", function() { return _modules_JavascriptTimeAgo__WEBPACK_IMPORTED_MODULE_0___default.a; });
+/* harmony import */ var _modules_locale__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./modules/locale */ "./node_modules/javascript-time-ago/modules/locale.js");
+/* harmony import */ var _modules_locale__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_modules_locale__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "intlDateTimeFormatSupported", function() { return _modules_locale__WEBPACK_IMPORTED_MODULE_1__["intlDateTimeFormatSupported"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "intlDateTimeFormatSupportedLocale", function() { return _modules_locale__WEBPACK_IMPORTED_MODULE_1__["intlDateTimeFormatSupportedLocale"]; });
+
+/* harmony import */ var _modules_RelativeTimeFormat__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./modules/RelativeTimeFormat */ "./node_modules/javascript-time-ago/modules/RelativeTimeFormat.js");
+/* harmony import */ var _modules_RelativeTimeFormat__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_modules_RelativeTimeFormat__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony reexport (default from non-harmony) */ __webpack_require__.d(__webpack_exports__, "RelativeTimeFormat", function() { return _modules_RelativeTimeFormat__WEBPACK_IMPORTED_MODULE_2___default.a; });
+
+
+
+
+
+
+/***/ }),
+
+/***/ "./node_modules/javascript-time-ago/locale/en/index.js":
+/*!*************************************************************!*\
+  !*** ./node_modules/javascript-time-ago/locale/en/index.js ***!
+  \*************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports =
+{
+	locale: 'en',
+	long: __webpack_require__(/*! ./long.json */ "./node_modules/javascript-time-ago/locale/en/long.json"),
+	long_time: __webpack_require__(/*! ./long-time.json */ "./node_modules/javascript-time-ago/locale/en/long-time.json"),
+	long_convenient: __webpack_require__(/*! ./long-convenient.json */ "./node_modules/javascript-time-ago/locale/en/long-convenient.json"),
+	short: __webpack_require__(/*! ./short.json */ "./node_modules/javascript-time-ago/locale/en/short.json"),
+	short_time: __webpack_require__(/*! ./short-time.json */ "./node_modules/javascript-time-ago/locale/en/short-time.json"),
+	short_convenient: __webpack_require__(/*! ./short-convenient.json */ "./node_modules/javascript-time-ago/locale/en/short-convenient.json"),
+	narrow: __webpack_require__(/*! ./narrow.json */ "./node_modules/javascript-time-ago/locale/en/narrow.json"),
+	tiny: __webpack_require__(/*! ./tiny.json */ "./node_modules/javascript-time-ago/locale/en/tiny.json"),
+	quantify: __webpack_require__(/*! ./quantify */ "./node_modules/javascript-time-ago/locale/en/quantify.js")
+}
+
+/***/ }),
+
+/***/ "./node_modules/javascript-time-ago/locale/en/long-convenient.json":
+/*!*************************************************************************!*\
+  !*** ./node_modules/javascript-time-ago/locale/en/long-convenient.json ***!
+  \*************************************************************************/
+/*! exports provided: year, quarter, month, week, day, hour, minute, second, now, default */
+/***/ (function(module) {
+
+module.exports = {"year":{"previous":"last year","current":"this year","next":"next year","past":{"one":"a year ago","other":"{0} years ago"},"future":{"one":"in a year","other":"in {0} years"}},"quarter":{"previous":"last quarter","current":"this quarter","next":"next quarter","past":{"one":"a quarter ago","other":"{0} quarters ago"},"future":{"one":"in a quarter","other":"in {0} quarters"}},"month":{"previous":"last month","current":"this month","next":"next month","past":{"one":"a month ago","other":"{0} months ago"},"future":{"one":"in a month","other":"in {0} months"}},"week":{"previous":"last week","current":"this week","next":"next week","past":{"one":"a week ago","other":"{0} weeks ago"},"future":{"one":"in a week","other":"in {0} weeks"}},"day":{"previous":"yesterday","current":"today","next":"tomorrow","past":{"one":"a day ago","other":"{0} days ago"},"future":{"one":"in a day","other":"in {0} days"}},"hour":{"current":"this hour","past":{"one":"an hour ago","other":"{0} hours ago"},"future":{"one":"in an hour","other":"in {0} hours"}},"minute":{"current":"this minute","past":{"one":"a minute ago","other":"{0} minutes ago"},"future":{"one":"in a minute","other":"in {0} minutes"}},"second":{"current":"now","past":{"one":"a second ago","other":"{0} seconds ago"},"future":{"one":"in a second","other":"in {0} seconds"}},"now":{"future":"in a moment","past":"just now"}};
+
+/***/ }),
+
+/***/ "./node_modules/javascript-time-ago/locale/en/long-time.json":
+/*!*******************************************************************!*\
+  !*** ./node_modules/javascript-time-ago/locale/en/long-time.json ***!
+  \*******************************************************************/
+/*! exports provided: year, month, week, day, hour, minute, second, now, default */
+/***/ (function(module) {
+
+module.exports = {"year":{"one":"{0} year","other":"{0} years"},"month":{"one":"{0} month","other":"{0} months"},"week":{"one":"{0} week","other":"{0} weeks"},"day":{"one":"{0} day","other":"{0} days"},"hour":{"one":"{0} hour","other":"{0} hours"},"minute":{"one":"{0} minute","other":"{0} minutes"},"second":{"one":"{0} second","other":"{0} seconds"},"now":{"future":"in a moment","past":"just now"}};
+
+/***/ }),
+
+/***/ "./node_modules/javascript-time-ago/locale/en/long.json":
+/*!**************************************************************!*\
+  !*** ./node_modules/javascript-time-ago/locale/en/long.json ***!
+  \**************************************************************/
+/*! exports provided: year, quarter, month, week, day, hour, minute, second, now, default */
+/***/ (function(module) {
+
+module.exports = {"year":{"previous":"last year","current":"this year","next":"next year","past":{"one":"{0} year ago","other":"{0} years ago"},"future":{"one":"in {0} year","other":"in {0} years"}},"quarter":{"previous":"last quarter","current":"this quarter","next":"next quarter","past":{"one":"{0} quarter ago","other":"{0} quarters ago"},"future":{"one":"in {0} quarter","other":"in {0} quarters"}},"month":{"previous":"last month","current":"this month","next":"next month","past":{"one":"{0} month ago","other":"{0} months ago"},"future":{"one":"in {0} month","other":"in {0} months"}},"week":{"previous":"last week","current":"this week","next":"next week","past":{"one":"{0} week ago","other":"{0} weeks ago"},"future":{"one":"in {0} week","other":"in {0} weeks"}},"day":{"previous":"yesterday","current":"today","next":"tomorrow","past":{"one":"{0} day ago","other":"{0} days ago"},"future":{"one":"in {0} day","other":"in {0} days"}},"hour":{"current":"this hour","past":{"one":"{0} hour ago","other":"{0} hours ago"},"future":{"one":"in {0} hour","other":"in {0} hours"}},"minute":{"current":"this minute","past":{"one":"{0} minute ago","other":"{0} minutes ago"},"future":{"one":"in {0} minute","other":"in {0} minutes"}},"second":{"current":"now","past":{"one":"{0} second ago","other":"{0} seconds ago"},"future":{"one":"in {0} second","other":"in {0} seconds"}},"now":"now"};
+
+/***/ }),
+
+/***/ "./node_modules/javascript-time-ago/locale/en/narrow.json":
+/*!****************************************************************!*\
+  !*** ./node_modules/javascript-time-ago/locale/en/narrow.json ***!
+  \****************************************************************/
+/*! exports provided: year, quarter, month, week, day, hour, minute, second, now, default */
+/***/ (function(module) {
+
+module.exports = {"year":{"previous":"last yr.","current":"this yr.","next":"next yr.","past":"{0} yr. ago","future":"in {0} yr."},"quarter":{"previous":"last qtr.","current":"this qtr.","next":"next qtr.","past":{"one":"{0} qtr. ago","other":"{0} qtrs. ago"},"future":{"one":"in {0} qtr.","other":"in {0} qtrs."}},"month":{"previous":"last mo.","current":"this mo.","next":"next mo.","past":"{0} mo. ago","future":"in {0} mo."},"week":{"previous":"last wk.","current":"this wk.","next":"next wk.","past":"{0} wk. ago","future":"in {0} wk."},"day":{"previous":"yesterday","current":"today","next":"tomorrow","past":{"one":"{0} day ago","other":"{0} days ago"},"future":{"one":"in {0} day","other":"in {0} days"}},"hour":{"current":"this hour","past":"{0} hr. ago","future":"in {0} hr."},"minute":{"current":"this minute","past":"{0} min. ago","future":"in {0} min."},"second":{"current":"now","past":"{0} sec. ago","future":"in {0} sec."},"now":"now"};
+
+/***/ }),
+
+/***/ "./node_modules/javascript-time-ago/locale/en/quantify.js":
+/*!****************************************************************!*\
+  !*** ./node_modules/javascript-time-ago/locale/en/quantify.js ***!
+  \****************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports=function(n){var r=!String(n).split(".")[1];return 1==n&&r?"one":"other"}
+
+/***/ }),
+
+/***/ "./node_modules/javascript-time-ago/locale/en/short-convenient.json":
+/*!**************************************************************************!*\
+  !*** ./node_modules/javascript-time-ago/locale/en/short-convenient.json ***!
+  \**************************************************************************/
+/*! exports provided: year, quarter, month, week, day, hour, minute, second, now, default */
+/***/ (function(module) {
+
+module.exports = {"year":{"previous":"last yr.","current":"this yr.","next":"next yr.","past":"{0} yr. ago","future":"in {0} yr."},"quarter":{"previous":"last qtr.","current":"this qtr.","next":"next qtr.","past":{"one":"{0} qtr. ago","other":"{0} qtrs. ago"},"future":{"one":"in {0} qtr.","other":"in {0} qtrs."}},"month":{"previous":"last mo.","current":"this mo.","next":"next mo.","past":"{0} mo. ago","future":"in {0} mo."},"week":{"previous":"last wk.","current":"this wk.","next":"next wk.","past":"{0} wk. ago","future":"in {0} wk."},"day":{"previous":"yesterday","current":"today","next":"tomorrow","past":{"one":"{0} day ago","other":"{0} days ago"},"future":{"one":"in {0} day","other":"in {0} days"}},"hour":{"current":"this hour","past":"{0} hr. ago","future":"in {0} hr."},"minute":{"current":"this minute","past":"{0} min. ago","future":"in {0} min."},"second":{"current":"now","past":"{0} sec. ago","future":"in {0} sec."},"now":{"future":"in a moment","past":"just now"}};
+
+/***/ }),
+
+/***/ "./node_modules/javascript-time-ago/locale/en/short-time.json":
+/*!********************************************************************!*\
+  !*** ./node_modules/javascript-time-ago/locale/en/short-time.json ***!
+  \********************************************************************/
+/*! exports provided: year, month, week, day, hour, minute, second, now, default */
+/***/ (function(module) {
+
+module.exports = {"year":"{0} yr.","month":"{0} mo.","week":"{0} wk.","day":{"one":"{0} day","other":"{0} days"},"hour":"{0} hr.","minute":"{0} min.","second":"{0} sec.","now":"now"};
+
+/***/ }),
+
+/***/ "./node_modules/javascript-time-ago/locale/en/short.json":
+/*!***************************************************************!*\
+  !*** ./node_modules/javascript-time-ago/locale/en/short.json ***!
+  \***************************************************************/
+/*! exports provided: year, quarter, month, week, day, hour, minute, second, now, default */
+/***/ (function(module) {
+
+module.exports = {"year":{"previous":"last yr.","current":"this yr.","next":"next yr.","past":"{0} yr. ago","future":"in {0} yr."},"quarter":{"previous":"last qtr.","current":"this qtr.","next":"next qtr.","past":{"one":"{0} qtr. ago","other":"{0} qtrs. ago"},"future":{"one":"in {0} qtr.","other":"in {0} qtrs."}},"month":{"previous":"last mo.","current":"this mo.","next":"next mo.","past":"{0} mo. ago","future":"in {0} mo."},"week":{"previous":"last wk.","current":"this wk.","next":"next wk.","past":"{0} wk. ago","future":"in {0} wk."},"day":{"previous":"yesterday","current":"today","next":"tomorrow","past":{"one":"{0} day ago","other":"{0} days ago"},"future":{"one":"in {0} day","other":"in {0} days"}},"hour":{"current":"this hour","past":"{0} hr. ago","future":"in {0} hr."},"minute":{"current":"this minute","past":"{0} min. ago","future":"in {0} min."},"second":{"current":"now","past":"{0} sec. ago","future":"in {0} sec."},"now":"now"};
+
+/***/ }),
+
+/***/ "./node_modules/javascript-time-ago/locale/en/tiny.json":
+/*!**************************************************************!*\
+  !*** ./node_modules/javascript-time-ago/locale/en/tiny.json ***!
+  \**************************************************************/
+/*! exports provided: year, month, week, day, hour, minute, second, now, default */
+/***/ (function(module) {
+
+module.exports = {"year":"{0}yr","month":"{0}mo","week":"{0}wk","day":"{0}d","hour":"{0}h","minute":"{0}m","second":"{0}s","now":"now"};
+
+/***/ }),
+
+/***/ "./node_modules/javascript-time-ago/modules/JavascriptTimeAgo.js":
+/*!***********************************************************************!*\
+  !*** ./node_modules/javascript-time-ago/modules/JavascriptTimeAgo.js ***!
+  \***********************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _grade = __webpack_require__(/*! ./grade */ "./node_modules/javascript-time-ago/modules/grade.js");
+
+var _grade2 = _interopRequireDefault(_grade);
+
+var _locale = __webpack_require__(/*! ./locale */ "./node_modules/javascript-time-ago/modules/locale.js");
+
+var _locale2 = _interopRequireDefault(_locale);
+
+var _style = __webpack_require__(/*! ./style */ "./node_modules/javascript-time-ago/modules/style/index.js");
+
+var _RelativeTimeFormat = __webpack_require__(/*! ./RelativeTimeFormat */ "./node_modules/javascript-time-ago/modules/RelativeTimeFormat.js");
+
+var _RelativeTimeFormat2 = _interopRequireDefault(_RelativeTimeFormat);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var JavascriptTimeAgo = function () {
+
+	/**
+  * @param {(string|string[])} locales=[] - Preferred locales (or locale).
+  */
+
+	// Fallback locale
+	// (when not a single supplied preferred locale is available)
+	function JavascriptTimeAgo() {
+		var locales = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+
+		_classCallCheck(this, JavascriptTimeAgo);
+
+		// Convert `locales` to an array.
+		if (typeof locales === 'string') {
+			locales = [locales];
+		}
+
+		// Choose the most appropriate locale
+		// (one of the previously added ones)
+		// based on the list of preferred `locales` supplied by the user.
+		this.locale = (0, _locale2.default)(locales.concat(JavascriptTimeAgo.default_locale), JavascriptTimeAgo.locales);
+	}
+
+	// Formats the relative date/time.
+	//
+	// @return {string} Returns the formatted relative date/time.
+	//
+	// @param {(Object|string)} [style] - Relative date/time formatting style.
+	//
+	// @param {string[]} [style.units] - A list of allowed time units
+	//                                  (e.g. ['second', 'minute', 'hour', …])
+	//
+	// @param {Function} [style.custom] - `function ({ elapsed, time, date, now })`.
+	//                                    If this function returns a value, then
+	//                                    the `.format()` call will return that value.
+	//                                    Otherwise it has no effect.
+	//
+	// @param {string} [style.flavour] - e.g. "long", "short", "tiny", etc.
+	//
+	// @param {Object[]} [style.gradation] - Time scale gradation steps.
+	//
+	// @param {string} style.gradation[].unit - Time interval measurement unit.
+	//                                          (e.g. ['second', 'minute', 'hour', …])
+	//
+	// @param {Number} style.gradation[].factor - Time interval measurement unit factor.
+	//                                            (e.g. `60` for 'minute')
+	//
+	// @param {Number} [style.gradation[].granularity] - A step for the unit's "amount" value.
+	//                                                   (e.g. `5` for '0 minutes', '5 minutes', etc)
+	//
+	// @param {Number} [style.gradation[].threshold] - Time interval measurement unit threshold.
+	//                                                 (e.g. `45` seconds for 'minute').
+	//                                                 There can also be specific `threshold_[unit]`
+	//                                                 thresholds for fine-tuning.
+	//
+
+
+	// For all configured locales
+	// their relative time formatter messages will be stored here
+
+
+	_createClass(JavascriptTimeAgo, [{
+		key: 'format',
+		value: function format(input) {
+			var style = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _style.defaultStyle;
+
+			if (typeof style === 'string') {
+				switch (style) {
+					case 'twitter':
+						style = _style.twitterStyle;
+						break;
+					case 'time':
+						style = _style.timeStyle;
+						break;
+					default:
+						style = _style.defaultStyle;
+				}
+			}
+
+			var _get_date_and_time_be = get_date_and_time_being_formatted(input),
+			    date = _get_date_and_time_be.date,
+			    time = _get_date_and_time_be.time;
+
+			// Get locale messages for this formatting flavour
+
+
+			var _get_locale_data = this.get_locale_data(style.flavour),
+			    flavour = _get_locale_data.flavour,
+			    locale_data = _get_locale_data.locale_data;
+
+			// Can pass a custom `now`, e.g. for testing purposes.
+			// Technically it doesn't belong to `style`
+			// but since this is an undocumented internal feature,
+			// taking it from the `style` argument will do (for now).
+
+
+			var now = style.now || Date.now();
+
+			// how much time elapsed (in seconds)
+			var elapsed = (now - time) / 1000; // in seconds
+
+			// `custom` – A function of `{ elapsed, time, date, now, locale }`.
+			// If this function returns a value, then the `.format()` call will return that value.
+			// Otherwise the relative date/time is formatted as usual.
+			// This feature is currently not used anywhere and is here
+			// just for providing the ultimate customization point
+			// in case anyone would ever need that. Prefer using
+			// `gradation[step].format(value, locale)` instead.
+			//
+			// I guess `custom` is deprecated and will be removed
+			// in some future major version release.
+			//
+			if (style.custom) {
+				var custom = style.custom({
+					now: now,
+					date: date,
+					time: time,
+					elapsed: elapsed,
+					locale: this.locale
+				});
+
+				if (custom !== undefined) {
+					return custom;
+				}
+			}
+
+			// Available time interval measurement units.
+			var units = get_time_interval_measurement_units(locale_data, style.units);
+
+			// If no available time unit is suitable, just output an empty string.
+			if (units.length === 0) {
+				console.error('Units "' + units.join(', ') + '" were not found in locale data for "' + this.locale + '".');
+				return '';
+			}
+
+			// Choose the appropriate time measurement unit
+			// and get the corresponding rounded time amount.
+			var step = (0, _grade2.default)(Math.abs(elapsed), now, units, style.gradation);
+
+			// If no time unit is suitable, just output an empty string.
+			// E.g. when "now" unit is not available
+			// and "second" has a threshold of `0.5`
+			// (e.g. the "canonical" grading scale).
+			if (!step) {
+				return '';
+			}
+
+			if (step.format) {
+				return step.format(date || time, this.locale);
+			}
+
+			var unit = step.unit,
+			    factor = step.factor,
+			    granularity = step.granularity;
+
+
+			var amount = Math.abs(elapsed) / factor;
+
+			// Apply granularity to the time amount
+			// (and fallback to the previous step
+			//  if the first level of granularity
+			//  isn't met by this amount)
+			if (granularity) {
+				// Recalculate the elapsed time amount based on granularity
+				amount = Math.round(amount / granularity) * granularity;
+			}
+
+			// Format the time elapsed.
+			// Using `Intl.RelativeTimeFormat` proposal polyfill.
+			//
+			// TODO: Should cache `Intl.RelativeTimeFormat` instances
+			// for given `this.locale` and `flavour`.
+			//
+			// ```js
+			// import Cache from './cache'
+			// const cache = new Cache()
+			// const formatter = this.cache.get(this.locale, flavour) ||
+			//   this.cache.put(this.locale, flavour, new Intl.RelativeTimeFormat(...))
+			// return formatter.format(...)
+			// ```
+			//
+			return new _RelativeTimeFormat2.default(this.locale, { style: flavour }).format(-1 * Math.sign(elapsed) * Math.round(amount), unit);
+		}
+
+		/**
+   * Gets locale messages for this formatting flavour
+   *
+   * @param {(string|string[])} flavour - Relative date/time formatting flavour.
+   *                                      If it's an array then all flavours are tried in order.
+   *
+   * @returns {Object} Returns an object of shape { flavour, locale_data }
+   */
+
+	}, {
+		key: 'get_locale_data',
+		value: function get_locale_data() {
+			var flavour = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+
+			// Get relative time formatting rules for this locale
+			var locale_data = JavascriptTimeAgo.locales[this.locale];
+
+			// Convert `flavour` to an array.
+			if (typeof flavour === 'string') {
+				flavour = [flavour];
+			}
+
+			// "long" flavour is the default one.
+			// (it's always present)
+			flavour = flavour.concat('long');
+
+			// Find a suitable flavour.
+			for (var _iterator = flavour, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+				var _ref;
+
+				if (_isArray) {
+					if (_i >= _iterator.length) break;
+					_ref = _iterator[_i++];
+				} else {
+					_i = _iterator.next();
+					if (_i.done) break;
+					_ref = _i.value;
+				}
+
+				var _ = _ref;
+
+				if (locale_data[_]) {
+					return {
+						flavour: _,
+						locale_data: locale_data[_]
+					};
+				}
+			}
+
+			// Can't happen - "long" flavour is always present.
+			// throw new Error(`None of the flavours - ${flavour.join(', ')} - was found for locale "${this.locale}".`)
+		}
+	}]);
+
+	return JavascriptTimeAgo;
+}();
+
+/**
+ * Sets default locale.
+ * @param  {string} locale
+ */
+
+
+JavascriptTimeAgo.default_locale = 'en';
+JavascriptTimeAgo.locales = {};
+exports.default = JavascriptTimeAgo;
+JavascriptTimeAgo.setDefaultLocale = function (locale) {
+	JavascriptTimeAgo.default_locale = locale;
+};
+
+/**
+ * Adds locale data for a specific locale.
+ * @param {Object} locale_data
+ */
+JavascriptTimeAgo.locale = function (locale_data) {
+	if (!locale_data) {
+		throw new Error('[javascript-time-ago] Invalid locale data passed.');
+	}
+	// This locale data is stored in a global variable
+	// and later used when calling `.format(time)`.
+	JavascriptTimeAgo.locales[locale_data.locale] = locale_data;
+};
+
+// Normalizes `.format()` `time` argument.
+function get_date_and_time_being_formatted(input) {
+	if (input.constructor === Date) {
+		return {
+			date: input,
+			time: input.getTime()
+		};
+	}
+
+	if (typeof input === 'number') {
+		return {
+			time: input
+			// `date` is not required for formatting
+			// relative times unless "twitter" preset is used.
+			// date : new Date(input)
+		};
+	}
+
+	// For some weird reason istanbul doesn't see this `throw` covered.
+	/* istanbul ignore next */
+	throw new Error('Unsupported relative time formatter input: ' + (typeof input === 'undefined' ? 'undefined' : _typeof(input)) + ', ' + input);
+}
+
+// Get available time interval measurement units.
+function get_time_interval_measurement_units(locale_data, restricted_set_of_units) {
+	// All available time interval measurement units.
+	var units = Object.keys(locale_data);
+
+	// If only a specific set of available
+	// time measurement units can be used.
+	if (restricted_set_of_units) {
+		// Reduce available time interval measurement units
+		// based on user's preferences.
+		return restricted_set_of_units.filter(function (_) {
+			return units.indexOf(_) >= 0;
+		});
+	}
+
+	return units;
+}
+//# sourceMappingURL=JavascriptTimeAgo.js.map
+
+/***/ }),
+
+/***/ "./node_modules/javascript-time-ago/modules/RelativeTimeFormat.js":
+/*!************************************************************************!*\
+  !*** ./node_modules/javascript-time-ago/modules/RelativeTimeFormat.js ***!
+  \************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+exports.loadLocale = loadLocale;
+
+var _JavascriptTimeAgo = __webpack_require__(/*! ./JavascriptTimeAgo */ "./node_modules/javascript-time-ago/modules/JavascriptTimeAgo.js");
+
+var _JavascriptTimeAgo2 = _interopRequireDefault(_JavascriptTimeAgo);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * Polyfill for `Intl.RelativeTimeFormat` proposal.
+ * https://github.com/tc39/proposal-intl-relative-time
+ * https://github.com/tc39/proposal-intl-relative-time/issues/55
+ */
+var RelativeTimeFormat = function () {
+  /**
+   * @param {(string|string[])} [locales] - Preferred locales (or locale).
+   * @param {Object} [options] - Formatting options.
+   * @param {string} [options.style="long"] - One of: "long", "short", "narrow".
+   * @param {string} [options.type="numeric"] - One of: "numeric", "text".
+   * @param {string} [options.localeMatcher="best fit"] - One of: "lookup", "best fit".
+   */
+  function RelativeTimeFormat(locales) {
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+    _classCallCheck(this, RelativeTimeFormat);
+
+    var style = options.style;
+
+    this.style = style || 'long';
+
+    // Choose the most appropriate locale.
+    // This could implement some kind of a "best-fit" algorythm.
+    if (locales) {
+      this.locale = RelativeTimeFormat.supportedLocalesOf(locales)[0];
+    }
+    this.locale = this.locale ? resolveLocale(this.locale) : getDefaultLocale();
+  }
+
+  /**
+   * Formats time `value` in `units` (either in past or in future).
+   * @param {number} value - Time interval value.
+   * @param {string} unit - Time interval measurement unit.
+   * @return {string}
+   * @throws {RangeError} If unit is not one of "second", "minute", "hour", "day", "week", "month", "quarter".
+   * @example
+   * // Returns "2 days ago"
+   * rtf.format(-2, "day")
+   * // Returns "in 5 minutes"
+   * rtf.format(5, "minute")
+   */
+
+
+  _createClass(RelativeTimeFormat, [{
+    key: 'format',
+    value: function format(value, unit) {
+      return this.getRule(value, unit).replace('{0}', Math.abs(value));
+    }
+
+    /**
+     * Formats time `value` in `units` (either in past or in future).
+     * @param {number} value - Time interval value.
+     * @param {string} unit - Time interval measurement unit.
+     * @return {Object[]} The parts (`{ type, value }`).
+     * @throws {RangeError} If unit is not one of "second", "minute", "hour", "day", "week", "month", "quarter".
+     * @example
+     * // Returns [
+     * //   { type: "literal", value: "in "},
+     * //   { type: "day", value: "100"},
+     * //   { type: "literal", value: " days"}
+     * // ]
+     * rtf.formatToParts(100, "day")
+     */
+
+  }, {
+    key: 'formatToParts',
+    value: function formatToParts(value, unit) {
+      var rule = this.getRule(value, unit);
+      var valueIndex = rule.indexOf("{0}");
+      var parts = [];
+      if (valueIndex > 0) {
+        parts.push({
+          type: "literal",
+          value: rule.slice(0, valueIndex)
+        });
+      }
+      parts.push({
+        type: unit,
+        value: String(Math.abs(value))
+      });
+      if (valueIndex + "{0}".length < rule.length - 1) {
+        parts.push({
+          type: "literal",
+          value: rule.slice(valueIndex + "{0}".length)
+        });
+      }
+      return parts;
+    }
+
+    /**
+     * Returns formatting rule for `value` in `units` (either in past or in future).
+     * @param {number} value - Time interval value.
+     * @param {string} unit - Time interval measurement unit.
+     * @return {string}
+     * @throws {RangeError} If unit is not one of "second", "minute", "hour", "day", "week", "month", "quarter".
+     * @example
+     * // Returns "{0} days ago"
+     * getRule(-2, "day")
+     */
+
+  }, {
+    key: 'getRule',
+    value: function getRule(value, unit) {
+      // "now" is used in `javascript-time-ago`.
+      if (["now", "second", "minute", "hour", "day", "week", "month", "quarter", "year"].indexOf(unit) < 0) {
+        throw new RangeError('Unknown time unit: ' + unit + '.');
+      }
+      // Get locale-specific time interval formatting rules
+      // of a given `style` for the given value of measurement `unit`.
+      //
+      // E.g.:
+      //
+      // ```json
+      // {
+      //  "past": {
+      //    "one": "a second ago",
+      //    "other": "{0} seconds ago"
+      //  },
+      //  "future": {
+      //    "one": "in a second",
+      //    "other": "in {0} seconds"
+      //  }
+      // }
+      // ```
+      //
+      var unitRules = getLocales()[this.locale][this.style][unit];
+      if (typeof unitRules === "string") {
+        return unitRules;
+      }
+      // Choose either "past" or "future" based on time `value` sign.
+      // If "past" is same as "future" then they're stored as "other".
+      // If there's only "other" then it's being collapsed.
+      var quantifierRules = unitRules[value <= 0 ? "past" : "future"] || unitRules;
+      if (typeof quantifierRules === "string") {
+        return quantifierRules;
+      }
+      // Quantify `value`.
+      var quantify = getLocales()[this.locale].quantify;
+      var quantifier = quantify && quantify(Math.abs(value));
+      // There seems to be no such locale in CLDR
+      // for which `quantify` is missing
+      // and still `past` and `future` messages
+      // contain something other than "other".
+      /* istanbul ignore next */
+      quantifier = quantifier || 'other';
+      // "other" rule is supposed to always be present.
+      // If only "other" rule is present then "rules" is not an object and is a string.
+      return quantifierRules[quantifier] || quantifierRules.other;
+    }
+
+    /**
+     * Returns a new object with properties reflecting the locale and date and time formatting options computed during initialization of this DateTimeFormat object.
+     * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat/resolvedOptions
+     * @return {Object}
+     */
+
+  }, {
+    key: 'resolvedOptions',
+    value: function resolvedOptions() {
+      return {
+        locale: this.locale
+      };
+    }
+  }]);
+
+  return RelativeTimeFormat;
+}();
+
+/**
+ * Returns an array containing those of the provided locales
+ * that are supported in collation without having to fall back
+ * to the runtime's default locale.
+ * @param {(string|string[])} locale - A string with a BCP 47 language tag, or an array of such strings. For the general form of the locales argument, see the Intl page.
+ * @param {Object} [options] - An object that may have the following property:
+ * @param {Function} [options.localeMatcher] - The locale matching algorithm to use. Possible values are "lookup" and "best fit"; the default is "best fit". For information about this option, see the Intl page.
+ * @return {string[]} An array of strings representing a subset of the given locale tags that are supported in collation without having to fall back to the runtime's default locale.
+ * @example
+ * var locales = ['ban', 'id-u-co-pinyin', 'de-ID'];
+ * var options = { localeMatcher: 'lookup' };
+ * console.log(Intl.RelativeTimeFormat.supportedLocalesOf(locales, options).join(', '));
+ * // → "id-u-co-pinyin, de-ID"
+ */
+
+
+exports.default = RelativeTimeFormat;
+RelativeTimeFormat.supportedLocalesOf = function (locales, options) {
+  // Convert `locales` to an array.
+  if (typeof locales === 'string') {
+    locales = [locales];
+  }
+  // This is not an intelligent algorythm,
+  // but it will do for the polyfill purposes.
+  // This could implement some kind of a "best-fit" algorythm.
+  return locales.filter(resolveLocale);
+};
+
+/**
+ * Resolves a locale to a supported one.
+ * @param  {string} locale
+ * @return {string}
+ */
+function resolveLocale(locale) {
+  if (getLocales()[locale]) {
+    return locale;
+  }
+  // `sr-Cyrl-BA` -> `sr-Cyrl` -> `sr`.
+  var parts = locale.split('-');
+  while (locale.length > 1) {
+    parts.pop();
+    locale = parts.join('-');
+    if (getLocales()[locale]) {
+      return locale;
+    }
+  }
+}
+
+function loadLocale(locale) {
+  _JavascriptTimeAgo2.default.locale(locale);
+}
+
+function getLocales() {
+  return _JavascriptTimeAgo2.default.locales;
+}
+
+function getDefaultLocale() {
+  return _JavascriptTimeAgo2.default.default_locale;
+}
+
+/**
+ * Extracts language from an IETF BCP 47 language tag.
+ * @param {string} languageTag - IETF BCP 47 language tag.
+ * @return {string}
+ * @example
+ * // Returns "he"
+ * getLanguageFromLanguageTag("he-IL-u-ca-hebrew-tz-jeruslm")
+ * // Returns "ar"
+ * getLanguageFromLanguageTag("ar-u-nu-latn")
+ */
+// export function getLanguageFromLanguageTag(languageTag) {
+//   const hyphenIndex = languageTag.indexOf('-')
+//   if (hyphenIndex > 0) {
+//     return languageTag.slice(0, hyphenIndex)
+//   }
+//   return languageTag
+// }
+//# sourceMappingURL=RelativeTimeFormat.js.map
+
+/***/ }),
+
+/***/ "./node_modules/javascript-time-ago/modules/gradation/canonical.js":
+/*!*************************************************************************!*\
+  !*** ./node_modules/javascript-time-ago/modules/gradation/canonical.js ***!
+  \*************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _helpers = __webpack_require__(/*! ./helpers */ "./node_modules/javascript-time-ago/modules/gradation/helpers.js");
+
+// just now
+// 1 second ago
+// 2 seconds ago
+// …
+// 59 seconds ago
+// 1 minute ago
+// 2 minutes ago
+// …
+// 59 minutes ago
+// 1 hour ago
+// 2 hours ago
+// …
+// 24 hours ago
+// 1 day ago
+// 2 days ago
+// …
+// 7 days ago
+// 1 week ago
+// 2 weeks ago
+// …
+// 3 weeks ago
+// 1 month ago
+// 2 months ago
+// …
+// 11 months ago
+// 1 year ago
+// 2 years ago
+// …
+exports.default = [{
+	factor: 1,
+	unit: 'now'
+}, {
+	threshold: 0.5,
+	factor: 1,
+	unit: 'second'
+}, {
+	threshold: 59.5,
+	factor: 60,
+	unit: 'minute'
+}, {
+	threshold: 59.5 * 60,
+	factor: 60 * 60,
+	unit: 'hour'
+}, {
+	threshold: 23.5 * 60 * 60,
+	factor: _helpers.day,
+	unit: 'day'
+}, {
+	threshold: 6.5 * _helpers.day,
+	factor: 7 * _helpers.day,
+	unit: 'week'
+}, {
+	threshold: 3.5 * 7 * _helpers.day,
+	factor: _helpers.month,
+	unit: 'month'
+}, {
+	threshold: 11.5 * _helpers.month,
+	factor: _helpers.year,
+	unit: 'year'
+}];
+//# sourceMappingURL=canonical.js.map
+
+/***/ }),
+
+/***/ "./node_modules/javascript-time-ago/modules/gradation/convenient.js":
+/*!**************************************************************************!*\
+  !*** ./node_modules/javascript-time-ago/modules/gradation/convenient.js ***!
+  \**************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _helpers = __webpack_require__(/*! ./helpers */ "./node_modules/javascript-time-ago/modules/gradation/helpers.js");
+
+// just now
+// 1 minute ago
+// 2 minutes ago
+// 5 minutes ago
+// 10 minutes ago
+// 15 minutes ago
+// 20 minutes ago
+// an hour ago
+// 2 hours ago
+// …
+// 20 hours ago
+// a day ago
+// 2 days ago
+// 5 days ago
+// a week ago
+// 2 weeks ago
+// 3 weeks ago
+// a month ago
+// 2 months ago
+// 4 months ago
+// a year ago
+// 2 years ago
+// …
+exports.default = [{
+	factor: 1,
+	unit: 'now'
+}, {
+	threshold: 1,
+	threshold_for_now: 45,
+	factor: 1,
+	unit: 'second'
+}, {
+	threshold: 45,
+	factor: 60,
+	unit: 'minute'
+}, {
+	threshold: 2.5 * 60,
+	factor: 60,
+	granularity: 5,
+	unit: 'minute'
+}, {
+	threshold: 22.5 * 60,
+	factor: 30 * 60,
+	unit: 'half-hour'
+}, {
+	threshold: 42.5 * 60,
+	threshold_for_minute: 52.5 * 60,
+	factor: 60 * 60,
+	unit: 'hour'
+}, {
+	threshold: 20.5 / 24 * _helpers.day,
+	factor: _helpers.day,
+	unit: 'day'
+}, {
+	threshold: 5.5 * _helpers.day,
+	factor: 7 * _helpers.day,
+	unit: 'week'
+}, {
+	threshold: 3.5 * 7 * _helpers.day,
+	factor: _helpers.month,
+	unit: 'month'
+}, {
+	threshold: 10.5 * _helpers.month,
+	factor: _helpers.year,
+	unit: 'year'
+}];
+//# sourceMappingURL=convenient.js.map
+
+/***/ }),
+
+/***/ "./node_modules/javascript-time-ago/modules/gradation/helpers.js":
+/*!***********************************************************************!*\
+  !*** ./node_modules/javascript-time-ago/modules/gradation/helpers.js ***!
+  \***********************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.getStep = getStep;
+exports.getDate = getDate;
+var minute = exports.minute = 60; // in seconds
+
+var hour = exports.hour = 60 * minute; // in seconds
+
+var day = exports.day = 24 * hour; // in seconds
+
+// https://www.quora.com/What-is-the-average-number-of-days-in-a-month
+var month = exports.month = 30.44 * day; // in seconds
+
+// "400 years have 146097 days (taking into account leap year rules)"
+var year = exports.year = 146097 / 400 * day; // in seconds
+
+/**
+ * Returns a step of gradation corresponding to the unit.
+ * @param  {Object[]} gradation
+ * @param  {string} unit
+ * @return {?Object}
+ */
+function getStep(gradation, unit) {
+  for (var _iterator = gradation, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+    var _ref;
+
+    if (_isArray) {
+      if (_i >= _iterator.length) break;
+      _ref = _iterator[_i++];
+    } else {
+      _i = _iterator.next();
+      if (_i.done) break;
+      _ref = _i.value;
+    }
+
+    var step = _ref;
+
+    if (step.unit === unit) {
+      return step;
+    }
+  }
+}
+
+/**
+ * Converts value to a `Date`
+ * @param {(number|Date)} value
+ * @return {Date}
+ */
+function getDate(value) {
+  return value instanceof Date ? value : new Date(value);
+}
+//# sourceMappingURL=helpers.js.map
+
+/***/ }),
+
+/***/ "./node_modules/javascript-time-ago/modules/gradation/index.js":
+/*!*********************************************************************!*\
+  !*** ./node_modules/javascript-time-ago/modules/gradation/index.js ***!
+  \*********************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _canonical = __webpack_require__(/*! ./canonical */ "./node_modules/javascript-time-ago/modules/gradation/canonical.js");
+
+Object.defineProperty(exports, 'canonical', {
+  enumerable: true,
+  get: function get() {
+    return _interopRequireDefault(_canonical).default;
+  }
+});
+
+var _convenient = __webpack_require__(/*! ./convenient */ "./node_modules/javascript-time-ago/modules/gradation/convenient.js");
+
+Object.defineProperty(exports, 'convenient', {
+  enumerable: true,
+  get: function get() {
+    return _interopRequireDefault(_convenient).default;
+  }
+});
+
+var _helpers = __webpack_require__(/*! ./helpers */ "./node_modules/javascript-time-ago/modules/gradation/helpers.js");
+
+Object.defineProperty(exports, 'minute', {
+  enumerable: true,
+  get: function get() {
+    return _helpers.minute;
+  }
+});
+Object.defineProperty(exports, 'hour', {
+  enumerable: true,
+  get: function get() {
+    return _helpers.hour;
+  }
+});
+Object.defineProperty(exports, 'day', {
+  enumerable: true,
+  get: function get() {
+    return _helpers.day;
+  }
+});
+Object.defineProperty(exports, 'month', {
+  enumerable: true,
+  get: function get() {
+    return _helpers.month;
+  }
+});
+Object.defineProperty(exports, 'year', {
+  enumerable: true,
+  get: function get() {
+    return _helpers.year;
+  }
+});
+Object.defineProperty(exports, 'getStep', {
+  enumerable: true,
+  get: function get() {
+    return _helpers.getStep;
+  }
+});
+Object.defineProperty(exports, 'getDate', {
+  enumerable: true,
+  get: function get() {
+    return _helpers.getDate;
+  }
+});
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ "./node_modules/javascript-time-ago/modules/grade.js":
+/*!***********************************************************!*\
+  !*** ./node_modules/javascript-time-ago/modules/grade.js ***!
+  \***********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+exports.default = grade;
+
+var _gradation = __webpack_require__(/*! ./gradation */ "./node_modules/javascript-time-ago/modules/gradation/index.js");
+
+/**
+ * Takes seconds `elapsed` and measures them against
+ * `gradation` to return the suitable `gradation` step.
+ *
+ * @param {number} elapsed - Time interval (in seconds)
+ *
+ * @param {string[]} units - A list of allowed time units
+ *                           (e.g. ['second', 'minute', 'hour', …])
+ *
+ * @param {Object} [gradation] - Time scale gradation steps.
+ *
+ *                               E.g.:
+ *                               [
+ *                                 { unit: 'second', factor: 1 },
+ *                                 { unit: 'minute', factor: 60, threshold: 60 },
+ *                                 { format(), threshold: 24 * 60 * 60 },
+ *                                 …
+ *                               ]
+ *
+ * @return {?Object} `gradation` step.
+ */
+function grade(elapsed, now, units) {
+	var gradation = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : _gradation.convenient;
+
+	// Leave only allowed time measurement units.
+	// E.g. omit "quarter" unit.
+	gradation = get_allowed_steps(gradation, units);
+
+	// If no steps of gradation fit the conditions
+	// then return nothing.
+	if (gradation.length === 0) {
+		return;
+	}
+
+	// Find the most appropriate gradation step
+	var i = find_gradation_step(elapsed, now, gradation);
+	var step = gradation[i];
+
+	// If time elapsed is too small and even
+	// the first gradation step doesn't suit it
+	// then return nothing.
+	if (i === -1) {
+		return;
+	}
+
+	// Apply granularity to the time amount
+	// (and fall back to the previous step
+	//  if the first level of granularity
+	//  isn't met by this amount)
+	if (step.granularity) {
+		// Recalculate the elapsed time amount based on granularity
+		var amount = Math.round(elapsed / step.factor / step.granularity) * step.granularity;
+
+		// If the granularity for this step
+		// is too high, then fallback
+		// to the previous step of gradation.
+		// (if there is any previous step of gradation)
+		if (amount === 0 && i > 0) {
+			return gradation[i - 1];
+		}
+	}
+
+	return step;
+}
+
+/**
+ * Gets threshold for moving from `from_step` to `next_step`.
+ * @param  {Object} from_step - From step.
+ * @param  {Object} next_step - To step.
+ * @param  {number} now - The current timestamp.
+ * @return {number}
+ * @throws Will throw if no threshold is found.
+ */
+function get_threshold(from_step, to_step, now) {
+	var threshold = void 0;
+
+	// Allows custom thresholds when moving
+	// from a specific step to a specific step.
+	if (from_step && (from_step.id || from_step.unit)) {
+		threshold = to_step['threshold_for_' + (from_step.id || from_step.unit)];
+	}
+
+	// If no custom threshold is set for this transition
+	// then use the usual threshold for the next step.
+	if (threshold === undefined) {
+		threshold = to_step.threshold;
+	}
+
+	// Convert threshold to a number.
+	if (typeof threshold === 'function') {
+		threshold = threshold(now);
+	}
+
+	// Throw if no threshold is found.
+	if (from_step && typeof threshold !== 'number') {
+		// Babel transforms `typeof` into some "branches"
+		// so istanbul will show this as "branch not covered".
+		/* istanbul ignore next */
+		var type = typeof threshold === 'undefined' ? 'undefined' : _typeof(threshold);
+		throw new Error('Each step of a gradation must have a threshold defined except for the first one. Got "' + threshold + '", ' + type + '. Step: ' + JSON.stringify(to_step));
+	}
+
+	return threshold;
+}
+
+/**
+ * @param  {number} elapsed - Time elapsed (in seconds).
+ * @param  {number} now - Current timestamp.
+ * @param  {Object} gradation - Gradation.
+ * @param  {number} i - Gradation step currently being tested.
+ * @return {number} Gradation step index.
+ */
+function find_gradation_step(elapsed, now, gradation) {
+	var i = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0;
+
+	// If the threshold for moving from previous step
+	// to this step is too high then return the previous step.
+	if (elapsed < get_threshold(gradation[i - 1], gradation[i], now)) {
+		return i - 1;
+	}
+
+	// If it's the last step of gradation then return it.
+	if (i === gradation.length - 1) {
+		return i;
+	}
+
+	// Move to the next step.
+	return find_gradation_step(elapsed, now, gradation, i + 1);
+}
+
+/**
+ * Leaves only allowed gradation steps.
+ * @param  {Object[]} gradation
+ * @param  {string[]} units - Allowed time units.
+ * @return {Object[]}
+ */
+function get_allowed_steps(gradation, units) {
+	return gradation.filter(function (_ref) {
+		var unit = _ref.unit;
+
+		// If this step has a `unit` defined
+		// then this `unit` must be in the list of `units` allowed.
+		if (unit) {
+			return units.indexOf(unit) >= 0;
+		}
+
+		// A gradation step is not required to specify a `unit`.
+		// E.g. for Twitter gradation it specifies `format()` instead.
+		return true;
+	});
+}
+//# sourceMappingURL=grade.js.map
+
+/***/ }),
+
+/***/ "./node_modules/javascript-time-ago/modules/locale.js":
+/*!************************************************************!*\
+  !*** ./node_modules/javascript-time-ago/modules/locale.js ***!
+  \************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+exports.default = choose_locale;
+exports.intlDateTimeFormatSupportedLocale = intlDateTimeFormatSupportedLocale;
+exports.intlDateTimeFormatSupported = intlDateTimeFormatSupported;
+// Chooses the most appropriate locale
+// (one of the registered ones)
+// based on the list of preferred `locales` supplied by the user.
+//
+// @param {string[]} locales - the list of preferable locales (in [IETF format](https://en.wikipedia.org/wiki/IETF_language_tag)).
+// @param {Object} registered_locales - a map of available locales.
+//
+// @returns {string} The most suitable locale
+//
+// @example
+// // Returns 'en'
+// choose_locale(['en-US'], undefined, { 'ru', 'en' })
+//
+function choose_locale(locales, registered_locales) {
+	// This is not an intelligent algorythm,
+	// but it will do for this library's case.
+	// `sr-Cyrl-BA` -> `sr-Cyrl` -> `sr`.
+	for (var _iterator = locales, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+		var _ref;
+
+		if (_isArray) {
+			if (_i >= _iterator.length) break;
+			_ref = _iterator[_i++];
+		} else {
+			_i = _iterator.next();
+			if (_i.done) break;
+			_ref = _i.value;
+		}
+
+		var locale = _ref;
+
+		if (registered_locales[locale]) {
+			return locale;
+		}
+
+		var parts = locale.split('-');
+		while (parts.length > 1) {
+			parts.pop();
+			locale = parts.join('-');
+			if (registered_locales[locale]) {
+				return locale;
+			}
+		}
+	}
+
+	throw new Error('No locale data has been registered for any of the locales: ' + locales.join(', '));
+}
+
+/**
+ * Whether can use `Intl.DateTimeFormat` for these `locales`.
+ * Returns the first suitable one.
+ * @param  {(string|string[])} locales
+ * @return {?string} The first locale that can be used.
+ */
+function intlDateTimeFormatSupportedLocale(locales) {
+	/* istanbul ignore else */
+	if (intlDateTimeFormatSupported()) {
+		return Intl.DateTimeFormat.supportedLocalesOf(locales)[0];
+	}
+}
+/**
+ * Whether can use `Intl.DateTimeFormat`.
+ * @return {boolean}
+ */
+function intlDateTimeFormatSupported() {
+	// Babel transforms `typeof` into some "branches"
+	// so istanbul will show this as "branch not covered".
+	/* istanbul ignore next */
+	var is_intl_available = (typeof Intl === 'undefined' ? 'undefined' : _typeof(Intl)) === 'object';
+
+	return is_intl_available && typeof Intl.DateTimeFormat === 'function';
+}
+//# sourceMappingURL=locale.js.map
+
+/***/ }),
+
+/***/ "./node_modules/javascript-time-ago/modules/style/default.js":
+/*!*******************************************************************!*\
+  !*** ./node_modules/javascript-time-ago/modules/style/default.js ***!
+  \*******************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _gradation = __webpack_require__(/*! ../gradation */ "./node_modules/javascript-time-ago/modules/gradation/index.js");
+
+exports.default = {
+	gradation: _gradation.convenient,
+	flavour: ['long_convenient', 'long'],
+	units: ['now', 'minute', 'hour', 'day', 'week', 'month', 'year']
+};
+//# sourceMappingURL=default.js.map
+
+/***/ }),
+
+/***/ "./node_modules/javascript-time-ago/modules/style/index.js":
+/*!*****************************************************************!*\
+  !*** ./node_modules/javascript-time-ago/modules/style/index.js ***!
+  \*****************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _time = __webpack_require__(/*! ./time */ "./node_modules/javascript-time-ago/modules/style/time.js");
+
+Object.defineProperty(exports, 'timeStyle', {
+  enumerable: true,
+  get: function get() {
+    return _interopRequireDefault(_time).default;
+  }
+});
+
+var _twitter = __webpack_require__(/*! ./twitter */ "./node_modules/javascript-time-ago/modules/style/twitter.js");
+
+Object.defineProperty(exports, 'twitterStyle', {
+  enumerable: true,
+  get: function get() {
+    return _interopRequireDefault(_twitter).default;
+  }
+});
+
+var _default = __webpack_require__(/*! ./default */ "./node_modules/javascript-time-ago/modules/style/default.js");
+
+Object.defineProperty(exports, 'defaultStyle', {
+  enumerable: true,
+  get: function get() {
+    return _interopRequireDefault(_default).default;
+  }
+});
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ "./node_modules/javascript-time-ago/modules/style/time.js":
+/*!****************************************************************!*\
+  !*** ./node_modules/javascript-time-ago/modules/style/time.js ***!
+  \****************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _gradation = __webpack_require__(/*! ../gradation */ "./node_modules/javascript-time-ago/modules/gradation/index.js");
+
+// Similar to the default style but with "ago" omitted.
+//
+// just now
+// 5 minutes
+// 10 minutes
+// 15 minutes
+// 20 minutes
+// an hour
+// 2 hours
+// …
+// 20 hours
+// 1 day
+// 2 days
+// a week
+// 2 weeks
+// 3 weeks
+// a month
+// 2 months
+// 3 months
+// 4 months
+// a year
+// 2 years
+//
+exports.default = {
+	gradation: _gradation.convenient,
+	flavour: 'long_time',
+	units: ['now', 'minute', 'hour', 'day', 'week', 'month', 'year']
+};
+//# sourceMappingURL=time.js.map
+
+/***/ }),
+
+/***/ "./node_modules/javascript-time-ago/modules/style/twitter.js":
+/*!*******************************************************************!*\
+  !*** ./node_modules/javascript-time-ago/modules/style/twitter.js ***!
+  \*******************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _gradation = __webpack_require__(/*! ../gradation */ "./node_modules/javascript-time-ago/modules/gradation/index.js");
+
+var _locale = __webpack_require__(/*! ../locale */ "./node_modules/javascript-time-ago/modules/locale.js");
+
+// A cache for `Intl.DateTimeFormat` twitter formatters
+// for various locales (is a global variable).
+var formatters = {};
+
+// Twitter style relative time formatting.
+// ("1m", "2h", "Mar 3", "Apr 4, 2012").
+// Seconds, minutes and hours are shown relatively,
+// and other intervals can be shown using full date format.
+exports.default = {
+	// Twitter gradation is derived from "canonical" gradation
+	// adjusting its "minute" `threshold` to be 45.
+	gradation: [
+	// Minutes
+	_extends({}, (0, _gradation.getStep)(_gradation.canonical, 'minute'), {
+		threshold: 45
+	}),
+	// Hours
+	(0, _gradation.getStep)(_gradation.canonical, 'hour'),
+	// If `date` and `now` happened the same year,
+	// then only output month and day.
+	{
+		threshold: _gradation.day - 0.5 * _gradation.hour,
+		format: function format(value, locale) {
+			// Whether can use `Intl.DateTimeFormat`.
+			// If `Intl` is not available,
+			// or the locale is not supported,
+			// then don't override the default labels.
+			/* istanbul ignore if */
+			if (!(0, _locale.intlDateTimeFormatSupported)()) {
+				return;
+			}
+
+			/* istanbul ignore else */
+			if (!formatters[locale]) {
+				formatters[locale] = {};
+			}
+
+			/* istanbul ignore else */
+			if (!formatters[locale].this_year) {
+				// "Apr 11" (MMMd)
+				formatters[locale].this_year = new Intl.DateTimeFormat(locale, {
+					month: 'short',
+					day: 'numeric'
+				});
+			}
+
+			// Output month and day.
+			return formatters[locale].this_year.format((0, _gradation.getDate)(value));
+		}
+	},
+	// If `date` and `now` happened in defferent years,
+	// then output day, month and year.
+	{
+		threshold: function threshold(now) {
+			// Jan 1st of the next year.
+			var next_year = new Date(new Date(now).getFullYear() + 1, 0);
+			return (next_year.getTime() - now) / 1000;
+		},
+		format: function format(value, locale) {
+			// Whether can use `Intl.DateTimeFormat`.
+			// If `Intl` is not available,
+			// or the locale is not supported,
+			// then don't override the default labels.
+			/* istanbul ignore if */
+			if (!(0, _locale.intlDateTimeFormatSupported)()) {
+				return;
+			}
+
+			/* istanbul ignore if */
+			if (!formatters[locale]) {
+				formatters[locale] = {};
+			}
+
+			/* istanbul ignore else */
+			if (!formatters[locale].other) {
+				// "Apr 11, 2017" (yMMMd)
+				formatters[locale].other = new Intl.DateTimeFormat(locale, {
+					year: 'numeric',
+					month: 'short',
+					day: 'numeric'
+				});
+			}
+
+			// Output day, month and year.
+			return formatters[locale].other.format((0, _gradation.getDate)(value));
+		}
+	}],
+
+	flavour: ['tiny', 'short_time', 'narrow', 'short']
+};
+//# sourceMappingURL=twitter.js.map
 
 /***/ }),
 
@@ -83473,10 +86213,6 @@ var _mobxReact = __webpack_require__(/*! mobx-react */ "./node_modules/mobx-reac
 
 var _core = __webpack_require__(/*! @material-ui/core */ "./node_modules/@material-ui/core/index.es.js");
 
-var _Avatar = _interopRequireDefault(__webpack_require__(/*! @material-ui/core/Avatar */ "./node_modules/@material-ui/core/Avatar/index.js"));
-
-var _ListItemText = _interopRequireDefault(__webpack_require__(/*! @material-ui/core/ListItemText */ "./node_modules/@material-ui/core/ListItemText/index.js"));
-
 var _Announcement = _interopRequireDefault(__webpack_require__(/*! @material-ui/icons/Announcement */ "./node_modules/@material-ui/icons/Announcement.js"));
 
 var _CheckCircle = _interopRequireDefault(__webpack_require__(/*! @material-ui/icons/CheckCircle */ "./node_modules/@material-ui/icons/CheckCircle.js"));
@@ -83528,27 +86264,98 @@ var CompletedSlot = (0, _core.withStyles)(styles)(function (_ref) {
 var CompletedForgedSlot = function CompletedForgedSlot(_ref2) {
   var classes = _ref2.classes,
       name = _ref2.name,
+      rank = _ref2.rank,
       slot = _ref2.slot,
-      timestamp = _ref2.timestamp;
-  return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(_Avatar.default, {
+      timestamp = _ref2.timestamp,
+      totalForged = _ref2.totalForged,
+      vote = _ref2.vote;
+  return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(_core.Grid, {
+    container: true,
+    spacing: 16
+  }, _react.default.createElement(_core.Grid, {
+    item: true
+  }, _react.default.createElement(_core.Avatar, {
     className: classes.successfulBlockAvatar
-  }, _react.default.createElement(_CheckCircle.default, null)), _react.default.createElement(_ListItemText.default, {
-    primary: "".concat(slot, " - ").concat(name),
-    secondary: "Forged at: ".concat(new Date(timestamp).toLocaleString())
-  }));
+  }, _react.default.createElement(_CheckCircle.default, null))), _react.default.createElement(_core.Grid, {
+    item: true,
+    xs: 12,
+    sm: true,
+    direction: "column",
+    container: true
+  }, _react.default.createElement(_core.Grid, {
+    item: true
+  }, _react.default.createElement(_core.Typography, {
+    gutterBottom: true,
+    variant: "subheading"
+  }, "Slot ".concat(slot, " - ").concat(name))), _react.default.createElement(_core.Grid, {
+    item: true,
+    container: true
+  }, _react.default.createElement(_core.Grid, {
+    item: true,
+    xs: 3
+  }, _react.default.createElement(_core.Typography, {
+    gutterBottom: true
+  }, "Rank ".concat(rank)), _react.default.createElement(_core.Typography, {
+    color: "textSecondary"
+  }, "Vote: ".concat(vote.toFixed(0), " BPL"))), _react.default.createElement(_core.Grid, {
+    item: true,
+    xs: 3
+  }, _react.default.createElement(_core.Typography, {
+    gutterBottom: true
+  }, "Forged ".concat(totalForged.toFixed(4), " BPL")), _react.default.createElement(_core.Typography, {
+    color: "textSecondary"
+  }, "Total forged: x BPL")), _react.default.createElement(_core.Grid, {
+    item: true,
+    xs: 3
+  }, _react.default.createElement(_core.Typography, null, "".concat(new Date(timestamp).toLocaleString())))))));
 };
 
 var CompletedMissedSlot = function CompletedMissedSlot(_ref3) {
   var classes = _ref3.classes,
       name = _ref3.name,
+      rank = _ref3.rank,
       slot = _ref3.slot,
-      timestamp = _ref3.timestamp;
-  return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(_Avatar.default, {
+      timestamp = _ref3.timestamp,
+      vote = _ref3.vote;
+  return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(_core.Grid, {
+    container: true,
+    spacing: 16
+  }, _react.default.createElement(_core.Grid, {
+    item: true
+  }, _react.default.createElement(_core.Avatar, {
     className: classes.missedBlockAvatar
-  }, _react.default.createElement(_Announcement.default, null)), _react.default.createElement(_ListItemText.default, {
-    primary: "".concat(slot, " - ").concat(name),
-    secondary: "Missed block at: ".concat(new Date(timestamp).toLocaleString())
-  }));
+  }, _react.default.createElement(_Announcement.default, null))), _react.default.createElement(_core.Grid, {
+    item: true,
+    xs: 12,
+    sm: true,
+    direction: "column",
+    container: true
+  }, _react.default.createElement(_core.Grid, {
+    item: true
+  }, _react.default.createElement(_core.Typography, {
+    gutterBottom: true,
+    variant: "subheading"
+  }, "Slot ".concat(slot, " - ").concat(name))), _react.default.createElement(_core.Grid, {
+    item: true,
+    container: true
+  }, _react.default.createElement(_core.Grid, {
+    item: true,
+    xs: 3
+  }, _react.default.createElement(_core.Typography, {
+    gutterBottom: true
+  }, "Rank ".concat(rank)), _react.default.createElement(_core.Typography, {
+    color: "textSecondary"
+  }, "Vote: ".concat(vote.toFixed(0), " BPL"))), _react.default.createElement(_core.Grid, {
+    item: true,
+    xs: 3
+  }, _react.default.createElement(_core.Typography, {
+    gutterBottom: true
+  }, "Missed block"), _react.default.createElement(_core.Typography, {
+    color: "textSecondary"
+  }, "Total forged: x BPL")), _react.default.createElement(_core.Grid, {
+    item: true,
+    xs: 3
+  }, _react.default.createElement(_core.Typography, null, "".concat(new Date(timestamp).toLocaleString())))))));
 };
 
 var CollapsableSlot = (0, _mobxReact.inject)('slotStore')((0, _mobxReact.observer)(function (_ref4) {
@@ -83674,10 +86481,10 @@ function (_Component) {
       }, _react.default.createElement(_core.Grid, {
         item: true,
         xs: 8
-      }, _react.default.createElement(_UpcomingSlots.default, null)), _react.default.createElement(_core.Grid, {
+      }, _react.default.createElement(_CompletedSlots.default, null)), _react.default.createElement(_core.Grid, {
         item: true,
         xs: 4
-      }, _react.default.createElement(_CompletedSlots.default, null)));
+      }, _react.default.createElement(_UpcomingSlots.default, null)));
     }
   }]);
 
@@ -83709,11 +86516,9 @@ var _mobxReact = __webpack_require__(/*! mobx-react */ "./node_modules/mobx-reac
 
 var _core = __webpack_require__(/*! @material-ui/core */ "./node_modules/@material-ui/core/index.es.js");
 
-var _Avatar = _interopRequireDefault(__webpack_require__(/*! @material-ui/core/Avatar */ "./node_modules/@material-ui/core/Avatar/index.js"));
-
-var _ListItemText = _interopRequireDefault(__webpack_require__(/*! @material-ui/core/ListItemText */ "./node_modules/@material-ui/core/ListItemText/index.js"));
-
 var _Update = _interopRequireDefault(__webpack_require__(/*! @material-ui/icons/Update */ "./node_modules/@material-ui/icons/Update.js"));
+
+var _format = __webpack_require__(/*! ../domain/util/format */ "./src/shared/domain/util/format.js");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -83740,11 +86545,39 @@ function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || func
 var UpcomingSlot = function UpcomingSlot(_ref) {
   var slot = _ref.slot,
       name = _ref.name,
-      timestamp = _ref.timestamp;
-  return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(_Avatar.default, null, _react.default.createElement(_Update.default, null)), _react.default.createElement(_ListItemText.default, {
-    primary: "".concat(slot, " - ").concat(name),
-    secondary: "Expected at: ".concat(new Date(timestamp).toLocaleString())
-  }));
+      rank = _ref.rank,
+      timestamp = _ref.timestamp,
+      vote = _ref.vote;
+  return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(_core.Grid, {
+    container: true,
+    spacing: 16
+  }, _react.default.createElement(_core.Grid, {
+    item: true
+  }, _react.default.createElement(_core.Avatar, null, _react.default.createElement(_Update.default, null))), _react.default.createElement(_core.Grid, {
+    item: true,
+    xs: 12,
+    sm: true,
+    direction: "column",
+    container: true
+  }, _react.default.createElement(_core.Grid, {
+    item: true
+  }, _react.default.createElement(_core.Typography, {
+    gutterBottom: true,
+    variant: "subheading"
+  }, "Slot ".concat(slot, " - ").concat(name))), _react.default.createElement(_core.Grid, {
+    item: true,
+    container: true
+  }, _react.default.createElement(_core.Grid, {
+    item: true,
+    xs: 6
+  }, _react.default.createElement(_core.Typography, {
+    gutterBottom: true
+  }, "Rank ".concat(rank)), _react.default.createElement(_core.Typography, {
+    color: "textSecondary"
+  }, "Vote: ".concat(vote.toFixed(0), " BPL"))), _react.default.createElement(_core.Grid, {
+    item: true,
+    xs: 4
+  }, _react.default.createElement(_core.Typography, null, "".concat((0, _format.toHowLong)(timestamp))))))));
 };
 
 var CollapsableSlot = (0, _mobxReact.inject)('slotStore')((0, _mobxReact.observer)(function (_ref2) {
@@ -84088,6 +86921,45 @@ function () {
 }();
 
 exports.default = NodeApi;
+
+/***/ }),
+
+/***/ "./src/shared/domain/util/format.js":
+/*!******************************************!*\
+  !*** ./src/shared/domain/util/format.js ***!
+  \******************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.fromApiString = fromApiString;
+exports.toHowLong = toHowLong;
+
+var _bigJs = _interopRequireDefault(__webpack_require__(/*! big-js */ "./node_modules/big-js/big.js"));
+
+var _javascriptTimeAgo = _interopRequireDefault(__webpack_require__(/*! javascript-time-ago */ "./node_modules/javascript-time-ago/index.js"));
+
+var _en = _interopRequireDefault(__webpack_require__(/*! javascript-time-ago/locale/en */ "./node_modules/javascript-time-ago/locale/en/index.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_javascriptTimeAgo.default.locale(_en.default); // Create relative date/time formatter.
+
+
+var timeAgo = new _javascriptTimeAgo.default('en-US');
+
+function fromApiString(bplString) {
+  return (0, _bigJs.default)(bplString).div('100000000');
+}
+
+function toHowLong(timestamp) {
+  return timeAgo.format(timestamp);
+}
 
 /***/ }),
 
@@ -84455,13 +87327,9 @@ var _mobxTask = __webpack_require__(/*! mobx-task */ "./node_modules/mobx-task/l
 
 var _logger = __webpack_require__(/*! ../domain/util/logger */ "./src/shared/domain/util/logger.js");
 
-var _time = __webpack_require__(/*! ../domain/util/time */ "./src/shared/domain/util/time.js");
+var _slotFactory = _interopRequireWildcard(__webpack_require__(/*! ./slotFactory */ "./src/shared/stores/slotFactory.js"));
 
-var _sorters = __webpack_require__(/*! ../domain/util/sorters */ "./src/shared/domain/util/sorters.js");
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
 
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
@@ -84510,17 +87378,17 @@ function () {
               case 3:
                 delegates = _context.sent;
                 delegatesById = delegates.delegates.reduce(function (all, delegate) {
-                  all[delegate.publicKey] = delegate.username;
+                  all[delegate.publicKey] = delegate;
                   return all;
                 }, {});
-                _context.next = 7;
+                console.log(delegates.delegates[0]);
+                _context.next = 8;
                 return (0, _mobx.when)(function () {
                   return _this.roundStore.hasNewRound;
                 });
 
-              case 7:
-                result = getSlotsFromInitialData(this.roundStore.newRound, delegatesById);
-                this.currentHeight = result.currentHeight;
+              case 8:
+                result = (0, _slotFactory.default)(this.roundStore.newRound, delegatesById);
                 this.watchForNextBlock();
                 this.watchForUnprocessedSlot();
                 (0, _mobx.runInAction)(function () {
@@ -84563,14 +87431,9 @@ function () {
         if (all.hasFoundProcessedSlot) {
           all.upcomingSlots.push(slot);
         } else {
-          var hasMissedBlock = slot.publicKey !== all.block.generatorPublicKey;
-          var blockProps = hasMissedBlock ? {} : {
-            totalForged: all.block.totalForged
-          };
-          all.hasFoundProcessedSlot = !hasMissedBlock;
-          all.unprocessedSlots.push(_objectSpread({}, slot, {
-            hasMissedBlock: hasMissedBlock
-          }, blockProps));
+          var completedSlot = (0, _slotFactory.createSlotFromBlock)(slot, all.block);
+          all.hasFoundProcessedSlot = !completedSlot.hasMissedBlock;
+          all.unprocessedSlots.push(completedSlot);
         }
 
         return all;
@@ -84671,42 +87534,83 @@ exports.default = SlotStore;
   unprocessedSlots: _mobx.observable
 });
 
-function getSlotsFromInitialData(currentRound, delegatesById) {
+/***/ }),
+
+/***/ "./src/shared/stores/slotFactory.js":
+/*!******************************************!*\
+  !*** ./src/shared/stores/slotFactory.js ***!
+  \******************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.createSlotFromBlock = createSlotFromBlock;
+exports.completedSlotFromDelegate = completedSlotFromDelegate;
+exports.basicSlot = basicSlot;
+exports.default = createSlots;
+
+var _format = __webpack_require__(/*! ../domain/util/format */ "./src/shared/domain/util/format.js");
+
+var _sorters = __webpack_require__(/*! ../domain/util/sorters */ "./src/shared/domain/util/sorters.js");
+
+var _time = __webpack_require__(/*! ../domain/util/time */ "./src/shared/domain/util/time.js");
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function createSlotFromBlock(slot, block) {
+  var hasMissedBlock = slot.publicKey !== block.generatorPublicKey;
+  var blockProps = hasMissedBlock ? {} : {
+    totalForged: (0, _format.fromApiString)(block.totalForged)
+  };
+  return _objectSpread({}, slot, {
+    hasMissedBlock: hasMissedBlock
+  }, blockProps);
+}
+
+function completedSlotFromDelegate(slot, delegate) {
+  var blockProps = slot.hasMissedBlock ? {} : {
+    totalForged: (0, _format.fromApiString)(slot.totalForged)
+  };
+  return _objectSpread({}, basicSlot(slot, delegate), {
+    hasMissedBlock: slot.hasMissedBlock
+  }, blockProps);
+}
+
+function basicSlot(slot, delegate) {
+  return {
+    name: delegate.username,
+    publicKey: slot.publicKey,
+    rank: delegate.rate,
+    slot: slot.roundSlot || slot.blockRoundSlot,
+    vote: (0, _format.fromApiString)(delegate.vote)
+  };
+}
+
+function createSlots(currentRound, delegatesById) {
   var result = {
     completed: [],
-    currentHeight: currentRound.fromBlock - 1,
-    round: currentRound.roundNumber,
-    fromBlock: currentRound.fromBlock,
     lastTimestamp: (0, _time.currentMsTimestamp)(),
-    toBlock: currentRound.toBlock,
     upcoming: []
   };
-  result = currentRound.delegateActivity.reduce(function (all, delegate) {
-    if (delegate.hasMissedBlock) {
-      all.lastTimestamp = (0, _time.nextMsTimestamp)(all.lastTimestamp);
-    } else {
-      all.currentHeight = delegate.blockHeight;
-      all.lastTimestamp = (0, _time.fromApiToMs)(delegate.timestamp);
-    }
-
-    all.completed.push({
-      name: delegatesById[delegate.publicKey],
-      hasMissedBlock: delegate.hasMissedBlock,
-      publicKey: delegate.publicKey,
-      slot: delegate.roundSlot,
-      timestamp: all.lastTimestamp,
-      totalForged: delegate.totalForged
-    });
+  result = currentRound.delegateActivity.reduce(function (all, slot) {
+    all.lastTimestamp = slot.hasMissedBlock ? (0, _time.nextMsTimestamp)(all.lastTimestamp) : (0, _time.fromApiToMs)(slot.timestamp);
+    all.completed.push(_objectSpread({}, completedSlotFromDelegate(slot, delegatesById[slot.publicKey]), {
+      timestamp: all.lastTimestamp
+    }));
     return all;
   }, result);
-  result = currentRound.expectedForgers.reduce(function (all, delegate) {
+  result = currentRound.expectedForgers.reduce(function (all, slot) {
     all.lastTimestamp = (0, _time.nextMsTimestamp)(all.lastTimestamp);
-    all.upcoming.push({
-      name: delegatesById[delegate.publicKey],
-      publicKey: delegate.publicKey,
-      slot: delegate.blockRoundSlot,
+    all.upcoming.push(_objectSpread({}, basicSlot(slot, delegatesById[slot.publicKey]), {
       timestamp: all.lastTimestamp
-    });
+    }));
     return all;
   }, result);
   result.completed.sort((0, _sorters.byDescending)('slot'));

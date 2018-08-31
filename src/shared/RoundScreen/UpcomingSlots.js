@@ -1,20 +1,49 @@
 import React, { Component } from 'react'
 import { inject, observer } from 'mobx-react'
-import { Collapse, List, ListItem, } from '@material-ui/core'
-import Avatar from '@material-ui/core/Avatar'
-import ListItemText from '@material-ui/core/ListItemText'
+import { 
+  Avatar,
+  Collapse,
+  Grid,
+  List,
+  ListItem,
+  Typography,
+} from '@material-ui/core'
 import UpdateIcon from '@material-ui/icons/Update'
 
+import { toHowLong } from '../domain/util/format'
 
-const UpcomingSlot = ({ slot, name, timestamp }) =>
+
+const UpcomingSlot = ({ slot, name, rank, timestamp, vote, }) =>
   <React.Fragment>
-    <Avatar>
-      <UpdateIcon />
-    </Avatar>
-    <ListItemText
-      primary={`${slot} - ${name}`}
-      secondary={`Expected at: ${new Date(timestamp).toLocaleString()}`}
-    />
+    <Grid container spacing={16}>
+      <Grid item>
+        <Avatar>
+          <UpdateIcon />
+        </Avatar>
+      </Grid>
+      <Grid item xs={12} sm direction="column" container>
+        <Grid item>
+          <Typography gutterBottom variant="subheading">
+            {`Slot ${slot} - ${name}`}
+          </Typography>
+        </Grid>
+        <Grid item container>
+          <Grid item xs={6}>
+            <Typography gutterBottom>
+              {`Rank ${rank}`}
+            </Typography>
+            <Typography color="textSecondary">
+              {`Vote: ${vote.toFixed(0)} BPL`}
+            </Typography>
+          </Grid>
+          <Grid item xs={4}>
+            <Typography>
+              {`${toHowLong(timestamp)}`}
+            </Typography>
+          </Grid>
+        </Grid>
+      </Grid>
+    </Grid>
   </React.Fragment>
 
 const CollapsableSlot = inject('slotStore')(observer(({ slotStore, }) =>

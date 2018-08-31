@@ -1,8 +1,15 @@
 import React, { Component } from 'react'
 import { inject, observer } from 'mobx-react'
-import { Collapse, List, ListItem, withStyles } from '@material-ui/core'
-import Avatar from '@material-ui/core/Avatar'
-import ListItemText from '@material-ui/core/ListItemText'
+import { 
+          Avatar,
+          Collapse,
+          Grid,
+          List,
+          ListItem,
+          ListItemText,
+          Typography,
+          withStyles,
+        } from '@material-ui/core'
 import AnnouncementIcon from '@material-ui/icons/Announcement'
 import CheckCircle from '@material-ui/icons/CheckCircle'
 
@@ -22,26 +29,86 @@ const CompletedSlot = withStyles(styles)(({ hasMissedBlock, ... rest, }) =>
     : (<CompletedForgedSlot {... rest} />)
 )
 
-const CompletedForgedSlot = ({ classes, name, slot, timestamp, }) =>
+const CompletedForgedSlot = ({ classes, name, rank, slot, timestamp, totalForged, vote, }) =>
   <React.Fragment>
-    <Avatar className={classes.successfulBlockAvatar}>
-      <CheckCircle />
-    </Avatar>
-    <ListItemText
-      primary={`${slot} - ${name}`}
-      secondary={`Forged at: ${new Date(timestamp).toLocaleString()}`}
-    />
+  <Grid container spacing={16}>
+    <Grid item>
+      <Avatar className={classes.successfulBlockAvatar}>
+        <CheckCircle />
+      </Avatar>
+    </Grid>
+    <Grid item xs={12} sm direction="column" container>
+      <Grid item>
+        <Typography gutterBottom variant="subheading">
+          {`Slot ${slot} - ${name}`}
+        </Typography>
+      </Grid>
+      <Grid item container>
+        <Grid item xs={3}>
+          <Typography gutterBottom>
+            {`Rank ${rank}`}
+          </Typography>
+          <Typography color="textSecondary">
+            {`Vote: ${vote.toFixed(0)} BPL`}
+          </Typography>
+        </Grid>
+        <Grid item xs={3}>
+          <Typography gutterBottom>
+            {`Forged ${totalForged.toFixed(4)} BPL`}
+          </Typography>
+          <Typography color="textSecondary">
+            {`Total forged: x BPL`}
+          </Typography>
+        </Grid>
+        <Grid item xs={3}>
+          <Typography>
+            {`${new Date(timestamp).toLocaleString()}`}
+          </Typography>
+        </Grid>
+      </Grid>
+    </Grid>
+  </Grid>
   </React.Fragment>
 
-const CompletedMissedSlot = ({ classes, name, slot, timestamp, }) =>
+const CompletedMissedSlot = ({ classes, name, rank, slot, timestamp, vote, }) =>
   <React.Fragment>
-    <Avatar className={classes.missedBlockAvatar}>
-      <AnnouncementIcon />
-    </Avatar>
-    <ListItemText
-      primary={`${slot} - ${name}`}
-      secondary={`Missed block at: ${new Date(timestamp).toLocaleString()}`}
-    />
+    <Grid container spacing={16}>
+      <Grid item>
+        <Avatar className={classes.missedBlockAvatar}>
+          <AnnouncementIcon />
+        </Avatar>
+      </Grid>
+      <Grid item xs={12} sm direction="column" container>
+        <Grid item>
+          <Typography gutterBottom variant="subheading">
+            {`Slot ${slot} - ${name}`}
+          </Typography>
+        </Grid>
+        <Grid item container>
+          <Grid item xs={3}>
+            <Typography gutterBottom>
+              {`Rank ${rank}`}
+            </Typography>
+            <Typography color="textSecondary">
+              {`Vote: ${vote.toFixed(0)} BPL`}
+            </Typography>
+          </Grid>
+          <Grid item xs={3}>
+            <Typography gutterBottom>
+              {`Missed block`}
+            </Typography>
+            <Typography color="textSecondary">
+              {`Total forged: x BPL`}
+            </Typography>
+          </Grid>
+          <Grid item xs={3}>
+            <Typography>
+              {`${new Date(timestamp).toLocaleString()}`}
+            </Typography>
+          </Grid>
+        </Grid>
+      </Grid>
+    </Grid>
   </React.Fragment>
 
 const CollapsableSlot = inject('slotStore')(observer(({ slotStore, }) =>

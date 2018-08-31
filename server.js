@@ -576,10 +576,6 @@ var _mobxReact = __webpack_require__(/*! mobx-react */ "mobx-react");
 
 var _core = __webpack_require__(/*! @material-ui/core */ "@material-ui/core");
 
-var _Avatar = _interopRequireDefault(__webpack_require__(/*! @material-ui/core/Avatar */ "@material-ui/core/Avatar"));
-
-var _ListItemText = _interopRequireDefault(__webpack_require__(/*! @material-ui/core/ListItemText */ "@material-ui/core/ListItemText"));
-
 var _Announcement = _interopRequireDefault(__webpack_require__(/*! @material-ui/icons/Announcement */ "@material-ui/icons/Announcement"));
 
 var _CheckCircle = _interopRequireDefault(__webpack_require__(/*! @material-ui/icons/CheckCircle */ "@material-ui/icons/CheckCircle"));
@@ -631,27 +627,98 @@ var CompletedSlot = (0, _core.withStyles)(styles)(function (_ref) {
 var CompletedForgedSlot = function CompletedForgedSlot(_ref2) {
   var classes = _ref2.classes,
       name = _ref2.name,
+      rank = _ref2.rank,
       slot = _ref2.slot,
-      timestamp = _ref2.timestamp;
-  return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(_Avatar.default, {
+      timestamp = _ref2.timestamp,
+      totalForged = _ref2.totalForged,
+      vote = _ref2.vote;
+  return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(_core.Grid, {
+    container: true,
+    spacing: 16
+  }, _react.default.createElement(_core.Grid, {
+    item: true
+  }, _react.default.createElement(_core.Avatar, {
     className: classes.successfulBlockAvatar
-  }, _react.default.createElement(_CheckCircle.default, null)), _react.default.createElement(_ListItemText.default, {
-    primary: "".concat(slot, " - ").concat(name),
-    secondary: "Forged at: ".concat(new Date(timestamp).toLocaleString())
-  }));
+  }, _react.default.createElement(_CheckCircle.default, null))), _react.default.createElement(_core.Grid, {
+    item: true,
+    xs: 12,
+    sm: true,
+    direction: "column",
+    container: true
+  }, _react.default.createElement(_core.Grid, {
+    item: true
+  }, _react.default.createElement(_core.Typography, {
+    gutterBottom: true,
+    variant: "subheading"
+  }, "Slot ".concat(slot, " - ").concat(name))), _react.default.createElement(_core.Grid, {
+    item: true,
+    container: true
+  }, _react.default.createElement(_core.Grid, {
+    item: true,
+    xs: 3
+  }, _react.default.createElement(_core.Typography, {
+    gutterBottom: true
+  }, "Rank ".concat(rank)), _react.default.createElement(_core.Typography, {
+    color: "textSecondary"
+  }, "Vote: ".concat(vote.toFixed(0), " BPL"))), _react.default.createElement(_core.Grid, {
+    item: true,
+    xs: 3
+  }, _react.default.createElement(_core.Typography, {
+    gutterBottom: true
+  }, "Forged ".concat(totalForged.toFixed(4), " BPL")), _react.default.createElement(_core.Typography, {
+    color: "textSecondary"
+  }, "Total forged: x BPL")), _react.default.createElement(_core.Grid, {
+    item: true,
+    xs: 3
+  }, _react.default.createElement(_core.Typography, null, "".concat(new Date(timestamp).toLocaleString())))))));
 };
 
 var CompletedMissedSlot = function CompletedMissedSlot(_ref3) {
   var classes = _ref3.classes,
       name = _ref3.name,
+      rank = _ref3.rank,
       slot = _ref3.slot,
-      timestamp = _ref3.timestamp;
-  return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(_Avatar.default, {
+      timestamp = _ref3.timestamp,
+      vote = _ref3.vote;
+  return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(_core.Grid, {
+    container: true,
+    spacing: 16
+  }, _react.default.createElement(_core.Grid, {
+    item: true
+  }, _react.default.createElement(_core.Avatar, {
     className: classes.missedBlockAvatar
-  }, _react.default.createElement(_Announcement.default, null)), _react.default.createElement(_ListItemText.default, {
-    primary: "".concat(slot, " - ").concat(name),
-    secondary: "Missed block at: ".concat(new Date(timestamp).toLocaleString())
-  }));
+  }, _react.default.createElement(_Announcement.default, null))), _react.default.createElement(_core.Grid, {
+    item: true,
+    xs: 12,
+    sm: true,
+    direction: "column",
+    container: true
+  }, _react.default.createElement(_core.Grid, {
+    item: true
+  }, _react.default.createElement(_core.Typography, {
+    gutterBottom: true,
+    variant: "subheading"
+  }, "Slot ".concat(slot, " - ").concat(name))), _react.default.createElement(_core.Grid, {
+    item: true,
+    container: true
+  }, _react.default.createElement(_core.Grid, {
+    item: true,
+    xs: 3
+  }, _react.default.createElement(_core.Typography, {
+    gutterBottom: true
+  }, "Rank ".concat(rank)), _react.default.createElement(_core.Typography, {
+    color: "textSecondary"
+  }, "Vote: ".concat(vote.toFixed(0), " BPL"))), _react.default.createElement(_core.Grid, {
+    item: true,
+    xs: 3
+  }, _react.default.createElement(_core.Typography, {
+    gutterBottom: true
+  }, "Missed block"), _react.default.createElement(_core.Typography, {
+    color: "textSecondary"
+  }, "Total forged: x BPL")), _react.default.createElement(_core.Grid, {
+    item: true,
+    xs: 3
+  }, _react.default.createElement(_core.Typography, null, "".concat(new Date(timestamp).toLocaleString())))))));
 };
 
 var CollapsableSlot = (0, _mobxReact.inject)('slotStore')((0, _mobxReact.observer)(function (_ref4) {
@@ -777,10 +844,10 @@ function (_Component) {
       }, _react.default.createElement(_core.Grid, {
         item: true,
         xs: 8
-      }, _react.default.createElement(_UpcomingSlots.default, null)), _react.default.createElement(_core.Grid, {
+      }, _react.default.createElement(_CompletedSlots.default, null)), _react.default.createElement(_core.Grid, {
         item: true,
         xs: 4
-      }, _react.default.createElement(_CompletedSlots.default, null)));
+      }, _react.default.createElement(_UpcomingSlots.default, null)));
     }
   }]);
 
@@ -812,11 +879,9 @@ var _mobxReact = __webpack_require__(/*! mobx-react */ "mobx-react");
 
 var _core = __webpack_require__(/*! @material-ui/core */ "@material-ui/core");
 
-var _Avatar = _interopRequireDefault(__webpack_require__(/*! @material-ui/core/Avatar */ "@material-ui/core/Avatar"));
-
-var _ListItemText = _interopRequireDefault(__webpack_require__(/*! @material-ui/core/ListItemText */ "@material-ui/core/ListItemText"));
-
 var _Update = _interopRequireDefault(__webpack_require__(/*! @material-ui/icons/Update */ "@material-ui/icons/Update"));
+
+var _format = __webpack_require__(/*! ../domain/util/format */ "./src/shared/domain/util/format.js");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -843,11 +908,39 @@ function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || func
 var UpcomingSlot = function UpcomingSlot(_ref) {
   var slot = _ref.slot,
       name = _ref.name,
-      timestamp = _ref.timestamp;
-  return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(_Avatar.default, null, _react.default.createElement(_Update.default, null)), _react.default.createElement(_ListItemText.default, {
-    primary: "".concat(slot, " - ").concat(name),
-    secondary: "Expected at: ".concat(new Date(timestamp).toLocaleString())
-  }));
+      rank = _ref.rank,
+      timestamp = _ref.timestamp,
+      vote = _ref.vote;
+  return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(_core.Grid, {
+    container: true,
+    spacing: 16
+  }, _react.default.createElement(_core.Grid, {
+    item: true
+  }, _react.default.createElement(_core.Avatar, null, _react.default.createElement(_Update.default, null))), _react.default.createElement(_core.Grid, {
+    item: true,
+    xs: 12,
+    sm: true,
+    direction: "column",
+    container: true
+  }, _react.default.createElement(_core.Grid, {
+    item: true
+  }, _react.default.createElement(_core.Typography, {
+    gutterBottom: true,
+    variant: "subheading"
+  }, "Slot ".concat(slot, " - ").concat(name))), _react.default.createElement(_core.Grid, {
+    item: true,
+    container: true
+  }, _react.default.createElement(_core.Grid, {
+    item: true,
+    xs: 6
+  }, _react.default.createElement(_core.Typography, {
+    gutterBottom: true
+  }, "Rank ".concat(rank)), _react.default.createElement(_core.Typography, {
+    color: "textSecondary"
+  }, "Vote: ".concat(vote.toFixed(0), " BPL"))), _react.default.createElement(_core.Grid, {
+    item: true,
+    xs: 4
+  }, _react.default.createElement(_core.Typography, null, "".concat((0, _format.toHowLong)(timestamp))))))));
 };
 
 var CollapsableSlot = (0, _mobxReact.inject)('slotStore')((0, _mobxReact.observer)(function (_ref2) {
@@ -1191,6 +1284,45 @@ function () {
 }();
 
 exports.default = NodeApi;
+
+/***/ }),
+
+/***/ "./src/shared/domain/util/format.js":
+/*!******************************************!*\
+  !*** ./src/shared/domain/util/format.js ***!
+  \******************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.fromApiString = fromApiString;
+exports.toHowLong = toHowLong;
+
+var _bigJs = _interopRequireDefault(__webpack_require__(/*! big-js */ "big-js"));
+
+var _javascriptTimeAgo = _interopRequireDefault(__webpack_require__(/*! javascript-time-ago */ "javascript-time-ago"));
+
+var _en = _interopRequireDefault(__webpack_require__(/*! javascript-time-ago/locale/en */ "javascript-time-ago/locale/en"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_javascriptTimeAgo.default.locale(_en.default); // Create relative date/time formatter.
+
+
+var timeAgo = new _javascriptTimeAgo.default('en-US');
+
+function fromApiString(bplString) {
+  return (0, _bigJs.default)(bplString).div('100000000');
+}
+
+function toHowLong(timestamp) {
+  return timeAgo.format(timestamp);
+}
 
 /***/ }),
 
@@ -1558,13 +1690,9 @@ var _mobxTask = __webpack_require__(/*! mobx-task */ "mobx-task");
 
 var _logger = __webpack_require__(/*! ../domain/util/logger */ "./src/shared/domain/util/logger.js");
 
-var _time = __webpack_require__(/*! ../domain/util/time */ "./src/shared/domain/util/time.js");
+var _slotFactory = _interopRequireWildcard(__webpack_require__(/*! ./slotFactory */ "./src/shared/stores/slotFactory.js"));
 
-var _sorters = __webpack_require__(/*! ../domain/util/sorters */ "./src/shared/domain/util/sorters.js");
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
 
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
@@ -1613,17 +1741,17 @@ function () {
               case 3:
                 delegates = _context.sent;
                 delegatesById = delegates.delegates.reduce(function (all, delegate) {
-                  all[delegate.publicKey] = delegate.username;
+                  all[delegate.publicKey] = delegate;
                   return all;
                 }, {});
-                _context.next = 7;
+                console.log(delegates.delegates[0]);
+                _context.next = 8;
                 return (0, _mobx.when)(function () {
                   return _this.roundStore.hasNewRound;
                 });
 
-              case 7:
-                result = getSlotsFromInitialData(this.roundStore.newRound, delegatesById);
-                this.currentHeight = result.currentHeight;
+              case 8:
+                result = (0, _slotFactory.default)(this.roundStore.newRound, delegatesById);
                 this.watchForNextBlock();
                 this.watchForUnprocessedSlot();
                 (0, _mobx.runInAction)(function () {
@@ -1666,14 +1794,9 @@ function () {
         if (all.hasFoundProcessedSlot) {
           all.upcomingSlots.push(slot);
         } else {
-          var hasMissedBlock = slot.publicKey !== all.block.generatorPublicKey;
-          var blockProps = hasMissedBlock ? {} : {
-            totalForged: all.block.totalForged
-          };
-          all.hasFoundProcessedSlot = !hasMissedBlock;
-          all.unprocessedSlots.push(_objectSpread({}, slot, {
-            hasMissedBlock: hasMissedBlock
-          }, blockProps));
+          var completedSlot = (0, _slotFactory.createSlotFromBlock)(slot, all.block);
+          all.hasFoundProcessedSlot = !completedSlot.hasMissedBlock;
+          all.unprocessedSlots.push(completedSlot);
         }
 
         return all;
@@ -1774,42 +1897,83 @@ exports.default = SlotStore;
   unprocessedSlots: _mobx.observable
 });
 
-function getSlotsFromInitialData(currentRound, delegatesById) {
+/***/ }),
+
+/***/ "./src/shared/stores/slotFactory.js":
+/*!******************************************!*\
+  !*** ./src/shared/stores/slotFactory.js ***!
+  \******************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.createSlotFromBlock = createSlotFromBlock;
+exports.completedSlotFromDelegate = completedSlotFromDelegate;
+exports.basicSlot = basicSlot;
+exports.default = createSlots;
+
+var _format = __webpack_require__(/*! ../domain/util/format */ "./src/shared/domain/util/format.js");
+
+var _sorters = __webpack_require__(/*! ../domain/util/sorters */ "./src/shared/domain/util/sorters.js");
+
+var _time = __webpack_require__(/*! ../domain/util/time */ "./src/shared/domain/util/time.js");
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function createSlotFromBlock(slot, block) {
+  var hasMissedBlock = slot.publicKey !== block.generatorPublicKey;
+  var blockProps = hasMissedBlock ? {} : {
+    totalForged: (0, _format.fromApiString)(block.totalForged)
+  };
+  return _objectSpread({}, slot, {
+    hasMissedBlock: hasMissedBlock
+  }, blockProps);
+}
+
+function completedSlotFromDelegate(slot, delegate) {
+  var blockProps = slot.hasMissedBlock ? {} : {
+    totalForged: (0, _format.fromApiString)(slot.totalForged)
+  };
+  return _objectSpread({}, basicSlot(slot, delegate), {
+    hasMissedBlock: slot.hasMissedBlock
+  }, blockProps);
+}
+
+function basicSlot(slot, delegate) {
+  return {
+    name: delegate.username,
+    publicKey: slot.publicKey,
+    rank: delegate.rate,
+    slot: slot.roundSlot || slot.blockRoundSlot,
+    vote: (0, _format.fromApiString)(delegate.vote)
+  };
+}
+
+function createSlots(currentRound, delegatesById) {
   var result = {
     completed: [],
-    currentHeight: currentRound.fromBlock - 1,
-    round: currentRound.roundNumber,
-    fromBlock: currentRound.fromBlock,
     lastTimestamp: (0, _time.currentMsTimestamp)(),
-    toBlock: currentRound.toBlock,
     upcoming: []
   };
-  result = currentRound.delegateActivity.reduce(function (all, delegate) {
-    if (delegate.hasMissedBlock) {
-      all.lastTimestamp = (0, _time.nextMsTimestamp)(all.lastTimestamp);
-    } else {
-      all.currentHeight = delegate.blockHeight;
-      all.lastTimestamp = (0, _time.fromApiToMs)(delegate.timestamp);
-    }
-
-    all.completed.push({
-      name: delegatesById[delegate.publicKey],
-      hasMissedBlock: delegate.hasMissedBlock,
-      publicKey: delegate.publicKey,
-      slot: delegate.roundSlot,
-      timestamp: all.lastTimestamp,
-      totalForged: delegate.totalForged
-    });
+  result = currentRound.delegateActivity.reduce(function (all, slot) {
+    all.lastTimestamp = slot.hasMissedBlock ? (0, _time.nextMsTimestamp)(all.lastTimestamp) : (0, _time.fromApiToMs)(slot.timestamp);
+    all.completed.push(_objectSpread({}, completedSlotFromDelegate(slot, delegatesById[slot.publicKey]), {
+      timestamp: all.lastTimestamp
+    }));
     return all;
   }, result);
-  result = currentRound.expectedForgers.reduce(function (all, delegate) {
+  result = currentRound.expectedForgers.reduce(function (all, slot) {
     all.lastTimestamp = (0, _time.nextMsTimestamp)(all.lastTimestamp);
-    all.upcoming.push({
-      name: delegatesById[delegate.publicKey],
-      publicKey: delegate.publicKey,
-      slot: delegate.blockRoundSlot,
+    all.upcoming.push(_objectSpread({}, basicSlot(slot, delegatesById[slot.publicKey]), {
       timestamp: all.lastTimestamp
-    });
+    }));
     return all;
   }, result);
   result.completed.sort((0, _sorters.byDescending)('slot'));
@@ -1850,28 +2014,6 @@ module.exports = require("@babel/polyfill");
 /***/ (function(module, exports) {
 
 module.exports = require("@material-ui/core");
-
-/***/ }),
-
-/***/ "@material-ui/core/Avatar":
-/*!*******************************************!*\
-  !*** external "@material-ui/core/Avatar" ***!
-  \*******************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-module.exports = require("@material-ui/core/Avatar");
-
-/***/ }),
-
-/***/ "@material-ui/core/ListItemText":
-/*!*************************************************!*\
-  !*** external "@material-ui/core/ListItemText" ***!
-  \*************************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-module.exports = require("@material-ui/core/ListItemText");
 
 /***/ }),
 
@@ -1941,6 +2083,17 @@ module.exports = require("@material-ui/icons/Update");
 
 /***/ }),
 
+/***/ "big-js":
+/*!*************************!*\
+  !*** external "big-js" ***!
+  \*************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("big-js");
+
+/***/ }),
+
 /***/ "cors":
 /*!***********************!*\
   !*** external "cors" ***!
@@ -1971,6 +2124,28 @@ module.exports = require("express");
 /***/ (function(module, exports) {
 
 module.exports = require("fs");
+
+/***/ }),
+
+/***/ "javascript-time-ago":
+/*!**************************************!*\
+  !*** external "javascript-time-ago" ***!
+  \**************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("javascript-time-ago");
+
+/***/ }),
+
+/***/ "javascript-time-ago/locale/en":
+/*!************************************************!*\
+  !*** external "javascript-time-ago/locale/en" ***!
+  \************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("javascript-time-ago/locale/en");
 
 /***/ }),
 

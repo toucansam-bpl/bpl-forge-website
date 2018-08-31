@@ -9,11 +9,11 @@ export default class RoundScreen extends Component {
     return (
       <Grid container>
         <Grid item xs={8}>
-          <UpcomingSlots />
+          <CompletedSlots />
         </Grid>
 
         <Grid item xs={4}>
-          <CompletedSlots />
+          <UpcomingSlots />
         </Grid>
       </Grid>
     )
