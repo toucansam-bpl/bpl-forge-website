@@ -47,7 +47,7 @@ export default class SlotStore {
   }
 
   watchForNextBlock() {
-    when(() => this.isAwaitingBlock && this.blockStore.hasNextBlock, () => this.processReceivedBlock())
+    when(() => this.blockStore.hasNextBlock && this.isAwaitingBlock, () => this.processReceivedBlock())
   }
 
   processReceivedBlock() {

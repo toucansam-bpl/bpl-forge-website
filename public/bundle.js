@@ -87109,7 +87109,7 @@ function () {
 
     this.blockListener = void 0;
     this.lastProcessedBlockHeight = void 0;
-    this.unprocessedBlocks = [];
+    this.unprocessedBlocks = new Map();
 
     this.resume = function () {
       (0, _logger.log)('Resuming block listener.');
@@ -87130,6 +87130,8 @@ function () {
     }, function () {
       return _this.init();
     });
+    (0, _mobx.onBecomeObserved)(this, 'hasNextBlock', this.resume);
+    (0, _mobx.onBecomeUnobserved)(this, 'hasNextBlock', this.suspend);
   }
 
   _createClass(BlockStore, [{
@@ -87138,8 +87140,6 @@ function () {
       (0, _logger.log)('Initializing Block Store.');
       this.lastProcessedBlockHeight = this.roundStore.initialBlockHeight;
       (0, _logger.log)("Block store will load blocks after height ".concat(this.lastProcessedBlockHeight));
-      (0, _mobx.onBecomeObserved)(this, 'hasNextBlock', this.resume);
-      (0, _mobx.onBecomeUnobserved)(this, 'hasNextBlock', this.suspend);
     }
   }, {
     key: "listenForNewBlocks",
@@ -87149,25 +87149,44 @@ function () {
       regeneratorRuntime.mark(function _callee() {
         var _this2 = this;
 
-        var blocks, newBlocks, newUnprocessed;
+        var offset, hasLoadedNewBlocks, blocks, newBlocks;
         return regeneratorRuntime.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                _context.next = 2;
-                return this.nodeApi.getBlocks(0, 10);
+                offset = 0;
+                hasLoadedNewBlocks = true;
 
               case 2:
+                if (!(!this.hasNextBlock && hasLoadedNewBlocks)) {
+                  _context.next = 10;
+                  break;
+                }
+
+                _context.next = 5;
+                return this.nodeApi.getBlocks(offset, 10);
+
+              case 5:
                 blocks = _context.sent;
                 newBlocks = blocks.blocks.filter(function (b) {
                   return b.height > _this2.lastProcessedBlockHeight;
                 });
-                newBlocks.sort((0, _sorters.byAscending)('height'));
-                newUnprocessed = this.unprocessedBlocks.concat(newBlocks);
-                (0, _logger.log)("There are ".concat(newBlocks.length, " new blocks awaiting processing out of ").concat(newUnprocessed.length, " total."));
-                this.unprocessedBlocks.replace(newUnprocessed);
 
-              case 8:
+                if (newBlocks.length > 0) {
+                  newBlocks.forEach(function (b) {
+                    return _this2.unprocessedBlocks.set(b.height, b);
+                  });
+                  (0, _logger.log)("There are ".concat(newBlocks.length, " new blocks awaiting processing out of ").concat(this.unprocessedBlocks.size, " total."));
+                  offset += 10;
+                } else {
+                  (0, _logger.log)("No new blocks loaded.");
+                  hasLoadedNewBlocks = false;
+                }
+
+                _context.next = 2;
+                break;
+
+              case 10:
               case "end":
                 return _context.stop();
             }
@@ -87182,15 +87201,20 @@ function () {
   }, {
     key: "nextBlock",
     value: function nextBlock() {
-      var next = this.unprocessedBlocks.shift();
-      this.lastProcessedBlockHeight = next.height;
+      var next = this.unprocessedBlocks.get(this.nextBlockHeight);
+      this.lastProcessedBlockHeight = this.nextBlockHeight;
       (0, _logger.log)("Processing block height ".concat(this.lastProcessedBlockHeight));
       return next;
     }
   }, {
     key: "hasNextBlock",
     get: function get() {
-      return this.unprocessedBlocks.length > 0;
+      return this.unprocessedBlocks.has(this.nextBlockHeight);
+    }
+  }, {
+    key: "nextBlockHeight",
+    get: function get() {
+      return this.lastProcessedBlockHeight + 1;
     }
   }]);
 
@@ -87200,8 +87224,10 @@ function () {
 exports.default = BlockStore;
 (0, _mobx.decorate)(BlockStore, {
   hasNextBlock: _mobx.computed,
+  lastProcessedBlockHeight: _mobx.observable,
   listenForNewBlocks: _mobx.action,
   nextBlock: _mobx.action,
+  nextBlockHeight: _mobx.computed,
   unprocessedBlocks: _mobx.observable
 });
 
@@ -87415,7 +87441,7 @@ function () {
       var _this2 = this;
 
       (0, _mobx.when)(function () {
-        return _this2.isAwaitingBlock && _this2.blockStore.hasNextBlock;
+        return _this2.blockStore.hasNextBlock && _this2.isAwaitingBlock;
       }, function () {
         return _this2.processReceivedBlock();
       });

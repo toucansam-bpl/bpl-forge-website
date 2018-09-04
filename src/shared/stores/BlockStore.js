@@ -16,22 +16,22 @@ const blockInterval = 15 * 1000
 export default class BlockStore {
   blockListener
   lastProcessedBlockHeight
-  unprocessedBlocks = []
+  unprocessedBlocks = new Map()
 
   constructor(nodeApi, roundStore) {
     this.nodeApi = nodeApi
     this.roundStore = roundStore
 
     when(() => this.roundStore.hasNewRound, () => this.init())
+
+    onBecomeObserved(this, 'hasNextBlock', this.resume)
+    onBecomeUnobserved(this, 'hasNextBlock', this.suspend)
   }
 
   init() {
     log('Initializing Block Store.')
     this.lastProcessedBlockHeight = this.roundStore.initialBlockHeight
     log(`Block store will load blocks after height ${this.lastProcessedBlockHeight}`)
-
-    onBecomeObserved(this, 'hasNextBlock', this.resume)
-    onBecomeUnobserved(this, 'hasNextBlock', this.suspend)
   }
 
   resume = () => {
@@ -40,14 +40,21 @@ export default class BlockStore {
   }
 
   async listenForNewBlocks() {
-    const blocks = await this.nodeApi.getBlocks(0, 10)
-    const newBlocks = blocks.blocks.filter(b => b.height > this.lastProcessedBlockHeight)
-    newBlocks.sort(byAscending('height'))
-    
-    const newUnprocessed = this.unprocessedBlocks.concat(newBlocks)
-    log(`There are ${newBlocks.length} new blocks awaiting processing out of ${newUnprocessed.length} total.`)
-
-    this.unprocessedBlocks.replace(newUnprocessed)
+    let offset = 0
+    let hasLoadedNewBlocks = true
+    while (!this.hasNextBlock && hasLoadedNewBlocks) {
+      let blocks = await this.nodeApi.getBlocks(offset, 10)
+      let newBlocks = blocks.blocks.filter(b => b.height > this.lastProcessedBlockHeight)
+      
+      if (newBlocks.length > 0) {
+        newBlocks.forEach(b => this.unprocessedBlocks.set(b.height, b))
+        log(`There are ${newBlocks.length} new blocks awaiting processing out of ${this.unprocessedBlocks.size} total.`)
+        offset += 10
+      } else {
+        log(`No new blocks loaded.`)
+        hasLoadedNewBlocks = false
+      }
+    }
   }
 
   suspend = () => {
@@ -56,20 +63,26 @@ export default class BlockStore {
   }
 
   get hasNextBlock() {
-    return this.unprocessedBlocks.length > 0
+    return this.unprocessedBlocks.has(this.nextBlockHeight)
   }
 
   nextBlock() {
-    const next = this.unprocessedBlocks.shift()
-    this.lastProcessedBlockHeight = next.height
+    const next = this.unprocessedBlocks.get(this.nextBlockHeight)
+    this.lastProcessedBlockHeight = this.nextBlockHeight
     log(`Processing block height ${this.lastProcessedBlockHeight}`)
     return next
+  }
+  
+  get nextBlockHeight() {
+    return this.lastProcessedBlockHeight + 1
   }
 }
 
 decorate(BlockStore, {
   hasNextBlock: computed,
+  lastProcessedBlockHeight: observable,
   listenForNewBlocks: action,
   nextBlock: action,
+  nextBlockHeight: computed,
   unprocessedBlocks: observable,
 })
