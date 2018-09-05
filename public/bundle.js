@@ -86023,7 +86023,7 @@ function (_Component) {
     value: function render() {
       var classes = this.props.classes;
       return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(_core.CssBaseline, null), _react.default.createElement(_core.AppBar, {
-        position: "static"
+        position: "fixed"
       }, _react.default.createElement(_core.Toolbar, null, _react.default.createElement(_core.Typography, {
         variant: "title",
         color: "inherit",

@@ -38,7 +38,7 @@ class App extends Component {
     return (
       <React.Fragment>
         <CssBaseline />
-        <AppBar position="static">
+        <AppBar position="fixed">
           <Toolbar>
             <Typography
               variant="title"
