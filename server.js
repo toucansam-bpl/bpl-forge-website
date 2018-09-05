@@ -799,6 +799,8 @@ exports.default = void 0;
 
 var _react = _interopRequireWildcard(__webpack_require__(/*! react */ "react"));
 
+var _mobxReact = __webpack_require__(/*! mobx-react */ "mobx-react");
+
 var _core = __webpack_require__(/*! @material-ui/core */ "@material-ui/core");
 
 var _CompletedSlots = _interopRequireDefault(__webpack_require__(/*! ./CompletedSlots */ "./src/shared/RoundScreen/CompletedSlots.js"));
@@ -841,7 +843,10 @@ function (_Component) {
   _createClass(RoundScreen, [{
     key: "render",
     value: function render() {
-      return _react.default.createElement(_core.Grid, {
+      var roundStore = this.props.roundStore;
+      return _react.default.createElement("div", null, _react.default.createElement(_core.Typography, {
+        variant: "headline"
+      }, "Forging Round ", roundStore.hasNewRound ? roundStore.newRound.roundNumber : '--'), _react.default.createElement(_core.Grid, {
         container: true
       }, _react.default.createElement(_core.Grid, {
         item: true,
@@ -849,14 +854,16 @@ function (_Component) {
       }, _react.default.createElement(_CompletedSlots.default, null)), _react.default.createElement(_core.Grid, {
         item: true,
         xs: 4
-      }, _react.default.createElement(_UpcomingSlots.default, null)));
+      }, _react.default.createElement(_UpcomingSlots.default, null))));
     }
   }]);
 
   return RoundScreen;
 }(_react.Component);
 
-exports.default = RoundScreen;
+var _default = (0, _mobxReact.inject)('roundStore')((0, _mobxReact.observer)(RoundScreen));
+
+exports.default = _default;
 
 /***/ }),
 
