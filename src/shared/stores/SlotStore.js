@@ -8,46 +8,49 @@ import { action,
 import { task } from 'mobx-task'
 
 import { log } from '../domain/util/logger'
-import getSlotsFromInitialData, { createSlotFromBlock } from './slotFactory'
+import getSlotsFromInitialData, { createSlotFromBlock, basicSlot } from './slotFactory'
+import { nextMsTimestamp } from '../domain/util/time';
 
 
 export default class SlotStore {
   completedSlots = []
   isAwaitingBlock = true
   isAwaitingSlot = true
+  roundSlots = new Map()
   slotInProcess = null
   upcomingSlots = []
   unprocessedSlots = []
 
-  constructor(nodeApi, blockStore, roundStore) {
+  constructor(blockStore, delegateStore, roundStore) {
     this.blockStore = blockStore
-    this.nodeApi = nodeApi
+    this.delegateStore = delegateStore
     this.roundStore = roundStore
   }
 
   async init() {
     log('Initializing Slot Store.')
-    const delegates = await this.nodeApi.getActiveDelegates()
-    const delegatesById = delegates.delegates.reduce((all, delegate) => {
-      all[delegate.publicKey] = delegate
-      return all
-    }, {})
+    await when(() => this.roundStore.hasNewRound && this.delegateStore.hasLoadedDelegates)
 
-    console.log(delegates.delegates[0])
-    await when(() => this.roundStore.hasNewRound)
-
-    const result = getSlotsFromInitialData(this.roundStore.newRound, delegatesById)    
+    const result = getSlotsFromInitialData(this.roundStore.newRound, this.delegateStore)    
     this.watchForNextBlock()
     this.watchForUnprocessedSlot()
 
     runInAction(() => {
       this.completedSlots.replace(result.completed)
       this.upcomingSlots.replace(result.upcoming)
+
+      this.completedSlots.forEach(s => this.roundSlots.set(s.slot, s))
+      this.upcomingSlots.forEach(s => this.roundSlots.set(s.slot, s))
     }) 
   }
 
   watchForNextBlock() {
     when(() => this.blockStore.hasNextBlock && this.isAwaitingBlock, () => this.processReceivedBlock())
+  }
+
+  getRoundSlot(totalSlot) {
+    // From BPL-node code
+    return this.roundSlots.get(totalSlot % 201)
   }
 
   processReceivedBlock() {
@@ -64,17 +67,28 @@ export default class SlotStore {
         const completedSlot = createSlotFromBlock(slot, all.block)
         all.hasFoundProcessedSlot = !completedSlot.hasMissedBlock
         all.unprocessedSlots.push(completedSlot)
+
+        console.log(`Completed slot created and has missing block: ${completedSlot.hasMissedBlock}`)
+        if (completedSlot.hasMissedBlock) {
+          all.totalSlotCount += 1
+          let roundSlot = this.getRoundSlot(all.totalSlotCount)
+          let matchingDelegate = this.delegateStore.get(roundSlot.publicKey)
+          let lastSlot = this.unprocessedSlots[this.unprocessedSlots.length - 1]
+          all.additionalSlots.push(basicSlot(all.totalSlotCount, matchingDelegate, nextMsTimestamp(lastSlot.timestamp)))
+        }
       }
       return all
     }, {
+      additionalSlots: [],
       block: nextBlock,
       hasFoundProcessedSlot: false,
+      totalSlotCount: this.completedSlots.length + this.upcomingSlots.length,
       unprocessedSlots: this.unprocessedSlots,
       upcomingSlots: [],
     })
 
     this.unprocessedSlots.replace(blockSlots.unprocessedSlots)
-    this.upcomingSlots.replace(blockSlots.upcomingSlots)
+    this.upcomingSlots.replace(blockSlots.upcomingSlots.concat(blockSlots.additionalSlots))
   }
 
   watchForUnprocessedSlot() {

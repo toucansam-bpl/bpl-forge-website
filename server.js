@@ -138,6 +138,8 @@ var _App = _interopRequireDefault(__webpack_require__(/*! ../../shared/App */ ".
 
 var _BlockStore = _interopRequireDefault(__webpack_require__(/*! ../../shared/stores/BlockStore */ "./src/shared/stores/BlockStore.js"));
 
+var _DelegateStore = _interopRequireDefault(__webpack_require__(/*! ../../shared/stores/DelegateStore */ "./src/shared/stores/DelegateStore.js"));
+
 var _NodeApi = _interopRequireDefault(__webpack_require__(/*! ../../shared/domain/api/NodeApi */ "./src/shared/domain/api/NodeApi.js"));
 
 var _RoundStore = _interopRequireDefault(__webpack_require__(/*! ../../shared/stores/RoundStore */ "./src/shared/stores/RoundStore.js"));
@@ -198,9 +200,10 @@ var _default = function _default(req, res) {
   });
   var generateClassName = (0, _styles.createGenerateClassName)();
   var nodeApi = new _NodeApi.default();
+  var delegateStore = new _DelegateStore.default(nodeApi);
   var roundStore = new _RoundStore.default(nodeApi);
   var blockStore = new _BlockStore.default(nodeApi, roundStore);
-  var slotStore = new _SlotStore.default(nodeApi, blockStore, roundStore);
+  var slotStore = new _SlotStore.default(blockStore, delegateStore, roundStore);
   var stores = {
     blockStore: blockStore,
     roundStore: roundStore,
@@ -1596,6 +1599,103 @@ exports.default = BlockStore;
 
 /***/ }),
 
+/***/ "./src/shared/stores/DelegateStore.js":
+/*!********************************************!*\
+  !*** ./src/shared/stores/DelegateStore.js ***!
+  \********************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _mobx = __webpack_require__(/*! mobx */ "mobx");
+
+var _logger = __webpack_require__(/*! ../domain/util/logger */ "./src/shared/domain/util/logger.js");
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var DelegateStore =
+/*#__PURE__*/
+function () {
+  function DelegateStore(nodeApi) {
+    _classCallCheck(this, DelegateStore);
+
+    this.delegates = new Map();
+    this.nodeApi = nodeApi;
+  }
+
+  _createClass(DelegateStore, [{
+    key: "init",
+    value: function () {
+      var _init = _asyncToGenerator(
+      /*#__PURE__*/
+      regeneratorRuntime.mark(function _callee() {
+        var _this = this;
+
+        var delegates;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                (0, _logger.log)('Initializing Delegate Store.');
+                _context.next = 3;
+                return this.nodeApi.getActiveDelegates();
+
+              case 3:
+                delegates = _context.sent;
+                delegates.delegates.forEach(function (d) {
+                  return _this.delegates.set(d.publicKey, d);
+                });
+
+              case 5:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      return function init() {
+        return _init.apply(this, arguments);
+      };
+    }()
+  }, {
+    key: "get",
+    value: function get(publicKey) {
+      return this.delegates.get(publicKey);
+    }
+  }, {
+    key: "hasLoadedDelegates",
+    get: function get() {
+      return this.delegates.size > 0;
+    }
+  }]);
+
+  return DelegateStore;
+}();
+
+exports.default = DelegateStore;
+(0, _mobx.decorate)(DelegateStore, {
+  delegates: _mobx.observable,
+  hasLoadedDelegates: _mobx.computed
+});
+
+/***/ }),
+
 /***/ "./src/shared/stores/RoundStore.js":
 /*!*****************************************!*\
   !*** ./src/shared/stores/RoundStore.js ***!
@@ -1718,6 +1818,8 @@ var _logger = __webpack_require__(/*! ../domain/util/logger */ "./src/shared/dom
 
 var _slotFactory = _interopRequireWildcard(__webpack_require__(/*! ./slotFactory */ "./src/shared/stores/slotFactory.js"));
 
+var _time = __webpack_require__(/*! ../domain/util/time */ "./src/shared/domain/util/time.js");
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
 
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
@@ -1733,17 +1835,18 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 var SlotStore =
 /*#__PURE__*/
 function () {
-  function SlotStore(nodeApi, blockStore, roundStore) {
+  function SlotStore(blockStore, delegateStore, roundStore) {
     _classCallCheck(this, SlotStore);
 
     this.completedSlots = [];
     this.isAwaitingBlock = true;
     this.isAwaitingSlot = true;
+    this.roundSlots = new Map();
     this.slotInProcess = null;
     this.upcomingSlots = [];
     this.unprocessedSlots = [];
     this.blockStore = blockStore;
-    this.nodeApi = nodeApi;
+    this.delegateStore = delegateStore;
     this.roundStore = roundStore;
   }
 
@@ -1755,38 +1858,36 @@ function () {
       regeneratorRuntime.mark(function _callee() {
         var _this = this;
 
-        var delegates, delegatesById, result;
+        var result;
         return regeneratorRuntime.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
                 (0, _logger.log)('Initializing Slot Store.');
                 _context.next = 3;
-                return this.nodeApi.getActiveDelegates();
-
-              case 3:
-                delegates = _context.sent;
-                delegatesById = delegates.delegates.reduce(function (all, delegate) {
-                  all[delegate.publicKey] = delegate;
-                  return all;
-                }, {});
-                console.log(delegates.delegates[0]);
-                _context.next = 8;
                 return (0, _mobx.when)(function () {
-                  return _this.roundStore.hasNewRound;
+                  return _this.roundStore.hasNewRound && _this.delegateStore.hasLoadedDelegates;
                 });
 
-              case 8:
-                result = (0, _slotFactory.default)(this.roundStore.newRound, delegatesById);
+              case 3:
+                result = (0, _slotFactory.default)(this.roundStore.newRound, this.delegateStore);
                 this.watchForNextBlock();
                 this.watchForUnprocessedSlot();
                 (0, _mobx.runInAction)(function () {
                   _this.completedSlots.replace(result.completed);
 
                   _this.upcomingSlots.replace(result.upcoming);
+
+                  _this.completedSlots.forEach(function (s) {
+                    return _this.roundSlots.set(s.slot, s);
+                  });
+
+                  _this.upcomingSlots.forEach(function (s) {
+                    return _this.roundSlots.set(s.slot, s);
+                  });
                 });
 
-              case 12:
+              case 7:
               case "end":
                 return _context.stop();
             }
@@ -1810,8 +1911,16 @@ function () {
       });
     }
   }, {
+    key: "getRoundSlot",
+    value: function getRoundSlot(totalSlot) {
+      // From BPL-node code
+      return this.roundSlots.get(totalSlot % 201);
+    }
+  }, {
     key: "processReceivedBlock",
     value: function processReceivedBlock() {
+      var _this3 = this;
+
       this.isAwaitingBlock = false;
       this.watchForNextBlock();
       var nextBlock = this.blockStore.nextBlock();
@@ -1823,27 +1932,42 @@ function () {
           var completedSlot = (0, _slotFactory.createSlotFromBlock)(slot, all.block);
           all.hasFoundProcessedSlot = !completedSlot.hasMissedBlock;
           all.unprocessedSlots.push(completedSlot);
+          console.log("Completed slot created and has missing block: ".concat(completedSlot.hasMissedBlock));
+
+          if (completedSlot.hasMissedBlock) {
+            all.totalSlotCount += 1;
+
+            var roundSlot = _this3.getRoundSlot(all.totalSlotCount);
+
+            var matchingDelegate = _this3.delegateStore.get(roundSlot.publicKey);
+
+            var lastSlot = _this3.unprocessedSlots[_this3.unprocessedSlots.length - 1];
+            console.log(roundSlot, matchingDelegate, lastSlot);
+            all.additionalSlots.push((0, _slotFactory.basicSlot)(all.totalSlotCount, matchingDelegate, (0, _time.nextMsTimestamp)(lastSlot.timestamp)));
+          }
         }
 
         return all;
       }, {
+        additionalSlots: [],
         block: nextBlock,
         hasFoundProcessedSlot: false,
+        totalSlotCount: this.completedSlots.length + this.upcomingSlots.length,
         unprocessedSlots: this.unprocessedSlots,
         upcomingSlots: []
       });
       this.unprocessedSlots.replace(blockSlots.unprocessedSlots);
-      this.upcomingSlots.replace(blockSlots.upcomingSlots);
+      this.upcomingSlots.replace(blockSlots.upcomingSlots.concat(blockSlots.additionalSlots));
     }
   }, {
     key: "watchForUnprocessedSlot",
     value: function watchForUnprocessedSlot() {
-      var _this3 = this;
+      var _this4 = this;
 
       (0, _mobx.when)(function () {
-        return _this3.isAwaitingSlot && _this3.hasUnprocessedSlots;
+        return _this4.isAwaitingSlot && _this4.hasUnprocessedSlots;
       }, function () {
-        return _this3.processNextSlot();
+        return _this4.processNextSlot();
       });
     }
   }, {
@@ -1854,7 +1978,7 @@ function () {
   }, {
     key: "processNextSlot",
     value: function processNextSlot() {
-      var _this4 = this;
+      var _this5 = this;
 
       this.isAwaitingSlot = false;
       this.watchForUnprocessedSlot();
@@ -1866,7 +1990,7 @@ function () {
         slot: nextSlot
       };
       setTimeout(function () {
-        return _this4.slotInProcess.shouldBeVisible = false;
+        return _this5.slotInProcess.shouldBeVisible = false;
       }, 0);
     }
   }, {
@@ -1883,11 +2007,11 @@ function () {
   }, {
     key: "slotLeftUpcoming",
     value: function slotLeftUpcoming() {
-      var _this5 = this;
+      var _this6 = this;
 
       this.slotInProcess.hasLeftUpcoming = true;
       setTimeout(function () {
-        return _this5.slotInProcess.shouldBeVisible = true;
+        return _this6.slotInProcess.shouldBeVisible = true;
       }, 0);
     }
   }, {
@@ -1941,7 +2065,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.createSlotFromBlock = createSlotFromBlock;
 exports.completedSlotFromDelegate = completedSlotFromDelegate;
 exports.basicSlot = basicSlot;
-exports.default = createSlots;
+exports.default = getSlotsFromInitialData;
 
 var _format = __webpack_require__(/*! ../domain/util/format */ "./src/shared/domain/util/format.js");
 
@@ -1954,6 +2078,7 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function createSlotFromBlock(slot, block) {
+  console.log(slot, block);
   var hasMissedBlock = slot.publicKey !== block.generatorPublicKey;
   var blockProps = hasMissedBlock ? {} : {
     totalForged: (0, _format.fromApiString)(block.totalForged)
@@ -1963,26 +2088,28 @@ function createSlotFromBlock(slot, block) {
   }, blockProps);
 }
 
-function completedSlotFromDelegate(slot, delegate) {
+function completedSlotFromDelegate(slot, delegate, timestamp) {
   var blockProps = slot.hasMissedBlock ? {} : {
     totalForged: (0, _format.fromApiString)(slot.totalForged)
   };
-  return _objectSpread({}, basicSlot(slot, delegate), {
+  return _objectSpread({}, basicSlot(slot.roundSlot, delegate, timestamp), {
     hasMissedBlock: slot.hasMissedBlock
   }, blockProps);
 }
 
-function basicSlot(slot, delegate) {
+function basicSlot(number, delegate, timestamp) {
   return {
     name: delegate.username,
-    publicKey: slot.publicKey,
+    number: number,
+    publicKey: delegate.publicKey,
     rank: delegate.rate,
-    slot: slot.roundSlot || slot.blockRoundSlot,
+    slot: number,
+    timestamp: timestamp,
     vote: (0, _format.fromApiString)(delegate.vote)
   };
 }
 
-function createSlots(currentRound, delegatesById) {
+function getSlotsFromInitialData(currentRound, delegates) {
   var result = {
     completed: [],
     lastTimestamp: (0, _time.currentMsTimestamp)(),
@@ -1990,16 +2117,12 @@ function createSlots(currentRound, delegatesById) {
   };
   result = currentRound.delegateActivity.reduce(function (all, slot) {
     all.lastTimestamp = slot.hasMissedBlock ? (0, _time.nextMsTimestamp)(all.lastTimestamp) : (0, _time.fromApiToMs)(slot.timestamp);
-    all.completed.push(_objectSpread({}, completedSlotFromDelegate(slot, delegatesById[slot.publicKey]), {
-      timestamp: all.lastTimestamp
-    }));
+    all.completed.push(completedSlotFromDelegate(slot, delegates.get(slot.publicKey), all.lastTimestamp));
     return all;
   }, result);
   result = currentRound.expectedForgers.reduce(function (all, slot) {
     all.lastTimestamp = (0, _time.nextMsTimestamp)(all.lastTimestamp);
-    all.upcoming.push(_objectSpread({}, basicSlot(slot, delegatesById[slot.publicKey]), {
-      timestamp: all.lastTimestamp
-    }));
+    all.upcoming.push(basicSlot(slot.blockRoundSlot, delegates.get(slot.publicKey), all.lastTimestamp));
     return all;
   }, result);
   result.completed.sort((0, _sorters.byDescending)('slot'));

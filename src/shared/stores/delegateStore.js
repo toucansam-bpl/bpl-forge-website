@@ -1,26 +1,31 @@
-import { action, observable, runInAction } from 'mobx'
-import { task } from 'mobx-task'
-import fetch from 'node-fetch'
+import { computed, decorate, observable, } from 'mobx'
 
-const fakeGetter = async () =>
-  new Promise(async (resolve, reject) => {
-    try {
-      const roundResponse = await fetch('https://api.bplforge.com/api/rounds')
-      const roundResult = await roundResponse.json()
-      console.log(roundResult)
-      resolve(roundResult.activeDelegates)
-    } catch (ex) {
-      reject(ex)
-    }
-  })
+import { log } from '../domain/util/logger'
 
-export default () => {
-  const store = observable({
-    todos: [],
-    fetchTodos: task(async () => {
-      const todos = await fakeGetter()
-      runInAction(() => store.todos.replace(todos))
-    })
-  })
-  return store
+
+export default class DelegateStore {
+  delegates = new Map()
+
+  constructor(nodeApi) {
+    this.nodeApi = nodeApi
+  }
+
+  async init() {
+    log('Initializing Delegate Store.')
+    const delegates = await this.nodeApi.getActiveDelegates()
+    delegates.delegates.forEach(d => this.delegates.set(d.publicKey, d))
+  }
+
+  get(publicKey) {
+    return this.delegates.get(publicKey)
+  }
+
+  get hasLoadedDelegates() {
+    return this.delegates.size > 0
+  }
 }
+
+decorate(DelegateStore, {
+  delegates: observable,
+  hasLoadedDelegates: computed,
+})

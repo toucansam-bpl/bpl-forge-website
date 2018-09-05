@@ -14,28 +14,30 @@ export function createSlotFromBlock(slot, block) {
   }
 }
 
-export function completedSlotFromDelegate(slot, delegate) {
+export function completedSlotFromDelegate(slot, delegate, timestamp) {
   const blockProps = slot.hasMissedBlock ? {} : {
     totalForged: fromApiString(slot.totalForged),
   }
   return {
-    ... basicSlot(slot, delegate),
+    ... basicSlot(slot.roundSlot, delegate, timestamp),
     hasMissedBlock: slot.hasMissedBlock,
     ... blockProps,
   }
 }
 
-export function basicSlot(slot, delegate) {
+export function basicSlot(number, delegate, timestamp) {
   return {
     name: delegate.username,
-    publicKey: slot.publicKey,
+    number,
+    publicKey: delegate.publicKey,
     rank: delegate.rate,
-    slot: slot.roundSlot || slot.blockRoundSlot,
+    slot: number,
+    timestamp,
     vote: fromApiString(delegate.vote),
   }
 }
 
-export default function createSlots(currentRound, delegatesById) {
+export default function getSlotsFromInitialData(currentRound, delegates) {
   let result = {
     completed: [],
     lastTimestamp: currentMsTimestamp(),
@@ -46,21 +48,13 @@ export default function createSlots(currentRound, delegatesById) {
     all.lastTimestamp = slot.hasMissedBlock
       ? nextMsTimestamp(all.lastTimestamp)
       : fromApiToMs(slot.timestamp)
-    all.completed.push({
-      ... completedSlotFromDelegate(slot, delegatesById[slot.publicKey]),
-      
-      timestamp: all.lastTimestamp,
-    })
+    all.completed.push(completedSlotFromDelegate(slot, delegates.get(slot.publicKey), all.lastTimestamp))
     return all
   }, result)
 
   result = currentRound.expectedForgers.reduce((all, slot) => {
     all.lastTimestamp = nextMsTimestamp(all.lastTimestamp)
-    all.upcoming.push({
-      ... basicSlot(slot, delegatesById[slot.publicKey]),
-      
-      timestamp: all.lastTimestamp,
-    })
+    all.upcoming.push(basicSlot(slot.blockRoundSlot, delegates.get(slot.publicKey), all.lastTimestamp))
     return all
   }, result)
 
