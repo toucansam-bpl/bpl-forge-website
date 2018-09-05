@@ -51,7 +51,6 @@ const CollapsableSlot = inject('slotStore')(observer(({ slotStore, }) =>
     component={ListItem}
     in={slotStore.slotInProcess.shouldBeVisible}
     key={slotStore.slotInProcess.slot.slot}
-    timeout={500}
     onExited={() => slotStore.slotLeftUpcoming()}
   >
     <UpcomingSlot {... slotStore.slotInProcess.slot} />

@@ -116,7 +116,6 @@ const CollapsableSlot = inject('slotStore')(observer(({ slotStore, }) =>
     component={ListItem}
     in={slotStore.slotInProcess.shouldBeVisible}
     key={slotStore.slotInProcess.slot.slot}
-    timeout={500}
     onEntered={() => slotStore.slotJoinedCompleted()}
   >
     <CompletedSlot {... slotStore.slotInProcess.slot} />

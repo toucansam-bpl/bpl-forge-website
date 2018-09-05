@@ -86369,7 +86369,6 @@ var CollapsableSlot = (0, _mobxReact.inject)('slotStore')((0, _mobxReact.observe
     component: _core.ListItem,
     in: slotStore.slotInProcess.shouldBeVisible,
     key: slotStore.slotInProcess.slot.slot,
-    timeout: 500,
     onEntered: function onEntered() {
       return slotStore.slotJoinedCompleted();
     }
@@ -86591,7 +86590,6 @@ var CollapsableSlot = (0, _mobxReact.inject)('slotStore')((0, _mobxReact.observe
     component: _core.ListItem,
     in: slotStore.slotInProcess.shouldBeVisible,
     key: slotStore.slotInProcess.slot.slot,
-    timeout: 500,
     onExited: function onExited() {
       return slotStore.slotLeftUpcoming();
     }
