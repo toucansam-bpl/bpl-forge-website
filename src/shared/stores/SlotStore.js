@@ -68,12 +68,11 @@ export default class SlotStore {
         all.hasFoundProcessedSlot = !completedSlot.hasMissedBlock
         all.unprocessedSlots.push(completedSlot)
 
-        console.log(`Completed slot created and has missing block: ${completedSlot.hasMissedBlock}`)
         if (completedSlot.hasMissedBlock) {
           all.totalSlotCount += 1
           let roundSlot = this.getRoundSlot(all.totalSlotCount)
           let matchingDelegate = this.delegateStore.get(roundSlot.publicKey)
-          let lastSlot = this.unprocessedSlots[this.unprocessedSlots.length - 1]
+          let lastSlot = this.upcomingSlots[this.upcomingSlots.length - 1]
           all.additionalSlots.push(basicSlot(all.totalSlotCount, matchingDelegate, nextMsTimestamp(lastSlot.timestamp)))
         }
       }
@@ -83,11 +82,11 @@ export default class SlotStore {
       block: nextBlock,
       hasFoundProcessedSlot: false,
       totalSlotCount: this.completedSlots.length + this.upcomingSlots.length,
-      unprocessedSlots: this.unprocessedSlots,
+      unprocessedSlots: [],
       upcomingSlots: [],
     })
 
-    this.unprocessedSlots.replace(blockSlots.unprocessedSlots)
+    this.unprocessedSlots.replace(this.unprocessedSlots.concat(blockSlots.unprocessedSlots))
     this.upcomingSlots.replace(blockSlots.upcomingSlots.concat(blockSlots.additionalSlots))
   }
 

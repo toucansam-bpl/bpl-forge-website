@@ -1932,7 +1932,6 @@ function () {
           var completedSlot = (0, _slotFactory.createSlotFromBlock)(slot, all.block);
           all.hasFoundProcessedSlot = !completedSlot.hasMissedBlock;
           all.unprocessedSlots.push(completedSlot);
-          console.log("Completed slot created and has missing block: ".concat(completedSlot.hasMissedBlock));
 
           if (completedSlot.hasMissedBlock) {
             all.totalSlotCount += 1;
@@ -1941,8 +1940,7 @@ function () {
 
             var matchingDelegate = _this3.delegateStore.get(roundSlot.publicKey);
 
-            var lastSlot = _this3.unprocessedSlots[_this3.unprocessedSlots.length - 1];
-            console.log(roundSlot, matchingDelegate, lastSlot);
+            var lastSlot = _this3.upcomingSlots[_this3.upcomingSlots.length - 1];
             all.additionalSlots.push((0, _slotFactory.basicSlot)(all.totalSlotCount, matchingDelegate, (0, _time.nextMsTimestamp)(lastSlot.timestamp)));
           }
         }
@@ -1953,10 +1951,10 @@ function () {
         block: nextBlock,
         hasFoundProcessedSlot: false,
         totalSlotCount: this.completedSlots.length + this.upcomingSlots.length,
-        unprocessedSlots: this.unprocessedSlots,
+        unprocessedSlots: [],
         upcomingSlots: []
       });
-      this.unprocessedSlots.replace(blockSlots.unprocessedSlots);
+      this.unprocessedSlots.replace(this.unprocessedSlots.concat(blockSlots.unprocessedSlots));
       this.upcomingSlots.replace(blockSlots.upcomingSlots.concat(blockSlots.additionalSlots));
     }
   }, {
@@ -2078,7 +2076,6 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function createSlotFromBlock(slot, block) {
-  console.log(slot, block);
   var hasMissedBlock = slot.publicKey !== block.generatorPublicKey;
   var blockProps = hasMissedBlock ? {} : {
     totalForged: (0, _format.fromApiString)(block.totalForged)
