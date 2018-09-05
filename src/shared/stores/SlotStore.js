@@ -14,6 +14,7 @@ import { nextMsTimestamp } from '../domain/util/time';
 
 export default class SlotStore {
   completedSlots = []
+  hasCompletedSlotsForRound = false
   isAwaitingBlock = true
   isAwaitingSlot = true
   roundSlots = new Map()
@@ -88,6 +89,8 @@ export default class SlotStore {
 
     this.unprocessedSlots.replace(this.unprocessedSlots.concat(blockSlots.unprocessedSlots))
     this.upcomingSlots.replace(blockSlots.upcomingSlots.concat(blockSlots.additionalSlots))
+
+    this.hasCompletedSlotsForRound = this.unprocessedSlots.length === 0 && this.upcomingSlots.length === 0
   }
 
   watchForUnprocessedSlot() {
@@ -122,6 +125,18 @@ export default class SlotStore {
     return this.slotInProcess !== null
   }
 
+  get missedBlockCount() {
+    return this.completedSlots.filter(s => s.hasMissedBlock).length
+  }
+
+  get remainingSlotCount() {
+    return this.unprocessedSlots.length + this.upcomingSlots.length
+  }
+
+  get successfulForgeCount() {
+    return this.completedSlots.filter(s => !s.hasMissedBlock).length
+  }
+
   slotJoinedCompleted() {
     this.isAwaitingSlot = true
     this.completedSlots.unshift(this.slotInProcess.slot)
@@ -141,17 +156,21 @@ export default class SlotStore {
 
 decorate(SlotStore, {
   completedSlots: observable,
+  hasCompletedSlotsForRound: observable,
   hasSlotInProcess: computed,
   hasUnprocessedSlots: computed,
   init: task,
   isAwaitingBlock: observable,
   isAwaitingSlot: observable,
+  missedBlockCount: computed,
   nextUnprocessedSlot: action,
   processReceivedBlock: action,
   processNextSlot: action,
+  remainingSlotCount: computed,
   slotInProcess: observable,
   slotJoinedCompleted: action,
   slotLeftUpcoming: action,
+  successfulForgeCount: computed,
   upcomingSlots: observable,
   unprocessedSlots: observable,
 })
