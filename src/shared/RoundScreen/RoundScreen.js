@@ -3,12 +3,21 @@ import { inject, observer, } from 'mobx-react'
 import { Grid, Typography, } from '@material-ui/core'
 
 import CompletedSlots from './CompletedSlots'
+import RoundProgress from './RoundProgress'
 import RoundStats from './RoundStats'
 import UpcomingSlots from './UpcomingSlots'
 
 class RoundScreen extends Component {
   render() {
     const { roundStore, slotStore, } = this.props
+    const MiddleColumn = slotStore.hasCompletedSlotsForRound
+      ? <RoundStats />        
+      : <React.Fragment>
+          <Typography variant="headline">
+            Upcoming Forgers
+          </Typography>
+          <UpcomingSlots />
+        </React.Fragment>
 
     return (
       <Grid container>
@@ -20,16 +29,11 @@ class RoundScreen extends Component {
           </Typography>
           <CompletedSlots />
         </Grid>
-
         <Grid item xs={3}>
-          <Typography variant="headline">
-            Upcoming Forgers
-          </Typography>
-          <UpcomingSlots />
+          {MiddleColumn}
         </Grid>
-
         <Grid item xs={3}>
-          <RoundStats />
+          <RoundProgress />
         </Grid>
       </Grid>
     )

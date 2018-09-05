@@ -11,16 +11,10 @@ class RoundStats extends Component {
       <Card>
         <CardContent>
           <Typography variant="headline">
-            Round Progress
+            Round Stats
           </Typography>
           <Typography variant="subheading">
-            Remaining Slots: {slotStore.remainingSlotCount}
-          </Typography>
-          <Typography variant="subheading">
-            Successful Forges: {slotStore.successfulForgeCount}
-          </Typography>
-          <Typography variant="subheading">
-            Missed Blocks: {slotStore.missedBlockCount}
+            Total forged this round: {slotStore.totalForgedAmount}
           </Typography>
         </CardContent>
       </Card>

@@ -136,6 +136,12 @@ export default class SlotStore {
   get successfulForgeCount() {
     return this.completedSlots.filter(s => !s.hasMissedBlock).length
   }
+  
+  get totalForgedAmount() {
+    return this.completedSlots
+      .filter(s => !s.hasMissedBlock)
+      .reduce((sum, slot) => sum.plus(slot.totalForged), Big(0))
+  }
 
   slotJoinedCompleted() {
     this.isAwaitingSlot = true
@@ -171,6 +177,7 @@ decorate(SlotStore, {
   slotJoinedCompleted: action,
   slotLeftUpcoming: action,
   successfulForgeCount: computed,
+  totalForgedAmount: computed,
   upcomingSlots: observable,
   unprocessedSlots: observable,
 })

@@ -782,6 +782,83 @@ exports.default = _default;
 
 /***/ }),
 
+/***/ "./src/shared/RoundScreen/RoundProgress.js":
+/*!*************************************************!*\
+  !*** ./src/shared/RoundScreen/RoundProgress.js ***!
+  \*************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _react = _interopRequireWildcard(__webpack_require__(/*! react */ "react"));
+
+var _mobxReact = __webpack_require__(/*! mobx-react */ "mobx-react");
+
+var _core = __webpack_require__(/*! @material-ui/core */ "@material-ui/core");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+var RoundProgress =
+/*#__PURE__*/
+function (_Component) {
+  _inherits(RoundProgress, _Component);
+
+  function RoundProgress() {
+    _classCallCheck(this, RoundProgress);
+
+    return _possibleConstructorReturn(this, _getPrototypeOf(RoundProgress).apply(this, arguments));
+  }
+
+  _createClass(RoundProgress, [{
+    key: "render",
+    value: function render() {
+      var slotStore = this.props.slotStore;
+      return _react.default.createElement(_core.Card, null, _react.default.createElement(_core.CardContent, null, _react.default.createElement(_core.Typography, {
+        variant: "headline"
+      }, "Round Progress"), _react.default.createElement(_core.Typography, {
+        variant: "subheading"
+      }, "Remaining Slots: ", slotStore.remainingSlotCount), _react.default.createElement(_core.Typography, {
+        variant: "subheading"
+      }, "Successful Forges: ", slotStore.successfulForgeCount), _react.default.createElement(_core.Typography, {
+        variant: "subheading"
+      }, "Missed Blocks: ", slotStore.missedBlockCount)));
+    }
+  }]);
+
+  return RoundProgress;
+}(_react.Component);
+
+var _default = (0, _mobxReact.inject)('slotStore')((0, _mobxReact.observer)(RoundProgress));
+
+exports.default = _default;
+
+/***/ }),
+
 /***/ "./src/shared/RoundScreen/RoundScreen.js":
 /*!***********************************************!*\
   !*** ./src/shared/RoundScreen/RoundScreen.js ***!
@@ -804,6 +881,8 @@ var _mobxReact = __webpack_require__(/*! mobx-react */ "mobx-react");
 var _core = __webpack_require__(/*! @material-ui/core */ "@material-ui/core");
 
 var _CompletedSlots = _interopRequireDefault(__webpack_require__(/*! ./CompletedSlots */ "./src/shared/RoundScreen/CompletedSlots.js"));
+
+var _RoundProgress = _interopRequireDefault(__webpack_require__(/*! ./RoundProgress */ "./src/shared/RoundScreen/RoundProgress.js"));
 
 var _RoundStats = _interopRequireDefault(__webpack_require__(/*! ./RoundStats */ "./src/shared/RoundScreen/RoundStats.js"));
 
@@ -848,6 +927,9 @@ function (_Component) {
       var _this$props = this.props,
           roundStore = _this$props.roundStore,
           slotStore = _this$props.slotStore;
+      var MiddleColumn = slotStore.hasCompletedSlotsForRound ? _react.default.createElement(_RoundStats.default, null) : _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(_core.Typography, {
+        variant: "headline"
+      }, "Upcoming Forgers"), _react.default.createElement(_UpcomingSlots.default, null));
       return _react.default.createElement(_core.Grid, {
         container: true
       }, _react.default.createElement(_core.Grid, {
@@ -858,12 +940,10 @@ function (_Component) {
       }, "Forging Round", roundStore.hasNewRound ? " ".concat(roundStore.newRound.roundNumber) : null, slotStore.hasCompletedSlotsForRound ? ' - Complete' : ' - In process'), _react.default.createElement(_CompletedSlots.default, null)), _react.default.createElement(_core.Grid, {
         item: true,
         xs: 3
-      }, _react.default.createElement(_core.Typography, {
-        variant: "headline"
-      }, "Upcoming Forgers"), _react.default.createElement(_UpcomingSlots.default, null)), _react.default.createElement(_core.Grid, {
+      }, MiddleColumn), _react.default.createElement(_core.Grid, {
         item: true,
         xs: 3
-      }, _react.default.createElement(_RoundStats.default, null)));
+      }, _react.default.createElement(_RoundProgress.default, null)));
     }
   }]);
 
@@ -934,13 +1014,9 @@ function (_Component) {
       var slotStore = this.props.slotStore;
       return _react.default.createElement(_core.Card, null, _react.default.createElement(_core.CardContent, null, _react.default.createElement(_core.Typography, {
         variant: "headline"
-      }, "Round Progress"), _react.default.createElement(_core.Typography, {
+      }, "Round Stats"), _react.default.createElement(_core.Typography, {
         variant: "subheading"
-      }, "Remaining Slots: ", slotStore.remainingSlotCount), _react.default.createElement(_core.Typography, {
-        variant: "subheading"
-      }, "Successful Forges: ", slotStore.successfulForgeCount), _react.default.createElement(_core.Typography, {
-        variant: "subheading"
-      }, "Missed Blocks: ", slotStore.missedBlockCount)));
+      }, "Total forged this round: ", slotStore.totalForgedAmount)));
     }
   }]);
 
@@ -2134,6 +2210,15 @@ function () {
         return !s.hasMissedBlock;
       }).length;
     }
+  }, {
+    key: "totalForgedAmount",
+    get: function get() {
+      return this.completedSlots.filter(function (s) {
+        return !s.hasMissedBlock;
+      }).reduce(function (sum, slot) {
+        return sum.plus(slot.totalForged);
+      }, Big(0));
+    }
   }]);
 
   return SlotStore;
@@ -2157,6 +2242,7 @@ exports.default = SlotStore;
   slotJoinedCompleted: _mobx.action,
   slotLeftUpcoming: _mobx.action,
   successfulForgeCount: _mobx.computed,
+  totalForgedAmount: _mobx.computed,
   upcomingSlots: _mobx.observable,
   unprocessedSlots: _mobx.observable
 });
