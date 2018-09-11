@@ -13,6 +13,7 @@ export default class DelegateStore {
   async init() {
     log('Initializing Delegate Store.')
     const delegates = await this.nodeApi.getActiveDelegates()
+    console.log(delegates.delegates[0])
     delegates.delegates.forEach(d => this.delegates.set(d.publicKey, d))
   }
 

@@ -86148,13 +86148,21 @@ exports.default = CalculatorScreen;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = void 0;
+exports.default = exports.DelegateScreen = void 0;
 
 var _react = _interopRequireWildcard(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
+
+var _core = __webpack_require__(/*! @material-ui/core */ "./node_modules/@material-ui/core/index.es.js");
+
+var _mobxReact = __webpack_require__(/*! mobx-react */ "./node_modules/mobx-react/index.module.js");
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -86184,16 +86192,75 @@ function (_Component) {
   }
 
   _createClass(DelegateScreen, [{
+    key: "componentDidMount",
+    value: function () {
+      var _componentDidMount = _asyncToGenerator(
+      /*#__PURE__*/
+      regeneratorRuntime.mark(function _callee() {
+        var match;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                match = this.props.match;
+                console.log(match.params.address);
+
+              case 2:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      return function componentDidMount() {
+        return _componentDidMount.apply(this, arguments);
+      };
+    }()
+  }, {
     key: "render",
     value: function render() {
-      return _react.default.createElement("div", null, "Delegate Screen");
+      var match = this.props.match;
+      return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(_core.Grid, {
+        container: true
+      }, _react.default.createElement(_core.Grid, {
+        item: true
+      }, "Delegate - ", match.params.address)));
     }
   }]);
 
   return DelegateScreen;
 }(_react.Component);
 
-exports.default = DelegateScreen;
+exports.DelegateScreen = DelegateScreen;
+
+var _default = (0, _mobxReact.inject)('roundStore')((0, _mobxReact.observer)(DelegateScreen));
+/*
+        <Grid container>
+          <ItemGrid xs={12} sm={8}>
+            <RegularCard
+              cardTitle={title}
+              cardSubtitle=""
+              content={
+                selectedDelegateStore.hasSelectedDelegate ? (
+                  <DelegateInfo />
+                ) : (
+                  <div>No delegate</div>
+                )
+              }
+            />
+          </ItemGrid>
+
+          <ItemGrid xs={12} sm={4}>
+            <BplPrice />
+            <EstimatedReward />
+          </ItemGrid>
+        </Grid>
+        <DelegateActivity />
+*/
+
+
+exports.default = _default;
 
 /***/ }),
 
@@ -86215,6 +86282,8 @@ exports.default = void 0;
 var _react = _interopRequireWildcard(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
 
 var _mobxReact = __webpack_require__(/*! mobx-react */ "./node_modules/mobx-react/index.module.js");
+
+var _reactRouterDom = __webpack_require__(/*! react-router-dom */ "./node_modules/react-router-dom/es/index.js");
 
 var _core = __webpack_require__(/*! @material-ui/core */ "./node_modules/@material-ui/core/index.es.js");
 
@@ -86267,7 +86336,8 @@ var CompletedSlot = (0, _core.withStyles)(styles)(function (_ref) {
 });
 
 var CompletedForgedSlot = function CompletedForgedSlot(_ref2) {
-  var classes = _ref2.classes,
+  var address = _ref2.address,
+      classes = _ref2.classes,
       name = _ref2.name,
       rank = _ref2.rank,
       slot = _ref2.slot,
@@ -86292,7 +86362,9 @@ var CompletedForgedSlot = function CompletedForgedSlot(_ref2) {
   }, _react.default.createElement(_core.Typography, {
     gutterBottom: true,
     variant: "subheading"
-  }, "Slot ".concat(slot, " - ").concat(name))), _react.default.createElement(_core.Grid, {
+  }, "Slot ".concat(slot, " - "), _react.default.createElement(_reactRouterDom.Link, {
+    to: "delegate/".concat(address)
+  }, name))), _react.default.createElement(_core.Grid, {
     item: true,
     container: true
   }, _react.default.createElement(_core.Grid, {
@@ -86316,7 +86388,8 @@ var CompletedForgedSlot = function CompletedForgedSlot(_ref2) {
 };
 
 var CompletedMissedSlot = function CompletedMissedSlot(_ref3) {
-  var classes = _ref3.classes,
+  var address = _ref3.address,
+      classes = _ref3.classes,
       name = _ref3.name,
       rank = _ref3.rank,
       slot = _ref3.slot,
@@ -86340,7 +86413,9 @@ var CompletedMissedSlot = function CompletedMissedSlot(_ref3) {
   }, _react.default.createElement(_core.Typography, {
     gutterBottom: true,
     variant: "subheading"
-  }, "Slot ".concat(slot, " - ").concat(name))), _react.default.createElement(_core.Grid, {
+  }, "Slot ".concat(slot, " - "), _react.default.createElement(_reactRouterDom.Link, {
+    to: "delegate/".concat(address)
+  }, name))), _react.default.createElement(_core.Grid, {
     item: true,
     container: true
   }, _react.default.createElement(_core.Grid, {
@@ -86394,6 +86469,7 @@ function (_Component) {
         slot: slotStore.slotInProcess.slot,
         store: slotStore
       }) : null;
+      console.log(slotStore.completedSlots[0]);
       return _react.default.createElement(_react.default.Fragment, null, slotStore.init.match({
         pending: function pending() {
           return _react.default.createElement("div", null, "Loading, please wait..");
@@ -86687,6 +86763,8 @@ var _react = _interopRequireWildcard(__webpack_require__(/*! react */ "./node_mo
 
 var _mobxReact = __webpack_require__(/*! mobx-react */ "./node_modules/mobx-react/index.module.js");
 
+var _reactRouterDom = __webpack_require__(/*! react-router-dom */ "./node_modules/react-router-dom/es/index.js");
+
 var _core = __webpack_require__(/*! @material-ui/core */ "./node_modules/@material-ui/core/index.es.js");
 
 var _Update = _interopRequireDefault(__webpack_require__(/*! @material-ui/icons/Update */ "./node_modules/@material-ui/icons/Update.js"));
@@ -86716,7 +86794,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
 var UpcomingSlot = function UpcomingSlot(_ref) {
-  var slot = _ref.slot,
+  var address = _ref.address,
+      slot = _ref.slot,
       name = _ref.name,
       rank = _ref.rank,
       timestamp = _ref.timestamp,
@@ -86737,7 +86816,9 @@ var UpcomingSlot = function UpcomingSlot(_ref) {
   }, _react.default.createElement(_core.Typography, {
     gutterBottom: true,
     variant: "subheading"
-  }, "Slot ".concat(slot, " - ").concat(name))), _react.default.createElement(_core.Grid, {
+  }, "Slot ".concat(slot, " - "), _react.default.createElement(_reactRouterDom.Link, {
+    to: "delegate/".concat(address)
+  }, name))), _react.default.createElement(_core.Grid, {
     item: true,
     container: true
   }, _react.default.createElement(_core.Grid, {
@@ -87463,11 +87544,12 @@ function () {
 
               case 3:
                 delegates = _context.sent;
+                console.log(delegates.delegates[0]);
                 delegates.delegates.forEach(function (d) {
                   return _this.delegates.set(d.publicKey, d);
                 });
 
-              case 5:
+              case 6:
               case "end":
                 return _context.stop();
             }
@@ -87616,6 +87698,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
+var _bigJs = _interopRequireDefault(__webpack_require__(/*! big-js */ "./node_modules/big-js/big.js"));
+
 var _mobx = __webpack_require__(/*! mobx */ "./node_modules/mobx/lib/mobx.module.js");
 
 var _mobxTask = __webpack_require__(/*! mobx-task */ "./node_modules/mobx-task/lib/index.js");
@@ -87627,6 +87711,8 @@ var _slotFactory = _interopRequireWildcard(__webpack_require__(/*! ./slotFactory
 var _time = __webpack_require__(/*! ../domain/util/time */ "./src/shared/domain/util/time.js");
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
@@ -87856,7 +87942,7 @@ function () {
         return !s.hasMissedBlock;
       }).reduce(function (sum, slot) {
         return sum.plus(slot.totalForged);
-      }, Big(0));
+      }, (0, _bigJs.default)(0));
     }
   }]);
 
@@ -87937,6 +88023,7 @@ function completedSlotFromDelegate(slot, delegate, timestamp) {
 
 function basicSlot(number, delegate, timestamp) {
   return {
+    address: delegate.address,
     name: delegate.username,
     number: number,
     publicKey: delegate.publicKey,

@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import { inject, observer } from 'mobx-react'
+import { Link } from 'react-router-dom'
 import { 
   Avatar,
   Collapse,
@@ -13,7 +14,7 @@ import UpdateIcon from '@material-ui/icons/Update'
 import { toHowLong } from '../domain/util/format'
 
 
-const UpcomingSlot = ({ slot, name, rank, timestamp, vote, }) =>
+const UpcomingSlot = ({ address, slot, name, rank, timestamp, vote, }) =>
   <React.Fragment>
     <Grid container spacing={16}>
       <Grid item>
@@ -24,7 +25,10 @@ const UpcomingSlot = ({ slot, name, rank, timestamp, vote, }) =>
       <Grid item xs={12} sm direction="column" container>
         <Grid item>
           <Typography gutterBottom variant="subheading">
-            {`Slot ${slot} - ${name}`}
+            {`Slot ${slot} - `}
+            <Link to={`delegate/${address}`}>
+              {name}
+            </Link>
           </Typography>
         </Grid>
         <Grid item container>

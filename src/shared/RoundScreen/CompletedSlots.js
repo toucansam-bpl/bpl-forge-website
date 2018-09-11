@@ -1,12 +1,12 @@
 import React, { Component } from 'react'
 import { inject, observer } from 'mobx-react'
+import { Link } from 'react-router-dom'
 import { 
           Avatar,
           Collapse,
           Grid,
           List,
           ListItem,
-          ListItemText,
           Typography,
           withStyles,
         } from '@material-ui/core'
@@ -29,7 +29,7 @@ const CompletedSlot = withStyles(styles)(({ hasMissedBlock, ... rest, }) =>
     : (<CompletedForgedSlot {... rest} />)
 )
 
-const CompletedForgedSlot = ({ classes, name, rank, slot, timestamp, totalForged, vote, }) =>
+const CompletedForgedSlot = ({ address, classes, name, rank, slot, timestamp, totalForged, vote, }) =>
   <React.Fragment>
   <Grid container spacing={16}>
     <Grid item>
@@ -40,7 +40,10 @@ const CompletedForgedSlot = ({ classes, name, rank, slot, timestamp, totalForged
     <Grid item xs={12} sm direction="column" container>
       <Grid item>
         <Typography gutterBottom variant="subheading">
-          {`Slot ${slot} - ${name}`}
+          {`Slot ${slot} - `}
+          <Link to={`delegate/${address}`}>
+            {name}
+          </Link>
         </Typography>
       </Grid>
       <Grid item container>
@@ -70,7 +73,7 @@ const CompletedForgedSlot = ({ classes, name, rank, slot, timestamp, totalForged
   </Grid>
   </React.Fragment>
 
-const CompletedMissedSlot = ({ classes, name, rank, slot, timestamp, vote, }) =>
+const CompletedMissedSlot = ({ address, classes, name, rank, slot, timestamp, vote, }) =>
   <React.Fragment>
     <Grid container spacing={16}>
       <Grid item>
@@ -81,7 +84,10 @@ const CompletedMissedSlot = ({ classes, name, rank, slot, timestamp, vote, }) =>
       <Grid item xs={12} sm direction="column" container>
         <Grid item>
           <Typography gutterBottom variant="subheading">
-            {`Slot ${slot} - ${name}`}
+            {`Slot ${slot} - `}
+            <Link to={`delegate/${address}`}>
+              {name}
+            </Link>
           </Typography>
         </Grid>
         <Grid item container>
@@ -130,6 +136,7 @@ class CompletedSlots extends Component {
       ? <CollapsableSlot slot={slotStore.slotInProcess.slot} store={slotStore} />
       : null
 
+      console.log(slotStore.completedSlots[0])
     return (
       <React.Fragment>
         {slotStore.init.match({

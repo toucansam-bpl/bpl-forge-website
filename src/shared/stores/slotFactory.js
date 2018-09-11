@@ -27,6 +27,7 @@ export function completedSlotFromDelegate(slot, delegate, timestamp) {
 
 export function basicSlot(number, delegate, timestamp) {
   return {
+    address: delegate.address,
     name: delegate.username,
     number,
     publicKey: delegate.publicKey,
