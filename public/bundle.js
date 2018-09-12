@@ -86197,13 +86197,14 @@ function (_Component) {
       var _componentDidMount = _asyncToGenerator(
       /*#__PURE__*/
       regeneratorRuntime.mark(function _callee() {
-        var match;
+        var _this$props, delegateStore, match;
+
         return regeneratorRuntime.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                match = this.props.match;
-                console.log(match.params.address);
+                _this$props = this.props, delegateStore = _this$props.delegateStore, match = _this$props.match;
+                delegateStore.setActiveDelegate(match.params.address);
 
               case 2:
               case "end":
@@ -86220,12 +86221,22 @@ function (_Component) {
   }, {
     key: "render",
     value: function render() {
-      var match = this.props.match;
+      var delegateStore = this.props.delegateStore;
       return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(_core.Grid, {
         container: true
-      }, _react.default.createElement(_core.Grid, {
-        item: true
-      }, "Delegate - ", match.params.address)));
+      }, delegateStore.setActiveDelegate.match({
+        pending: function pending() {
+          return _react.default.createElement("div", null, "Loading, please wait..");
+        },
+        rejected: function rejected(err) {
+          return _react.default.createElement("div", null, "Error: ", err.message);
+        },
+        resolved: function resolved() {
+          return _react.default.createElement(_core.Grid, {
+            item: true
+          }, "Delegate - ", delegateStore.activeDelegate.address);
+        }
+      })));
     }
   }]);
 
@@ -86234,7 +86245,7 @@ function (_Component) {
 
 exports.DelegateScreen = DelegateScreen;
 
-var _default = (0, _mobxReact.inject)('roundStore')((0, _mobxReact.observer)(DelegateScreen));
+var _default = (0, _mobxReact.inject)('roundStore', 'delegateStore')((0, _mobxReact.observer)(DelegateScreen));
 /*
         <Grid container>
           <ItemGrid xs={12} sm={8}>
@@ -87503,6 +87514,8 @@ exports.default = void 0;
 
 var _mobx = __webpack_require__(/*! mobx */ "./node_modules/mobx/lib/mobx.module.js");
 
+var _mobxTask = __webpack_require__(/*! mobx-task */ "./node_modules/mobx-task/lib/index.js");
+
 var _logger = __webpack_require__(/*! ../domain/util/logger */ "./src/shared/domain/util/logger.js");
 
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
@@ -87521,7 +87534,10 @@ function () {
   function DelegateStore(nodeApi) {
     _classCallCheck(this, DelegateStore);
 
+    this.activeAddress = null;
+    this.addressToPublicKey = new Map();
     this.delegates = new Map();
+    this.isInitialized = false;
     this.nodeApi = nodeApi;
   }
 
@@ -87544,10 +87560,12 @@ function () {
 
               case 3:
                 delegates = _context.sent;
-                console.log(delegates.delegates[0]);
                 delegates.delegates.forEach(function (d) {
-                  return _this.delegates.set(d.publicKey, d);
+                  _this.delegates.set(d.publicKey, d);
+
+                  _this.addressToPublicKey.set(d.address, d.publicKey);
                 });
+                this.isInitialized = true;
 
               case 6:
               case "end":
@@ -87567,6 +87585,44 @@ function () {
       return this.delegates.get(publicKey);
     }
   }, {
+    key: "setActiveDelegate",
+    value: function () {
+      var _setActiveDelegate = _asyncToGenerator(
+      /*#__PURE__*/
+      regeneratorRuntime.mark(function _callee2(address) {
+        var _this2 = this;
+
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                _context2.next = 2;
+                return (0, _mobx.when)(function () {
+                  return _this2.isInitialized;
+                });
+
+              case 2:
+                console.log("Setting active address: ".concat(address));
+                this.activeAddress = address;
+
+              case 4:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      return function setActiveDelegate(_x) {
+        return _setActiveDelegate.apply(this, arguments);
+      };
+    }()
+  }, {
+    key: "activeDelegate",
+    get: function get() {
+      return this.delegates.get(this.addressToPublicKey.get(this.activeAddress));
+    }
+  }, {
     key: "hasLoadedDelegates",
     get: function get() {
       return this.delegates.size > 0;
@@ -87574,12 +87630,17 @@ function () {
   }]);
 
   return DelegateStore;
-}();
+}(); //     const voters = await this.nodeApi.getVoters(this.selectedDelegate.publicKey)
+
 
 exports.default = DelegateStore;
 (0, _mobx.decorate)(DelegateStore, {
+  activeAddress: _mobx.observable,
+  activeDelegate: _mobx.computed,
   delegates: _mobx.observable,
-  hasLoadedDelegates: _mobx.computed
+  hasLoadedDelegates: _mobx.computed,
+  isInitialized: _mobx.observable,
+  setActiveDelegate: _mobxTask.task
 });
 
 /***/ }),

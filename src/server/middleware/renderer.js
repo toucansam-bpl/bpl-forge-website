@@ -62,6 +62,7 @@ export default (req, res) => {
   
   const stores = {
     blockStore,
+    delegateStore,
     roundStore,
     slotStore,
   }

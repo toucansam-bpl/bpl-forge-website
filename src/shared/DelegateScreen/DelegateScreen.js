@@ -7,27 +7,32 @@ import { inject, observer } from 'mobx-react'
 
 export class DelegateScreen extends Component {
   async componentDidMount() {
-    const { match } = this.props
-    console.log(match.params.address)
+    const { delegateStore, match } = this.props
+    delegateStore.setActiveDelegate(match.params.address)
   }
 
   render() {
-    const { match } = this.props
+    const { delegateStore } = this.props
 
     return (
       <React.Fragment>
         <Grid container>
-          <Grid item>
-            Delegate - {match.params.address}
-          </Grid>
-
+        {delegateStore.setActiveDelegate.match({
+          pending: () => <div>Loading, please wait..</div>,
+          rejected: (err) => <div>Error: {err.message}</div>,
+          resolved: () => (
+            <Grid item>
+              Delegate - {delegateStore.activeDelegate.address}
+            </Grid>
+          )
+        })}
         </Grid>
       </React.Fragment>
     )
   }
 }
 
-export default inject('roundStore')(observer(DelegateScreen))
+export default inject('roundStore', 'delegateStore')(observer(DelegateScreen))
 
 /*
         <Grid container>
