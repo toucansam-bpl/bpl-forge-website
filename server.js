@@ -497,6 +497,107 @@ exports.default = CalculatorScreen;
 
 /***/ }),
 
+/***/ "./src/shared/DelegateScreen/DelegateInfo.js":
+/*!***************************************************!*\
+  !*** ./src/shared/DelegateScreen/DelegateInfo.js ***!
+  \***************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = exports.DelegateInfo = void 0;
+
+var _react = _interopRequireWildcard(__webpack_require__(/*! react */ "react"));
+
+var _mobxReact = __webpack_require__(/*! mobx-react */ "mobx-react");
+
+var _core = __webpack_require__(/*! @material-ui/core */ "@material-ui/core");
+
+var _format = __webpack_require__(/*! ../domain/util/format */ "./src/shared/domain/util/format.js");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+var DelegateInfo =
+/*#__PURE__*/
+function (_Component) {
+  _inherits(DelegateInfo, _Component);
+
+  function DelegateInfo() {
+    _classCallCheck(this, DelegateInfo);
+
+    return _possibleConstructorReturn(this, _getPrototypeOf(DelegateInfo).apply(this, arguments));
+  }
+
+  _createClass(DelegateInfo, [{
+    key: "render",
+    value: function render() {
+      var delegateStore = this.props.delegateStore;
+      return _react.default.createElement(_core.Grid, {
+        container: true
+      }, _react.default.createElement(_core.Grid, {
+        item: true,
+        xs: 12,
+        sm: 6
+      }, _react.default.createElement("div", null, _react.default.createElement("h5", null, (0, _format.toFixed)(delegateStore.activeDelegate.vote), " BPL"))), _react.default.createElement(_core.Grid, {
+        item: true,
+        xs: 12,
+        sm: 6
+      }, _react.default.createElement(_core.Table, null, _react.default.createElement(_core.TableHead, null, _react.default.createElement(_core.TableRow, null, _react.default.createElement(_core.TableCell, null, "Voter"), _react.default.createElement(_core.TableCell, {
+        numeric: true
+      }, "BPL"))), _react.default.createElement(_core.TableBody, null, delegateStore.activeDelegate.voters.map(function (v) {
+        return _react.default.createElement(_core.TableRow, {
+          key: v.address
+        }, _react.default.createElement(_core.TableCell, null, v.username || v.address), _react.default.createElement(_core.TableCell, {
+          numeric: true
+        }, (0, _format.toFixed)(v.balance)));
+      })))));
+    }
+  }]);
+
+  return DelegateInfo;
+}(_react.Component);
+
+exports.DelegateInfo = DelegateInfo;
+
+var _default = (0, _mobxReact.inject)('delegateStore')((0, _mobxReact.observer)(DelegateInfo));
+/*
+<h5>
+{formatWithoutDigits(fromApiString(delegateStore.activeDelegate.vote))}{' '}
+BPL ({toCurrencyFormat(
+  sds.delegateCurrencyValue,
+  sds.price.currency
+)})
+</h5>
+*/
+
+
+exports.default = _default;
+
+/***/ }),
+
 /***/ "./src/shared/DelegateScreen/DelegateScreen.js":
 /*!*****************************************************!*\
   !*** ./src/shared/DelegateScreen/DelegateScreen.js ***!
@@ -514,9 +615,13 @@ exports.default = exports.DelegateScreen = void 0;
 
 var _react = _interopRequireWildcard(__webpack_require__(/*! react */ "react"));
 
+var _mobxReact = __webpack_require__(/*! mobx-react */ "mobx-react");
+
 var _core = __webpack_require__(/*! @material-ui/core */ "@material-ui/core");
 
-var _mobxReact = __webpack_require__(/*! mobx-react */ "mobx-react");
+var _DelegateInfo = _interopRequireDefault(__webpack_require__(/*! ./DelegateInfo */ "./src/shared/DelegateScreen/DelegateInfo.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
 
@@ -596,7 +701,9 @@ function (_Component) {
         resolved: function resolved() {
           return _react.default.createElement(_core.Grid, {
             item: true
-          }, "Delegate - ", delegateStore.activeDelegate.address);
+          }, _react.default.createElement(_core.Typography, {
+            variant: "headline"
+          }, "Delegate - ".concat(delegateStore.activeDelegate.username)), _react.default.createElement(_DelegateInfo.default, null));
         }
       })));
     }
@@ -607,7 +714,7 @@ function (_Component) {
 
 exports.DelegateScreen = DelegateScreen;
 
-var _default = (0, _mobxReact.inject)('roundStore', 'delegateStore')((0, _mobxReact.observer)(DelegateScreen));
+var _default = (0, _mobxReact.inject)('delegateStore')((0, _mobxReact.observer)(DelegateScreen));
 /*
         <Grid container>
           <ItemGrid xs={12} sm={8}>
@@ -1564,6 +1671,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.fromApiString = fromApiString;
+exports.toFixed = toFixed;
 exports.toHowLong = toHowLong;
 
 var _bigJs = _interopRequireDefault(__webpack_require__(/*! big-js */ "big-js"));
@@ -1581,6 +1689,11 @@ var timeAgo = new _javascriptTimeAgo.default('en-US');
 
 function fromApiString(bplString) {
   return (0, _bigJs.default)(bplString).div('100000000');
+}
+
+function toFixed(big) {
+  var digits = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+  return Number(big.toFixed(digits)).toLocaleString();
 }
 
 function toHowLong(timestamp) {
@@ -1878,7 +1991,11 @@ var _mobx = __webpack_require__(/*! mobx */ "mobx");
 
 var _mobxTask = __webpack_require__(/*! mobx-task */ "mobx-task");
 
-var _logger = __webpack_require__(/*! ../domain/util/logger */ "./src/shared/domain/util/logger.js");
+var _format = __webpack_require__(/*! ../domain/util/format */ "./src/shared/domain/util/format.js");
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
@@ -1896,7 +2013,7 @@ function () {
   function DelegateStore(nodeApi) {
     _classCallCheck(this, DelegateStore);
 
-    this.activeAddress = null;
+    this.activeDelegate = null;
     this.addressToPublicKey = new Map();
     this.delegates = new Map();
     this.isInitialized = false;
@@ -1916,7 +2033,7 @@ function () {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                (0, _logger.log)('Initializing Delegate Store.');
+                console.log('Initializing Delegate Store.');
                 _context.next = 3;
                 return this.nodeApi.getActiveDelegates();
 
@@ -1954,6 +2071,7 @@ function () {
       regeneratorRuntime.mark(function _callee2(address) {
         var _this2 = this;
 
+        var publicKey, delegate, voters;
         return regeneratorRuntime.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
@@ -1964,10 +2082,25 @@ function () {
                 });
 
               case 2:
-                console.log("Setting active address: ".concat(address));
-                this.activeAddress = address;
+                console.log("Setting active delegate: ".concat(address));
+                publicKey = this.addressToPublicKey.get(address);
+                delegate = this.delegates.get(publicKey);
+                _context2.next = 7;
+                return this.nodeApi.getVoters(publicKey);
 
-              case 4:
+              case 7:
+                voters = _context2.sent;
+                console.log(voters);
+                this.activeDelegate = _objectSpread({}, delegate, {
+                  vote: (0, _format.fromApiString)(delegate.vote),
+                  voters: voters.accounts.map(function (v) {
+                    return _objectSpread({}, v, {
+                      balance: (0, _format.fromApiString)(v.balance)
+                    });
+                  })
+                });
+
+              case 10:
               case "end":
                 return _context2.stop();
             }
@@ -1980,11 +2113,6 @@ function () {
       };
     }()
   }, {
-    key: "activeDelegate",
-    get: function get() {
-      return this.delegates.get(this.addressToPublicKey.get(this.activeAddress));
-    }
-  }, {
     key: "hasLoadedDelegates",
     get: function get() {
       return this.delegates.size > 0;
@@ -1992,13 +2120,11 @@ function () {
   }]);
 
   return DelegateStore;
-}(); //     const voters = await this.nodeApi.getVoters(this.selectedDelegate.publicKey)
-
+}();
 
 exports.default = DelegateStore;
 (0, _mobx.decorate)(DelegateStore, {
-  activeAddress: _mobx.observable,
-  activeDelegate: _mobx.computed,
+  activeDelegate: _mobx.observable,
   delegates: _mobx.observable,
   hasLoadedDelegates: _mobx.computed,
   isInitialized: _mobx.observable,

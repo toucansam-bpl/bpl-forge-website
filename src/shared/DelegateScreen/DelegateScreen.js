@@ -1,8 +1,9 @@
 import React, { Component } from 'react'
-
-import { Grid } from '@material-ui/core'
 import { inject, observer } from 'mobx-react'
+import { Grid, Typography, } from '@material-ui/core'
 
+
+import DelegateInfo from './DelegateInfo'
 
 
 export class DelegateScreen extends Component {
@@ -22,7 +23,10 @@ export class DelegateScreen extends Component {
           rejected: (err) => <div>Error: {err.message}</div>,
           resolved: () => (
             <Grid item>
-              Delegate - {delegateStore.activeDelegate.address}
+              <Typography variant="headline">
+                {`Delegate - ${delegateStore.activeDelegate.username}`}
+              </Typography>
+              <DelegateInfo />
             </Grid>
           )
         })}
@@ -32,7 +36,7 @@ export class DelegateScreen extends Component {
   }
 }
 
-export default inject('roundStore', 'delegateStore')(observer(DelegateScreen))
+export default inject('delegateStore')(observer(DelegateScreen))
 
 /*
         <Grid container>
