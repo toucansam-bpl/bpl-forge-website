@@ -3,7 +3,7 @@ import { inject, observer } from 'mobx-react'
 import { Grid, Table, TableBody, TableCell, TableHead, TableRow, Typography, } from '@material-ui/core'
 
 
-import { toFixed } from '../domain/util/format'
+import { toFixedLocale } from '../domain/util/format'
 
 
 export class DelegateInfo extends Component {
@@ -15,7 +15,7 @@ export class DelegateInfo extends Component {
         <Grid item xs={12} sm={6}>
           <div>
             <h5>
-              {toFixed(delegateStore.activeDelegate.vote)} BPL
+              {toFixedLocale(delegateStore.activeDelegate.vote)} BPL
             </h5>
           </div>
         </Grid>
@@ -32,7 +32,7 @@ export class DelegateInfo extends Component {
               {delegateStore.activeDelegate.voters.map(v => (
                 <TableRow key={v.address}>
                   <TableCell>{v.username || v.address}</TableCell>
-                  <TableCell numeric>{toFixed(v.balance)}</TableCell>
+                  <TableCell numeric>{toFixedLocale(v.balance)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

@@ -1,94 +1,70 @@
 import React, { Component } from 'react'
-
-import {
-  Grid,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-} from '@material-ui/core'
-import { RegularCard, Table as DashboardTable, ItemGrid } from 'components'
 import { inject, observer } from 'mobx-react'
-import { Link } from 'react-router-dom'
+import { Grid,
+         Table, TableBody, TableCell, TableFooter, TableHead, TablePagination, TableRow,
+         Typography,
+      } from '@material-ui/core'
 
-import { getMilliseconds } from '../../util/apiConverter'
-import toCryptoFormat from '../../util/toCryptoFormat'
-import fromApiString from '../../util/fromApiString'
 
-@inject('selectedDelegateStore')
-@observer
-export default class DelegateActivity extends Component {
+import { toFixed } from '../domain/util/format'
+
+
+export class DelegateActivity extends Component {
   render() {
-    const { selectedDelegateStore: sds } = this.props
-    const classes = {}
+    const { delegateStore } = this.props
 
     return (
       <Grid container>
-        <ItemGrid xs={12} sm={6}>
-          <RegularCard
-            cardTitle="Latest Rewards"
-            cardSubtitle=""
-            content={
-              <DashboardTable
-                tableHeaderColor="primary"
-                tableHead={['Date', 'Block', 'Amount']}
-                tableData={sds.rewardBlocks.map(b => [
-                  new Date(getMilliseconds(b.timestamp)).toLocaleString(),
-                  b.id,
-                  toCryptoFormat(fromApiString(b.reward)).toLocaleString(),
-                ])}
-              />
-            }
-          />
-        </ItemGrid>
-        <ItemGrid xs={12} sm={6}>
-          <RegularCard
-            cardTitle="Latest Transactions"
-            cardSubtitle=""
-            content={
-              <Table className={classes.table}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Transaction</TableCell>
-                    <TableCell>From</TableCell>
-                    <TableCell>To</TableCell>
-                    <TableCell numeric>Amount</TableCell>
-                    <TableCell numeric>Fee</TableCell>
-                    <TableCell>Date</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {sds.transactionsByDate.map(t => {
-                    return (
-                      <TableRow className={classes.row} key={t.id}>
-                        <TableCell component="th" scope="row">
-                          {t.id}
-                        </TableCell>
-                        <TableCell>{t.senderId}</TableCell>
-                        <TableCell>{t.recipientId}</TableCell>
-                        <TableCell numeric>
-                          {toCryptoFormat(
-                            fromApiString(t.amount)
-                          ).toLocaleString()}
-                        </TableCell>
-                        <TableCell numeric>
-                          {toCryptoFormat(fromApiString(t.fee))}
-                        </TableCell>
-                        <TableCell>
-                          {new Date(
-                            getMilliseconds(t.timestamp)
-                          ).toLocaleString()}
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                </TableBody>
-              </Table>
-            }
-          />
-        </ItemGrid>
+        <Grid item xs={12} sm={6}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Height</TableCell>
+                <TableCell>Time</TableCell>
+                <TableCell numeric>Reward</TableCell>
+                <TableCell numeric>Fees</TableCell>
+                <TableCell numeric>Total</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {delegateStore.activeDelegate.rewardBlockPagination.items.map(b => (
+                <TableRow key={b.id}>
+                  <TableCell>{b.id}</TableCell>
+                  <TableCell>{b.timestamp}</TableCell>
+                  <TableCell numeric>{toFixed(b.reward, 8)}</TableCell>
+                  <TableCell numeric>{toFixed(b.totalFee, 8)}</TableCell>
+                  <TableCell numeric>{toFixed(b.totalForged, 8)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TablePagination
+                  colSpan={5}
+                  count={delegateStore.activeDelegate.rewardBlockPagination.totalCount}
+                  rowsPerPage={delegateStore.activeDelegate.rewardBlockPagination.pageSize}
+                  page={delegateStore.activeDelegate.rewardBlockPagination.pageNumber}
+                  onChangePage={evt => console.log(evt)}
+                  onChangeRowsPerPage={evt => console.log(evt)}
+                  // ActionsComponent={TablePaginationActionsWrapped}
+                />
+              </TableRow>
+            </TableFooter>
+          </Table>
+        </Grid>
       </Grid>
     )
   }
 }
+
+export default inject('delegateStore')(observer(DelegateActivity))
+
+/*
+<h5>
+{formatWithoutDigits(fromApiString(delegateStore.activeDelegate.vote))}{' '}
+BPL ({toCurrencyFormat(
+  sds.delegateCurrencyValue,
+  sds.price.currency
+)})
+</h5>
+*/

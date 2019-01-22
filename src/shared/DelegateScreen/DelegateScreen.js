@@ -3,6 +3,7 @@ import { inject, observer } from 'mobx-react'
 import { Grid, Typography, } from '@material-ui/core'
 
 
+import DelegateActivity from './DelegateActivity'
 import DelegateInfo from './DelegateInfo'
 
 
@@ -27,6 +28,7 @@ export class DelegateScreen extends Component {
                 {`Delegate - ${delegateStore.activeDelegate.username}`}
               </Typography>
               <DelegateInfo />
+              <DelegateActivity />
             </Grid>
           )
         })}

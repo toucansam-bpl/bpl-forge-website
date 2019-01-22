@@ -12,6 +12,10 @@ export function fromApiString(bplString) {
 }
 
 export function toFixed(big, digits = 0) {
+  return big.toFixed(digits)
+}
+
+export function toFixedLocale(big, digits = 0) {
   return Number(big.toFixed(digits)).toLocaleString()
 }
 
