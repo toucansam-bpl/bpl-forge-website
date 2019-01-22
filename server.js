@@ -800,9 +800,11 @@ function (_Component) {
         }, _callee, this);
       }));
 
-      return function componentDidMount() {
+      function componentDidMount() {
         return _componentDidMount.apply(this, arguments);
-      };
+      }
+
+      return componentDidMount;
     }()
   }, {
     key: "render",
@@ -1628,9 +1630,11 @@ function () {
         }, _callee, this);
       }));
 
-      return function getActiveDelegates() {
+      function getActiveDelegates() {
         return _getActiveDelegates.apply(this, arguments);
-      };
+      }
+
+      return getActiveDelegates;
     }()
   }, {
     key: "getBlocks",
@@ -1660,9 +1664,11 @@ function () {
         }, _callee2, this);
       }));
 
-      return function getBlocks() {
+      function getBlocks() {
         return _getBlocks.apply(this, arguments);
-      };
+      }
+
+      return getBlocks;
     }()
   }, {
     key: "getCurrentRound",
@@ -1684,9 +1690,11 @@ function () {
         }, _callee3, this);
       }));
 
-      return function getCurrentRound() {
+      function getCurrentRound() {
         return _getCurrentRound.apply(this, arguments);
-      };
+      }
+
+      return getCurrentRound;
     }()
   }, {
     key: "getRewardBlocks",
@@ -1710,9 +1718,11 @@ function () {
         }, _callee4, this);
       }));
 
-      return function getRewardBlocks(_x3) {
+      function getRewardBlocks(_x3) {
         return _getRewardBlocks.apply(this, arguments);
-      };
+      }
+
+      return getRewardBlocks;
     }()
   }, {
     key: "getTransactions",
@@ -1737,9 +1747,11 @@ function () {
         }, _callee5, this);
       }));
 
-      return function getTransactions(_x4) {
+      function getTransactions(_x4) {
         return _getTransactions.apply(this, arguments);
-      };
+      }
+
+      return getTransactions;
     }()
   }, {
     key: "getVoters",
@@ -1763,9 +1775,11 @@ function () {
         }, _callee6, this);
       }));
 
-      return function getVoters(_x5) {
+      function getVoters(_x5) {
         return _getVoters.apply(this, arguments);
-      };
+      }
+
+      return getVoters;
     }()
   }]);
 
@@ -2058,9 +2072,11 @@ function () {
         }, _callee, this);
       }));
 
-      return function listenForNewBlocks() {
+      function listenForNewBlocks() {
         return _listenForNewBlocks.apply(this, arguments);
-      };
+      }
+
+      return listenForNewBlocks;
     }()
   }, {
     key: "nextBlock",
@@ -2219,9 +2235,11 @@ function () {
         }, _callee, this);
       }));
 
-      return function init() {
+      function init() {
         return _init.apply(this, arguments);
-      };
+      }
+
+      return init;
     }()
   }, {
     key: "get",
@@ -2287,9 +2305,11 @@ function () {
         }, _callee2, this);
       }));
 
-      return function setActiveDelegate(_x) {
+      function setActiveDelegate(_x) {
         return _setActiveDelegate.apply(this, arguments);
-      };
+      }
+
+      return setActiveDelegate;
     }()
   }, {
     key: "hasLoadedDelegates",
@@ -2379,9 +2399,11 @@ function () {
         }, _callee, this);
       }));
 
-      return function init() {
+      function init() {
         return _init.apply(this, arguments);
-      };
+      }
+
+      return init;
     }()
   }, {
     key: "hasNewRound",
@@ -2516,9 +2538,11 @@ function () {
         }, _callee, this);
       }));
 
-      return function init() {
+      function init() {
         return _init.apply(this, arguments);
-      };
+      }
+
+      return init;
     }()
   }, {
     key: "watchForNextBlock",
