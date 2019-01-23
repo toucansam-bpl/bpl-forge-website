@@ -29,7 +29,7 @@ export class DelegateActivity extends Component {
             <TableBody>
               {delegateStore.activeDelegate.rewardBlockPagination.items.map(b => (
                 <TableRow key={b.id}>
-                  <TableCell>{b.id}</TableCell>
+                  <TableCell>{b.height}</TableCell>
                   <TableCell>{b.timestamp}</TableCell>
                   <TableCell numeric>{toFixed(b.reward, 8)}</TableCell>
                   <TableCell numeric>{toFixed(b.totalFee, 8)}</TableCell>
