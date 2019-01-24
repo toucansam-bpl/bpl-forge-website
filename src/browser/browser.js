@@ -11,6 +11,7 @@ import App from '../shared/App'
 import BlockStore from '../shared/stores/BlockStore'
 import DelegateStore from '../shared/stores/DelegateStore'
 import NodeApi from '../shared/domain/api/NodeApi'
+import PriceStore from '../shared/stores/PriceStore'
 import RoundStore from '../shared/stores/RoundStore'
 import SlotStore from '../shared/stores/SlotStore'
 
@@ -39,6 +40,7 @@ const theme = createMuiTheme({
 })
 
 const nodeApi = new NodeApi()
+const priceStore = new PriceStore()
 const delegateStore = new DelegateStore(nodeApi)
 const roundStore = new RoundStore(nodeApi)
 const blockStore = new BlockStore(nodeApi, roundStore)
@@ -47,6 +49,7 @@ const slotStore = new SlotStore(blockStore, delegateStore, roundStore)
 const stores = {
   blockStore,
   delegateStore,
+  priceStore,
   roundStore,
   slotStore,
 }

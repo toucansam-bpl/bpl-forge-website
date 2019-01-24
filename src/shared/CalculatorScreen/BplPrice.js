@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import { inject, observer, } from 'mobx-react'
 import {
   Card,
   CardContent,
@@ -9,8 +10,15 @@ import {
   TextField,
 } from '@material-ui/core'
 
-export default class BplPrice extends Component {
+
+export class BplPrice extends Component {
+  handleCurrencyChange = (evt) => {
+    this.props.priceStore.setCurrency(evt.target.value)
+  }
+
   render() {
+    const { priceStore } = this.props
+
     return (
       <Card>
         <CardHeader title="BPL Price" />
@@ -18,9 +26,10 @@ export default class BplPrice extends Component {
           <FormControl>
             <InputLabel htmlFor="bpl-price">Price</InputLabel>
             <TextField
+              value={priceStore.price}
               inputProps={{
-                name="bpl-price",
-                id="bpl-price",
+                name: 'bpl-price',
+                id: 'bpl-price',
               }}
             />
           </FormControl>
@@ -28,8 +37,8 @@ export default class BplPrice extends Component {
             <InputLabel htmlFor="bpl-currency">Currency</InputLabel>
             <Select
               native
-              value={'USD'}
-              // onChange={this.handleChange('age')}
+              defaultValue={'USD'}
+              onChange={this.handleCurrencyChange}
               inputProps={{
                 name: 'bpl-currency',
                 id: 'bpl-currency',
@@ -40,7 +49,7 @@ export default class BplPrice extends Component {
               <option>CNY</option>
               <option>EUR</option>
               <option>GBP</option>
-              <option selected>USD</option>
+              <option>USD</option>
             </Select>
           </FormControl>
         </CardContent>
@@ -48,3 +57,5 @@ export default class BplPrice extends Component {
     )
   }
 }
+
+export default inject('priceStore')(observer(BplPrice))

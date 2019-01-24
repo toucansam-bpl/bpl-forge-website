@@ -142,6 +142,8 @@ var _DelegateStore = _interopRequireDefault(__webpack_require__(/*! ../../shared
 
 var _NodeApi = _interopRequireDefault(__webpack_require__(/*! ../../shared/domain/api/NodeApi */ "./src/shared/domain/api/NodeApi.js"));
 
+var _PriceStore = _interopRequireDefault(__webpack_require__(/*! ../../shared/stores/PriceStore */ "./src/shared/stores/PriceStore.js"));
+
 var _RoundStore = _interopRequireDefault(__webpack_require__(/*! ../../shared/stores/RoundStore */ "./src/shared/stores/RoundStore.js"));
 
 var _SlotStore = _interopRequireDefault(__webpack_require__(/*! ../../shared/stores/SlotStore */ "./src/shared/stores/SlotStore.js"));
@@ -200,6 +202,7 @@ var _default = function _default(req, res) {
   });
   var generateClassName = (0, _styles.createGenerateClassName)();
   var nodeApi = new _NodeApi.default();
+  var priceStore = new _PriceStore.default();
   var delegateStore = new _DelegateStore.default(nodeApi);
   var roundStore = new _RoundStore.default(nodeApi);
   var blockStore = new _BlockStore.default(nodeApi, roundStore);
@@ -207,6 +210,7 @@ var _default = function _default(req, res) {
   var stores = {
     blockStore: blockStore,
     delegateStore: delegateStore,
+    priceStore: priceStore,
     roundStore: roundStore,
     slotStore: slotStore // Render the component to a string.
 
@@ -448,9 +452,11 @@ exports.default = _default;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = void 0;
+exports.default = exports.BplPrice = void 0;
 
 var _react = _interopRequireWildcard(__webpack_require__(/*! react */ "react"));
+
+var _mobxReact = __webpack_require__(/*! mobx-react */ "mobx-react");
 
 var _core = __webpack_require__(/*! @material-ui/core */ "@material-ui/core");
 
@@ -480,38 +486,61 @@ function (_Component) {
   _inherits(BplPrice, _Component);
 
   function BplPrice() {
+    var _getPrototypeOf2;
+
+    var _this;
+
     _classCallCheck(this, BplPrice);
 
-    return _possibleConstructorReturn(this, _getPrototypeOf(BplPrice).apply(this, arguments));
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    _this = _possibleConstructorReturn(this, (_getPrototypeOf2 = _getPrototypeOf(BplPrice)).call.apply(_getPrototypeOf2, [this].concat(args)));
+
+    _this.handleCurrencyChange = function (evt) {
+      _this.props.priceStore.setCurrency(evt.target.value);
+    };
+
+    return _this;
   }
 
   _createClass(BplPrice, [{
     key: "render",
     value: function render() {
+      var priceStore = this.props.priceStore;
       return _react.default.createElement(_core.Card, null, _react.default.createElement(_core.CardHeader, {
         title: "BPL Price"
       }), _react.default.createElement(_core.CardContent, null, _react.default.createElement(_core.FormControl, null, _react.default.createElement(_core.InputLabel, {
         htmlFor: "bpl-price"
-      }, "Price"), _react.default.createElement(_core.TextField, null)), _react.default.createElement(_core.FormControl, null, _react.default.createElement(_core.InputLabel, {
+      }, "Price"), _react.default.createElement(_core.TextField, {
+        value: priceStore.price,
+        inputProps: {
+          name: 'bpl-price',
+          id: 'bpl-price'
+        }
+      })), _react.default.createElement(_core.FormControl, null, _react.default.createElement(_core.InputLabel, {
         htmlFor: "bpl-currency"
       }, "Currency"), _react.default.createElement(_core.Select, {
         native: true,
-        value: 'USD' // onChange={this.handleChange('age')}
-        ,
+        defaultValue: 'USD',
+        onChange: this.handleCurrencyChange,
         inputProps: {
           name: 'bpl-currency',
           id: 'bpl-currency'
         }
-      }, _react.default.createElement("option", null, "AUD"), _react.default.createElement("option", null, "BTC"), _react.default.createElement("option", null, "CNY"), _react.default.createElement("option", null, "EUR"), _react.default.createElement("option", null, "GBP"), _react.default.createElement("option", {
-        selected: true
-      }, "USD")))));
+      }, _react.default.createElement("option", null, "AUD"), _react.default.createElement("option", null, "BTC"), _react.default.createElement("option", null, "CNY"), _react.default.createElement("option", null, "EUR"), _react.default.createElement("option", null, "GBP"), _react.default.createElement("option", null, "USD")))));
     }
   }]);
 
   return BplPrice;
 }(_react.Component);
 
-exports.default = BplPrice;
+exports.BplPrice = BplPrice;
+
+var _default = (0, _mobxReact.inject)('priceStore')((0, _mobxReact.observer)(BplPrice));
+
+exports.default = _default;
 
 /***/ }),
 
@@ -2623,6 +2652,139 @@ exports.default = DelegateStore;
   hasLoadedDelegates: _mobx.computed,
   isInitialized: _mobx.observable,
   setActiveDelegate: _mobxTask.task
+});
+
+/***/ }),
+
+/***/ "./src/shared/stores/PriceStore.js":
+/*!*****************************************!*\
+  !*** ./src/shared/stores/PriceStore.js ***!
+  \*****************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _bigJs = _interopRequireDefault(__webpack_require__(/*! big-js */ "big-js"));
+
+var _nodeFetch = _interopRequireDefault(__webpack_require__(/*! node-fetch */ "node-fetch"));
+
+var _logger = __webpack_require__(/*! ../domain/util/logger */ "./src/shared/domain/util/logger.js");
+
+var _mobx = __webpack_require__(/*! mobx */ "mobx");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var priceInterval = 30 * 1000; // 5 * 60 * 1000
+
+var priceUrl = 'https://min-api.cryptocompare.com/data/price?fsym=BPL&tsyms=BTC,USD,GBP,EUR,CNY,AUD';
+
+var PriceStore =
+/*#__PURE__*/
+function () {
+  function PriceStore() {
+    var _this = this;
+
+    _classCallCheck(this, PriceStore);
+
+    this.currency = 'USD';
+    this.listener = void 0;
+    this.prices = {
+      USD: '',
+      EUR: ''
+    };
+
+    this.resume = function () {
+      (0, _logger.log)('Resuming price listener');
+      _this.listener = setInterval(function () {
+        return _this.fetchPrice();
+      }, priceInterval);
+    };
+
+    this.suspend = function () {
+      (0, _logger.log)('Suspening price listener');
+      clearInterval(_this.listener);
+    };
+
+    (0, _mobx.onBecomeObserved)(this, 'price', this.resume);
+    (0, _mobx.onBecomeUnobserved)(this, 'price', this.suspend);
+  }
+
+  _createClass(PriceStore, [{
+    key: "fetchPrice",
+    value: function () {
+      var _fetchPrice = _asyncToGenerator(
+      /*#__PURE__*/
+      regeneratorRuntime.mark(function _callee() {
+        var priceResponse, priceResult;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.next = 2;
+                return (0, _nodeFetch.default)(priceUrl);
+
+              case 2:
+                priceResponse = _context.sent;
+                _context.next = 5;
+                return priceResponse.json();
+
+              case 5:
+                priceResult = _context.sent;
+                this.prices = priceResult;
+                (0, _logger.log)(this.currency, priceResult);
+
+              case 8:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function fetchPrice() {
+        return _fetchPrice.apply(this, arguments);
+      }
+
+      return fetchPrice;
+    }()
+  }, {
+    key: "setCurrency",
+    value: function setCurrency(currency) {
+      this.currency = currency;
+    }
+  }, {
+    key: "price",
+    get: function get() {
+      return this.prices[this.currency];
+    }
+  }]);
+
+  return PriceStore;
+}();
+
+exports.default = PriceStore;
+(0, _mobx.decorate)(PriceStore, {
+  currency: _mobx.observable,
+  fetchPrice: _mobx.action,
+  price: _mobx.computed,
+  prices: _mobx.observable
 });
 
 /***/ }),
