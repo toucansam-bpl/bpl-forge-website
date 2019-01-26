@@ -10,7 +10,7 @@ import { action,
   when,
 } from 'mobx'
 
-const priceInterval = 30 * 1000 // 5 * 60 * 1000
+const priceInterval = 5 * 60 * 1000
 const priceUrl = 'https://min-api.cryptocompare.com/data/price?fsym=BPL&tsyms=BTC,USD,GBP,EUR,CNY,AUD'
 
 
