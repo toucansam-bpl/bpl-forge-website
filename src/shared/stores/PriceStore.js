@@ -1,4 +1,3 @@
-import Big from 'big-js'
 import fetch from 'node-fetch'
 import { log } from '../domain/util/logger'
 import { action,
@@ -7,7 +6,6 @@ import { action,
   observable,
   onBecomeObserved,
   onBecomeUnobserved,
-  when,
 } from 'mobx'
 
 const priceInterval = 5 * 60 * 1000
