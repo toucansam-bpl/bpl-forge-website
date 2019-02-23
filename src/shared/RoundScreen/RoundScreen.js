@@ -2,38 +2,38 @@ import React, { Component } from 'react'
 import { inject, observer, } from 'mobx-react'
 import { Grid, Typography, } from '@material-ui/core'
 
-import CompletedSlots from './CompletedSlots'
 import RoundProgress from './RoundProgress'
+import RoundSlots from './RoundSlots'
 import RoundStats from './RoundStats'
-import UpcomingSlots from './UpcomingSlots'
+
 
 class RoundScreen extends Component {
   render() {
     const { roundStore, slotStore, } = this.props
-    const MiddleColumn = slotStore.hasCompletedSlotsForRound
-      ? <RoundStats />        
-      : <React.Fragment>
-          <Typography variant="headline">
-            Upcoming Forgers
-          </Typography>
-          <UpcomingSlots />
-        </React.Fragment>
 
     return (
       <Grid container>
-        <Grid item xs={6}>
-          <Typography variant="headline">
-            Forging Round 
+        <Grid item xs={12}>
+          <Typography variant="h3">
+            Current Forging Round 
             {roundStore.hasNewRound ? ` ${roundStore.newRound.roundNumber}` : null}
-            {slotStore.hasCompletedSlotsForRound ? ' - Complete' : ' - In process'}
           </Typography>
-          <CompletedSlots />
         </Grid>
-        <Grid item xs={3}>
-          {MiddleColumn}
-        </Grid>
-        <Grid item xs={3}>
+        <Grid item xs={4}>
           <RoundProgress />
+        </Grid>
+        <Grid item xs={4}>
+          <Typography variant="h5">
+            Rewards
+          </Typography>
+        </Grid>
+        <Grid item xs={4}>
+          <Typography variant="h5">
+            Eh?
+          </Typography>
+        </Grid>
+        <Grid item xs={12}>
+          <RoundSlots />
         </Grid>
       </Grid>
     )

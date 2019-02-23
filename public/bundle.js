@@ -93337,239 +93337,6 @@ exports.default = _default;
 
 /***/ }),
 
-/***/ "./src/shared/RoundScreen/CompletedSlots.js":
-/*!**************************************************!*\
-  !*** ./src/shared/RoundScreen/CompletedSlots.js ***!
-  \**************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _react = _interopRequireWildcard(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
-
-var _mobxReact = __webpack_require__(/*! mobx-react */ "./node_modules/mobx-react/index.module.js");
-
-var _reactRouterDom = __webpack_require__(/*! react-router-dom */ "./node_modules/react-router-dom/es/index.js");
-
-var _core = __webpack_require__(/*! @material-ui/core */ "./node_modules/@material-ui/core/index.es.js");
-
-var _Announcement = _interopRequireDefault(__webpack_require__(/*! @material-ui/icons/Announcement */ "./node_modules/@material-ui/icons/Announcement.js"));
-
-var _CheckCircle = _interopRequireDefault(__webpack_require__(/*! @material-ui/icons/CheckCircle */ "./node_modules/@material-ui/icons/CheckCircle.js"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
-
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
-
-function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
-function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
-
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
-function _objectWithoutProperties(source, excluded) { if (source == null) return {}; var target = _objectWithoutPropertiesLoose(source, excluded); var key, i; if (Object.getOwnPropertySymbols) { var sourceSymbolKeys = Object.getOwnPropertySymbols(source); for (i = 0; i < sourceSymbolKeys.length; i++) { key = sourceSymbolKeys[i]; if (excluded.indexOf(key) >= 0) continue; if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue; target[key] = source[key]; } } return target; }
-
-function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
-
-var styles = function styles(theme) {
-  return {
-    missedBlockAvatar: {
-      backgroundColor: theme.palette.error.main
-    },
-    successfulBlockAvatar: {
-      backgroundColor: theme.palette.primary.main
-    }
-  };
-};
-
-var CompletedSlot = (0, _core.withStyles)(styles)(function (_ref) {
-  var hasMissedBlock = _ref.hasMissedBlock,
-      rest = _objectWithoutProperties(_ref, ["hasMissedBlock"]);
-
-  return hasMissedBlock ? _react.default.createElement(CompletedMissedSlot, rest) : _react.default.createElement(CompletedForgedSlot, rest);
-});
-
-var CompletedForgedSlot = function CompletedForgedSlot(_ref2) {
-  var address = _ref2.address,
-      classes = _ref2.classes,
-      name = _ref2.name,
-      rank = _ref2.rank,
-      slot = _ref2.slot,
-      timestamp = _ref2.timestamp,
-      totalForged = _ref2.totalForged,
-      vote = _ref2.vote;
-  return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(_core.Grid, {
-    container: true,
-    spacing: 16
-  }, _react.default.createElement(_core.Grid, {
-    item: true
-  }, _react.default.createElement(_core.Avatar, {
-    className: classes.successfulBlockAvatar
-  }, _react.default.createElement(_CheckCircle.default, null))), _react.default.createElement(_core.Grid, {
-    item: true,
-    xs: 12,
-    sm: true,
-    direction: "column",
-    container: true
-  }, _react.default.createElement(_core.Grid, {
-    item: true
-  }, _react.default.createElement(_core.Typography, {
-    gutterBottom: true,
-    variant: "subheading"
-  }, "Slot ".concat(slot, " - "), _react.default.createElement(_reactRouterDom.Link, {
-    to: "delegate/".concat(address)
-  }, name))), _react.default.createElement(_core.Grid, {
-    item: true,
-    container: true
-  }, _react.default.createElement(_core.Grid, {
-    item: true,
-    xs: 3
-  }, _react.default.createElement(_core.Typography, {
-    gutterBottom: true
-  }, "Rank ".concat(rank)), _react.default.createElement(_core.Typography, {
-    color: "textSecondary"
-  }, "Vote: ".concat(vote.toFixed(0), " BPL"))), _react.default.createElement(_core.Grid, {
-    item: true,
-    xs: 3
-  }, _react.default.createElement(_core.Typography, {
-    gutterBottom: true
-  }, "Forged ".concat(totalForged.toFixed(4), " BPL")), _react.default.createElement(_core.Typography, {
-    color: "textSecondary"
-  }, "Total forged: x BPL")), _react.default.createElement(_core.Grid, {
-    item: true,
-    xs: 3
-  }, _react.default.createElement(_core.Typography, null, "".concat(new Date(timestamp).toLocaleString())))))));
-};
-
-var CompletedMissedSlot = function CompletedMissedSlot(_ref3) {
-  var address = _ref3.address,
-      classes = _ref3.classes,
-      name = _ref3.name,
-      rank = _ref3.rank,
-      slot = _ref3.slot,
-      timestamp = _ref3.timestamp,
-      vote = _ref3.vote;
-  return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(_core.Grid, {
-    container: true,
-    spacing: 16
-  }, _react.default.createElement(_core.Grid, {
-    item: true
-  }, _react.default.createElement(_core.Avatar, {
-    className: classes.missedBlockAvatar
-  }, _react.default.createElement(_Announcement.default, null))), _react.default.createElement(_core.Grid, {
-    item: true,
-    xs: 12,
-    sm: true,
-    direction: "column",
-    container: true
-  }, _react.default.createElement(_core.Grid, {
-    item: true
-  }, _react.default.createElement(_core.Typography, {
-    gutterBottom: true,
-    variant: "subheading"
-  }, "Slot ".concat(slot, " - "), _react.default.createElement(_reactRouterDom.Link, {
-    to: "delegate/".concat(address)
-  }, name))), _react.default.createElement(_core.Grid, {
-    item: true,
-    container: true
-  }, _react.default.createElement(_core.Grid, {
-    item: true,
-    xs: 3
-  }, _react.default.createElement(_core.Typography, {
-    gutterBottom: true
-  }, "Rank ".concat(rank)), _react.default.createElement(_core.Typography, {
-    color: "textSecondary"
-  }, "Vote: ".concat(vote.toFixed(0), " BPL"))), _react.default.createElement(_core.Grid, {
-    item: true,
-    xs: 3
-  }, _react.default.createElement(_core.Typography, {
-    gutterBottom: true
-  }, "Missed block"), _react.default.createElement(_core.Typography, {
-    color: "textSecondary"
-  }, "Total forged: x BPL")), _react.default.createElement(_core.Grid, {
-    item: true,
-    xs: 3
-  }, _react.default.createElement(_core.Typography, null, "".concat(new Date(timestamp).toLocaleString())))))));
-};
-
-var CollapsableSlot = (0, _mobxReact.inject)('slotStore')((0, _mobxReact.observer)(function (_ref4) {
-  var slotStore = _ref4.slotStore;
-  return _react.default.createElement(_core.Collapse, {
-    component: _core.ListItem,
-    in: slotStore.slotInProcess.shouldBeVisible,
-    key: slotStore.slotInProcess.slot.slot,
-    onEntered: function onEntered() {
-      return slotStore.slotJoinedCompleted();
-    }
-  }, _react.default.createElement(CompletedSlot, slotStore.slotInProcess.slot));
-}));
-
-var CompletedSlots =
-/*#__PURE__*/
-function (_Component) {
-  _inherits(CompletedSlots, _Component);
-
-  function CompletedSlots() {
-    _classCallCheck(this, CompletedSlots);
-
-    return _possibleConstructorReturn(this, _getPrototypeOf(CompletedSlots).apply(this, arguments));
-  }
-
-  _createClass(CompletedSlots, [{
-    key: "render",
-    value: function render() {
-      var slotStore = this.props.slotStore;
-      var Incoming = slotStore.hasSlotInProcess && slotStore.slotInProcess.hasLeftUpcoming ? _react.default.createElement(CollapsableSlot, {
-        slot: slotStore.slotInProcess.slot,
-        store: slotStore
-      }) : null;
-      console.log(slotStore.completedSlots[0]);
-      return _react.default.createElement(_react.default.Fragment, null, slotStore.init.match({
-        pending: function pending() {
-          return _react.default.createElement("div", null, "Loading, please wait..");
-        },
-        rejected: function rejected(err) {
-          return _react.default.createElement("div", null, "Error: ", err.message);
-        },
-        resolved: function resolved() {
-          return _react.default.createElement(_core.List, null, Incoming, slotStore.completedSlots.map(function (forger) {
-            return _react.default.createElement(_core.ListItem, {
-              key: forger.slot
-            }, _react.default.createElement(CompletedSlot, forger));
-          }));
-        }
-      }));
-    }
-  }]);
-
-  return CompletedSlots;
-}(_react.Component);
-
-var _default = (0, _mobxReact.inject)('slotStore')((0, _mobxReact.observer)(CompletedSlots));
-
-exports.default = _default;
-
-/***/ }),
-
 /***/ "./src/shared/RoundScreen/RoundProgress.js":
 /*!*************************************************!*\
   !*** ./src/shared/RoundScreen/RoundProgress.js ***!
@@ -93625,15 +93392,15 @@ function (_Component) {
   _createClass(RoundProgress, [{
     key: "render",
     value: function render() {
-      var slotStore = this.props.slotStore;
+      var _this$props = this.props,
+          roundStore = _this$props.roundStore,
+          slotStore = _this$props.slotStore;
       return _react.default.createElement(_core.Card, null, _react.default.createElement(_core.CardContent, null, _react.default.createElement(_core.Typography, {
-        variant: "headline"
-      }, "Round Progress"), _react.default.createElement(_core.Typography, {
-        variant: "subheading"
+        variant: "subtitle1"
       }, "Remaining Slots: ", slotStore.remainingSlotCount), _react.default.createElement(_core.Typography, {
-        variant: "subheading"
+        variant: "subtitle1"
       }, "Successful Forges: ", slotStore.successfulForgeCount), _react.default.createElement(_core.Typography, {
-        variant: "subheading"
+        variant: "subtitle1"
       }, "Missed Blocks: ", slotStore.missedBlockCount)));
     }
   }]);
@@ -93641,7 +93408,7 @@ function (_Component) {
   return RoundProgress;
 }(_react.Component);
 
-var _default = (0, _mobxReact.inject)('slotStore')((0, _mobxReact.observer)(RoundProgress));
+var _default = (0, _mobxReact.inject)('roundStore', 'slotStore')((0, _mobxReact.observer)(RoundProgress));
 
 exports.default = _default;
 
@@ -93668,13 +93435,11 @@ var _mobxReact = __webpack_require__(/*! mobx-react */ "./node_modules/mobx-reac
 
 var _core = __webpack_require__(/*! @material-ui/core */ "./node_modules/@material-ui/core/index.es.js");
 
-var _CompletedSlots = _interopRequireDefault(__webpack_require__(/*! ./CompletedSlots */ "./src/shared/RoundScreen/CompletedSlots.js"));
-
 var _RoundProgress = _interopRequireDefault(__webpack_require__(/*! ./RoundProgress */ "./src/shared/RoundScreen/RoundProgress.js"));
 
-var _RoundStats = _interopRequireDefault(__webpack_require__(/*! ./RoundStats */ "./src/shared/RoundScreen/RoundStats.js"));
+var _RoundSlots = _interopRequireDefault(__webpack_require__(/*! ./RoundSlots */ "./src/shared/RoundScreen/RoundSlots.js"));
 
-var _UpcomingSlots = _interopRequireDefault(__webpack_require__(/*! ./UpcomingSlots */ "./src/shared/RoundScreen/UpcomingSlots.js"));
+var _RoundStats = _interopRequireDefault(__webpack_require__(/*! ./RoundStats */ "./src/shared/RoundScreen/RoundStats.js"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -93715,23 +93480,30 @@ function (_Component) {
       var _this$props = this.props,
           roundStore = _this$props.roundStore,
           slotStore = _this$props.slotStore;
-      var MiddleColumn = slotStore.hasCompletedSlotsForRound ? _react.default.createElement(_RoundStats.default, null) : _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(_core.Typography, {
-        variant: "headline"
-      }, "Upcoming Forgers"), _react.default.createElement(_UpcomingSlots.default, null));
       return _react.default.createElement(_core.Grid, {
         container: true
       }, _react.default.createElement(_core.Grid, {
         item: true,
-        xs: 6
+        xs: 12
       }, _react.default.createElement(_core.Typography, {
-        variant: "headline"
-      }, "Forging Round", roundStore.hasNewRound ? " ".concat(roundStore.newRound.roundNumber) : null, slotStore.hasCompletedSlotsForRound ? ' - Complete' : ' - In process'), _react.default.createElement(_CompletedSlots.default, null)), _react.default.createElement(_core.Grid, {
+        variant: "h3"
+      }, "Current Forging Round", roundStore.hasNewRound ? " ".concat(roundStore.newRound.roundNumber) : null)), _react.default.createElement(_core.Grid, {
         item: true,
-        xs: 3
-      }, MiddleColumn), _react.default.createElement(_core.Grid, {
+        xs: 4
+      }, _react.default.createElement(_RoundProgress.default, null)), _react.default.createElement(_core.Grid, {
         item: true,
-        xs: 3
-      }, _react.default.createElement(_RoundProgress.default, null)));
+        xs: 4
+      }, _react.default.createElement(_core.Typography, {
+        variant: "h5"
+      }, "Rewards")), _react.default.createElement(_core.Grid, {
+        item: true,
+        xs: 4
+      }, _react.default.createElement(_core.Typography, {
+        variant: "h5"
+      }, "Eh?")), _react.default.createElement(_core.Grid, {
+        item: true,
+        xs: 12
+      }, _react.default.createElement(_RoundSlots.default, null)));
     }
   }]);
 
@@ -93739,6 +93511,170 @@ function (_Component) {
 }(_react.Component);
 
 var _default = (0, _mobxReact.inject)('roundStore', 'slotStore')((0, _mobxReact.observer)(RoundScreen));
+
+exports.default = _default;
+
+/***/ }),
+
+/***/ "./src/shared/RoundScreen/RoundSlots.js":
+/*!**********************************************!*\
+  !*** ./src/shared/RoundScreen/RoundSlots.js ***!
+  \**********************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _react = _interopRequireWildcard(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
+
+var _mobxReact = __webpack_require__(/*! mobx-react */ "./node_modules/mobx-react/index.module.js");
+
+var _core = __webpack_require__(/*! @material-ui/core */ "./node_modules/@material-ui/core/index.es.js");
+
+var _Announcement = _interopRequireDefault(__webpack_require__(/*! @material-ui/icons/Announcement */ "./node_modules/@material-ui/icons/Announcement.js"));
+
+var _CheckCircle = _interopRequireDefault(__webpack_require__(/*! @material-ui/icons/CheckCircle */ "./node_modules/@material-ui/icons/CheckCircle.js"));
+
+var _Update = _interopRequireDefault(__webpack_require__(/*! @material-ui/icons/Update */ "./node_modules/@material-ui/icons/Update.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _extends() { _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _objectWithoutProperties(source, excluded) { if (source == null) return {}; var target = _objectWithoutPropertiesLoose(source, excluded); var key, i; if (Object.getOwnPropertySymbols) { var sourceSymbolKeys = Object.getOwnPropertySymbols(source); for (i = 0; i < sourceSymbolKeys.length; i++) { key = sourceSymbolKeys[i]; if (excluded.indexOf(key) >= 0) continue; if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue; target[key] = source[key]; } } return target; }
+
+function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
+
+var styles = function styles(theme) {
+  return {
+    missedBlockAvatar: {
+      backgroundColor: theme.palette.error.main
+    },
+    successfulBlockAvatar: {
+      backgroundColor: theme.palette.primary.main
+    }
+  };
+};
+
+var Slot = (0, _core.withStyles)(styles)(function (_ref) {
+  var key = _ref.key,
+      hasBeenCompleted = _ref.hasBeenCompleted,
+      hasMissedBlock = _ref.hasMissedBlock,
+      rest = _objectWithoutProperties(_ref, ["key", "hasBeenCompleted", "hasMissedBlock"]);
+
+  var diff = hasBeenCompleted ? hasMissedBlock ? {
+    className: rest.classes.missedBlockAvatar,
+    component: _Announcement.default,
+    Forged: function Forged() {
+      return _react.default.createElement(_core.TableCell, {
+        align: "center"
+      }, '--');
+    }
+  } : {
+    className: rest.classes.successfulBlockAvatar,
+    component: _CheckCircle.default,
+    Forged: function Forged() {
+      return _react.default.createElement(_core.TableCell, {
+        align: "right"
+      }, rest.totalForged.toFixed(4));
+    }
+  } : {
+    className: '',
+    component: _Update.default,
+    Forged: function Forged() {
+      return _react.default.createElement(_core.TableCell, {
+        align: "center"
+      }, '--');
+    }
+  };
+  return _react.default.createElement(_core.TableRow, {
+    key: key
+  }, _react.default.createElement(_core.TableCell, null, _react.default.createElement(_core.Avatar, {
+    className: diff.className
+  }, _react.default.createElement(diff.component, null))), _react.default.createElement(_core.TableCell, {
+    align: "right"
+  }, rest.slot), _react.default.createElement(_core.TableCell, null, rest.name), _react.default.createElement(_core.TableCell, {
+    align: "right"
+  }, rest.rank), _react.default.createElement(_core.TableCell, {
+    align: "right"
+  }, Number(rest.vote.toFixed(0)).toLocaleString()), _react.default.createElement(diff.Forged, null), _react.default.createElement(_core.TableCell, {
+    align: "right"
+  }, new Date(rest.timestamp).toLocaleString()));
+});
+
+var RoundSlots =
+/*#__PURE__*/
+function (_Component) {
+  _inherits(RoundSlots, _Component);
+
+  function RoundSlots() {
+    _classCallCheck(this, RoundSlots);
+
+    return _possibleConstructorReturn(this, _getPrototypeOf(RoundSlots).apply(this, arguments));
+  }
+
+  _createClass(RoundSlots, [{
+    key: "render",
+    value: function render() {
+      var slotStore = this.props.slotStore;
+      return _react.default.createElement(_core.Card, null, _react.default.createElement(_core.CardContent, null, slotStore.init.match({
+        pending: function pending() {
+          return _react.default.createElement("div", null, "Loading, please wait..");
+        },
+        rejected: function rejected(err) {
+          return _react.default.createElement("div", null, "Error: ", err.message);
+        },
+        resolved: function resolved() {
+          return _react.default.createElement(_core.Table, null, _react.default.createElement(_core.TableHead, null, _react.default.createElement(_core.TableRow, null, _react.default.createElement(_core.TableCell, null, "\xA0"), _react.default.createElement(_core.TableCell, {
+            align: "right"
+          }, "Slot"), _react.default.createElement(_core.TableCell, null, "Delegate"), _react.default.createElement(_core.TableCell, {
+            align: "right"
+          }, "Rank"), _react.default.createElement(_core.TableCell, {
+            align: "right"
+          }, "Vote"), _react.default.createElement(_core.TableCell, {
+            align: "right"
+          }, "Forged (BPL)"), _react.default.createElement(_core.TableCell, {
+            align: "right"
+          }, "Date"))), _react.default.createElement(_core.TableBody, null, slotStore.slots.map(function (forger) {
+            return _react.default.createElement(Slot, _extends({
+              key: forger.slot
+            }, forger));
+          })));
+        }
+      })));
+    }
+  }]);
+
+  return RoundSlots;
+}(_react.Component);
+
+var _default = (0, _mobxReact.inject)('slotStore')((0, _mobxReact.observer)(RoundSlots));
 
 exports.default = _default;
 
@@ -93812,154 +93748,6 @@ function (_Component) {
 }(_react.Component);
 
 var _default = (0, _mobxReact.inject)('slotStore')((0, _mobxReact.observer)(RoundStats));
-
-exports.default = _default;
-
-/***/ }),
-
-/***/ "./src/shared/RoundScreen/UpcomingSlots.js":
-/*!*************************************************!*\
-  !*** ./src/shared/RoundScreen/UpcomingSlots.js ***!
-  \*************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _react = _interopRequireWildcard(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
-
-var _mobxReact = __webpack_require__(/*! mobx-react */ "./node_modules/mobx-react/index.module.js");
-
-var _reactRouterDom = __webpack_require__(/*! react-router-dom */ "./node_modules/react-router-dom/es/index.js");
-
-var _core = __webpack_require__(/*! @material-ui/core */ "./node_modules/@material-ui/core/index.es.js");
-
-var _Update = _interopRequireDefault(__webpack_require__(/*! @material-ui/icons/Update */ "./node_modules/@material-ui/icons/Update.js"));
-
-var _format = __webpack_require__(/*! ../domain/util/format */ "./src/shared/domain/util/format.js");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
-
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
-
-function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
-function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
-
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
-var UpcomingSlot = function UpcomingSlot(_ref) {
-  var address = _ref.address,
-      slot = _ref.slot,
-      name = _ref.name,
-      rank = _ref.rank,
-      timestamp = _ref.timestamp,
-      vote = _ref.vote;
-  return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(_core.Grid, {
-    container: true,
-    spacing: 16
-  }, _react.default.createElement(_core.Grid, {
-    item: true
-  }, _react.default.createElement(_core.Avatar, null, _react.default.createElement(_Update.default, null))), _react.default.createElement(_core.Grid, {
-    item: true,
-    xs: 12,
-    sm: true,
-    direction: "column",
-    container: true
-  }, _react.default.createElement(_core.Grid, {
-    item: true
-  }, _react.default.createElement(_core.Typography, {
-    gutterBottom: true,
-    variant: "subheading"
-  }, "Slot ".concat(slot, " - "), _react.default.createElement(_reactRouterDom.Link, {
-    to: "delegate/".concat(address)
-  }, name))), _react.default.createElement(_core.Grid, {
-    item: true,
-    container: true
-  }, _react.default.createElement(_core.Grid, {
-    item: true,
-    xs: 6
-  }, _react.default.createElement(_core.Typography, {
-    gutterBottom: true
-  }, "Rank ".concat(rank)), _react.default.createElement(_core.Typography, {
-    color: "textSecondary"
-  }, "Vote: ".concat(vote.toFixed(0), " BPL"))), _react.default.createElement(_core.Grid, {
-    item: true,
-    xs: 4
-  }, _react.default.createElement(_core.Typography, null, "".concat((0, _format.toHowLong)(timestamp))))))));
-};
-
-var CollapsableSlot = (0, _mobxReact.inject)('slotStore')((0, _mobxReact.observer)(function (_ref2) {
-  var slotStore = _ref2.slotStore;
-  return _react.default.createElement(_core.Collapse, {
-    component: _core.ListItem,
-    in: slotStore.slotInProcess.shouldBeVisible,
-    key: slotStore.slotInProcess.slot.slot,
-    onExited: function onExited() {
-      return slotStore.slotLeftUpcoming();
-    }
-  }, _react.default.createElement(UpcomingSlot, slotStore.slotInProcess.slot));
-}));
-
-var UpcomingSlots =
-/*#__PURE__*/
-function (_Component) {
-  _inherits(UpcomingSlots, _Component);
-
-  function UpcomingSlots() {
-    _classCallCheck(this, UpcomingSlots);
-
-    return _possibleConstructorReturn(this, _getPrototypeOf(UpcomingSlots).apply(this, arguments));
-  }
-
-  _createClass(UpcomingSlots, [{
-    key: "render",
-    value: function render() {
-      var slotStore = this.props.slotStore;
-      var Outgoing = slotStore.hasSlotInProcess && !slotStore.slotInProcess.hasLeftUpcoming ? _react.default.createElement(CollapsableSlot, {
-        slot: slotStore.slotInProcess.slot,
-        store: slotStore
-      }) : null;
-      return _react.default.createElement(_react.default.Fragment, null, slotStore.init.match({
-        pending: function pending() {
-          return _react.default.createElement("div", null, "Loading, please wait..");
-        },
-        rejected: function rejected(err) {
-          return _react.default.createElement("div", null, "Error: ", err.message);
-        },
-        resolved: function resolved() {
-          return _react.default.createElement(_core.List, null, Outgoing, slotStore.upcomingSlots.concat(slotStore.unprocessedSlots).map(function (forger) {
-            return _react.default.createElement(_core.ListItem, {
-              key: forger.slot
-            }, _react.default.createElement(UpcomingSlot, forger));
-          }));
-        }
-      }));
-    }
-  }]);
-
-  return UpcomingSlots;
-}(_react.Component);
-
-var _default = (0, _mobxReact.inject)('slotStore')((0, _mobxReact.observer)(UpcomingSlots));
 
 exports.default = _default;
 
@@ -94819,8 +94607,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
-var _bigJs = _interopRequireDefault(__webpack_require__(/*! big-js */ "./node_modules/big-js/big.js"));
-
 var _nodeFetch = _interopRequireDefault(__webpack_require__(/*! node-fetch */ "./node_modules/node-fetch/browser.js"));
 
 var _logger = __webpack_require__(/*! ../domain/util/logger */ "./src/shared/domain/util/logger.js");
@@ -95090,6 +94876,7 @@ function () {
     this.isAwaitingSlot = true;
     this.roundSlots = new Map();
     this.slotInProcess = null;
+    this.slots = [];
     this.upcomingSlots = [];
     this.unprocessedSlots = [];
     this.blockStore = blockStore;
@@ -95124,6 +94911,8 @@ function () {
                   _this.completedSlots.replace(result.completed);
 
                   _this.upcomingSlots.replace(result.upcoming);
+
+                  _this.slots.replace(result.slots);
 
                   _this.completedSlots.forEach(function (s) {
                     return _this.roundSlots.set(s.slot, s);
@@ -95322,6 +95111,7 @@ exports.default = SlotStore;
   slotInProcess: _mobx.observable,
   slotJoinedCompleted: _mobx.action,
   slotLeftUpcoming: _mobx.action,
+  slots: _mobx.observable,
   successfulForgeCount: _mobx.computed,
   totalForgedAmount: _mobx.computed,
   upcomingSlots: _mobx.observable,
@@ -95373,6 +95163,7 @@ function completedSlotFromDelegate(slot, delegate, timestamp) {
     totalForged: (0, _format.fromApiString)(slot.totalForged)
   };
   return _objectSpread({}, basicSlot(slot.roundSlot, delegate, timestamp), {
+    hasBeenCompleted: true,
     hasMissedBlock: slot.hasMissedBlock
   }, blockProps);
 }
@@ -95380,6 +95171,7 @@ function completedSlotFromDelegate(slot, delegate, timestamp) {
 function basicSlot(number, delegate, timestamp) {
   return {
     address: delegate.address,
+    hasBeenCompleted: false,
     name: delegate.username,
     number: number,
     publicKey: delegate.publicKey,
@@ -95394,16 +95186,21 @@ function getSlotsFromInitialData(currentRound, delegates) {
   var result = {
     completed: [],
     lastTimestamp: (0, _time.currentMsTimestamp)(),
+    slots: [],
     upcoming: []
   };
   result = currentRound.delegateActivity.reduce(function (all, slot) {
     all.lastTimestamp = slot.hasMissedBlock ? (0, _time.nextMsTimestamp)(all.lastTimestamp) : (0, _time.fromApiToMs)(slot.timestamp);
-    all.completed.push(completedSlotFromDelegate(slot, delegates.get(slot.publicKey), all.lastTimestamp));
+    var newSlot = completedSlotFromDelegate(slot, delegates.get(slot.publicKey), all.lastTimestamp);
+    all.completed.push(newSlot);
+    all.slots.push(newSlot);
     return all;
   }, result);
   result = currentRound.expectedForgers.reduce(function (all, slot) {
     all.lastTimestamp = (0, _time.nextMsTimestamp)(all.lastTimestamp);
-    all.upcoming.push(basicSlot(slot.blockRoundSlot, delegates.get(slot.publicKey), all.lastTimestamp));
+    var newslot = basicSlot(slot.blockRoundSlot, delegates.get(slot.publicKey), all.lastTimestamp);
+    all.upcoming.push(newslot);
+    all.slots.push(newslot);
     return all;
   }, result);
   result.completed.sort((0, _sorters.byDescending)('slot'));

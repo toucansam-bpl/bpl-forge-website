@@ -20,6 +20,7 @@ export default class SlotStore {
   isAwaitingSlot = true
   roundSlots = new Map()
   slotInProcess = null
+  slots = []
   upcomingSlots = []
   unprocessedSlots = []
 
@@ -40,6 +41,7 @@ export default class SlotStore {
     runInAction(() => {
       this.completedSlots.replace(result.completed)
       this.upcomingSlots.replace(result.upcoming)
+      this.slots.replace(result.slots)
 
       this.completedSlots.forEach(s => this.roundSlots.set(s.slot, s))
       this.upcomingSlots.forEach(s => this.roundSlots.set(s.slot, s))
@@ -177,6 +179,7 @@ decorate(SlotStore, {
   slotInProcess: observable,
   slotJoinedCompleted: action,
   slotLeftUpcoming: action,
+  slots: observable,
   successfulForgeCount: computed,
   totalForgedAmount: computed,
   upcomingSlots: observable,
