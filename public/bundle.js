@@ -92372,6 +92372,8 @@ var _RoundStore = _interopRequireDefault(__webpack_require__(/*! ../shared/store
 
 var _SlotStore = _interopRequireDefault(__webpack_require__(/*! ../shared/stores/SlotStore */ "./src/shared/stores/SlotStore.js"));
 
+var _NetworkStore = _interopRequireDefault(__webpack_require__(/*! ../shared/stores/NetworkStore */ "./src/shared/stores/NetworkStore.js"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -92434,17 +92436,20 @@ var theme = (0, _styles.createMuiTheme)({
 var nodeApi = new _NodeApi.default();
 var priceStore = new _PriceStore.default();
 var delegateStore = new _DelegateStore.default(nodeApi);
+var networkStore = new _NetworkStore.default(nodeApi);
 var roundStore = new _RoundStore.default(nodeApi);
 var blockStore = new _BlockStore.default(nodeApi, roundStore);
 var slotStore = new _SlotStore.default(blockStore, delegateStore, roundStore);
 var stores = {
   blockStore: blockStore,
   delegateStore: delegateStore,
+  networkStore: networkStore,
   priceStore: priceStore,
   roundStore: roundStore,
   slotStore: slotStore
 };
 delegateStore.init();
+networkStore.init();
 roundStore.init();
 slotStore.init();
 (0, _reactDom.hydrate)(_react.default.createElement(_styles.MuiThemeProvider, {
@@ -93337,6 +93342,89 @@ exports.default = _default;
 
 /***/ }),
 
+/***/ "./src/shared/RoundScreen/NetworkStatus.js":
+/*!*************************************************!*\
+  !*** ./src/shared/RoundScreen/NetworkStatus.js ***!
+  \*************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _react = _interopRequireWildcard(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
+
+var _mobxReact = __webpack_require__(/*! mobx-react */ "./node_modules/mobx-react/index.module.js");
+
+var _core = __webpack_require__(/*! @material-ui/core */ "./node_modules/@material-ui/core/index.es.js");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+var NetworkStatus =
+/*#__PURE__*/
+function (_Component) {
+  _inherits(NetworkStatus, _Component);
+
+  function NetworkStatus() {
+    _classCallCheck(this, NetworkStatus);
+
+    return _possibleConstructorReturn(this, _getPrototypeOf(NetworkStatus).apply(this, arguments));
+  }
+
+  _createClass(NetworkStatus, [{
+    key: "render",
+    value: function render() {
+      var networkStore = this.props.networkStore;
+      return _react.default.createElement(_core.Card, null, _react.default.createElement(_core.CardContent, null, _react.default.createElement(_core.Grid, {
+        container: true,
+        direction: "column",
+        spacing: 8
+      }, _react.default.createElement(_core.Grid, {
+        item: true
+      }, _react.default.createElement(_core.Typography, {
+        variant: "subtitle1"
+      }, "Network Height: ", networkStore.networkHeight)), _react.default.createElement(_core.Grid, {
+        item: true
+      }, _react.default.createElement(_core.Typography, {
+        variant: "subtitle1"
+      }, "Seed Status: ", "".concat(networkStore.seedStatus.ok, " / ").concat(networkStore.seedStatus.total)), _react.default.createElement("ul", null, networkStore.seedNodes.map(function (n) {
+        return _react.default.createElement("li", null, "".concat(n.server, " - ").concat(n.height));
+      }))))));
+    }
+  }]);
+
+  return NetworkStatus;
+}(_react.Component);
+
+var _default = (0, _mobxReact.inject)('networkStore')((0, _mobxReact.observer)(NetworkStatus));
+
+exports.default = _default;
+
+/***/ }),
+
 /***/ "./src/shared/RoundScreen/RoundProgress.js":
 /*!*************************************************!*\
   !*** ./src/shared/RoundScreen/RoundProgress.js ***!
@@ -93392,23 +93480,31 @@ function (_Component) {
   _createClass(RoundProgress, [{
     key: "render",
     value: function render() {
-      var _this$props = this.props,
-          roundStore = _this$props.roundStore,
-          slotStore = _this$props.slotStore;
-      return _react.default.createElement(_core.Card, null, _react.default.createElement(_core.CardContent, null, _react.default.createElement(_core.Typography, {
+      var slotStore = this.props.slotStore;
+      return _react.default.createElement(_core.Card, null, _react.default.createElement(_core.CardContent, null, _react.default.createElement(_core.Grid, {
+        container: true,
+        direction: "column",
+        spacing: 8
+      }, _react.default.createElement(_core.Grid, {
+        item: true
+      }, _react.default.createElement(_core.Typography, {
         variant: "subtitle1"
-      }, "Remaining Slots: ", slotStore.remainingSlotCount), _react.default.createElement(_core.Typography, {
+      }, "Remaining Slots: ", slotStore.remainingSlotCount)), _react.default.createElement(_core.Grid, {
+        item: true
+      }, _react.default.createElement(_core.Typography, {
         variant: "subtitle1"
-      }, "Successful Forges: ", slotStore.successfulForgeCount), _react.default.createElement(_core.Typography, {
+      }, "Successful Forges: ", slotStore.successfulForgeCount)), _react.default.createElement(_core.Grid, {
+        item: true
+      }, _react.default.createElement(_core.Typography, {
         variant: "subtitle1"
-      }, "Missed Blocks: ", slotStore.missedBlockCount)));
+      }, "Missed Blocks: ", slotStore.missedBlockCount)))));
     }
   }]);
 
   return RoundProgress;
 }(_react.Component);
 
-var _default = (0, _mobxReact.inject)('roundStore', 'slotStore')((0, _mobxReact.observer)(RoundProgress));
+var _default = (0, _mobxReact.inject)('slotStore')((0, _mobxReact.observer)(RoundProgress));
 
 exports.default = _default;
 
@@ -93435,11 +93531,13 @@ var _mobxReact = __webpack_require__(/*! mobx-react */ "./node_modules/mobx-reac
 
 var _core = __webpack_require__(/*! @material-ui/core */ "./node_modules/@material-ui/core/index.es.js");
 
+var _NetworkStatus = _interopRequireDefault(__webpack_require__(/*! ./NetworkStatus */ "./src/shared/RoundScreen/NetworkStatus.js"));
+
 var _RoundProgress = _interopRequireDefault(__webpack_require__(/*! ./RoundProgress */ "./src/shared/RoundScreen/RoundProgress.js"));
 
 var _RoundSlots = _interopRequireDefault(__webpack_require__(/*! ./RoundSlots */ "./src/shared/RoundScreen/RoundSlots.js"));
 
-var _RoundStats = _interopRequireDefault(__webpack_require__(/*! ./RoundStats */ "./src/shared/RoundScreen/RoundStats.js"));
+var _RoundStatus = _interopRequireDefault(__webpack_require__(/*! ./RoundStatus */ "./src/shared/RoundScreen/RoundStatus.js"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -93477,30 +93575,37 @@ function (_Component) {
   _createClass(RoundScreen, [{
     key: "render",
     value: function render() {
-      var _this$props = this.props,
-          roundStore = _this$props.roundStore,
-          slotStore = _this$props.slotStore;
+      var roundStore = this.props.roundStore;
       return _react.default.createElement(_core.Grid, {
-        container: true
+        container: true,
+        direction: "column",
+        spacing: 24
       }, _react.default.createElement(_core.Grid, {
         item: true,
         xs: 12
       }, _react.default.createElement(_core.Typography, {
-        variant: "h3"
+        variant: "headline"
       }, "Current Forging Round", roundStore.hasNewRound ? " ".concat(roundStore.newRound.roundNumber) : null)), _react.default.createElement(_core.Grid, {
         item: true,
-        xs: 4
+        xs: 12
+      }, _react.default.createElement(_core.Grid, {
+        container: true,
+        spacing: 24
+      }, _react.default.createElement(_core.Grid, {
+        item: true,
+        xs: 3
+      }, _react.default.createElement(_NetworkStatus.default, null)), _react.default.createElement(_core.Grid, {
+        item: true,
+        xs: 3
+      }, _react.default.createElement(_RoundStatus.default, null)), _react.default.createElement(_core.Grid, {
+        item: true,
+        xs: 3
       }, _react.default.createElement(_RoundProgress.default, null)), _react.default.createElement(_core.Grid, {
         item: true,
-        xs: 4
+        xs: 3
       }, _react.default.createElement(_core.Typography, {
         variant: "h5"
-      }, "Rewards")), _react.default.createElement(_core.Grid, {
-        item: true,
-        xs: 4
-      }, _react.default.createElement(_core.Typography, {
-        variant: "h5"
-      }, "Eh?")), _react.default.createElement(_core.Grid, {
+      }, "Rewards")))), _react.default.createElement(_core.Grid, {
         item: true,
         xs: 12
       }, _react.default.createElement(_RoundSlots.default, null)));
@@ -93510,7 +93615,7 @@ function (_Component) {
   return RoundScreen;
 }(_react.Component);
 
-var _default = (0, _mobxReact.inject)('roundStore', 'slotStore')((0, _mobxReact.observer)(RoundScreen));
+var _default = (0, _mobxReact.inject)('roundStore')((0, _mobxReact.observer)(RoundScreen));
 
 exports.default = _default;
 
@@ -93594,7 +93699,7 @@ var Slot = (0, _core.withStyles)(styles)(function (_ref) {
     Forged: function Forged() {
       return _react.default.createElement(_core.TableCell, {
         align: "center"
-      }, '--');
+      }, 'missed');
     }
   } : {
     className: rest.classes.successfulBlockAvatar,
@@ -93680,10 +93785,10 @@ exports.default = _default;
 
 /***/ }),
 
-/***/ "./src/shared/RoundScreen/RoundStats.js":
-/*!**********************************************!*\
-  !*** ./src/shared/RoundScreen/RoundStats.js ***!
-  \**********************************************/
+/***/ "./src/shared/RoundScreen/RoundStatus.js":
+/*!***********************************************!*\
+  !*** ./src/shared/RoundScreen/RoundStatus.js ***!
+  \***********************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -93721,33 +93826,51 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
-var RoundStats =
+var RoundProgress =
 /*#__PURE__*/
 function (_Component) {
-  _inherits(RoundStats, _Component);
+  _inherits(RoundProgress, _Component);
 
-  function RoundStats() {
-    _classCallCheck(this, RoundStats);
+  function RoundProgress() {
+    _classCallCheck(this, RoundProgress);
 
-    return _possibleConstructorReturn(this, _getPrototypeOf(RoundStats).apply(this, arguments));
+    return _possibleConstructorReturn(this, _getPrototypeOf(RoundProgress).apply(this, arguments));
   }
 
-  _createClass(RoundStats, [{
+  _createClass(RoundProgress, [{
     key: "render",
     value: function render() {
-      var slotStore = this.props.slotStore;
-      return _react.default.createElement(_core.Card, null, _react.default.createElement(_core.CardContent, null, _react.default.createElement(_core.Typography, {
-        variant: "headline"
-      }, "Round Stats"), _react.default.createElement(_core.Typography, {
-        variant: "subheading"
-      }, "Total forged this round: ", slotStore.totalForgedAmount)));
+      var _this$props = this.props,
+          blockStore = _this$props.blockStore,
+          roundStore = _this$props.roundStore;
+      return _react.default.createElement(_core.Card, null, _react.default.createElement(_core.CardContent, null, _react.default.createElement(_core.Grid, {
+        container: true,
+        direction: "column",
+        spacing: 8
+      }, _react.default.createElement(_core.Grid, {
+        item: true
+      }, _react.default.createElement(_core.Typography, {
+        variant: "subtitle1"
+      }, "Round Status: In Progress")), _react.default.createElement(_core.Grid, {
+        item: true
+      }, _react.default.createElement(_core.Typography, {
+        variant: "subtitle1"
+      }, "Current Height: ", blockStore.lastProcessedBlockHeight)), _react.default.createElement(_core.Grid, {
+        item: true
+      }, _react.default.createElement(_core.Typography, {
+        variant: "subtitle1"
+      }, "Start Height: ", roundStore.startHeight)), _react.default.createElement(_core.Grid, {
+        item: true
+      }, _react.default.createElement(_core.Typography, {
+        variant: "subtitle1"
+      }, "End Height: ", roundStore.endHeight)))));
     }
   }]);
 
-  return RoundStats;
+  return RoundProgress;
 }(_react.Component);
 
-var _default = (0, _mobxReact.inject)('slotStore')((0, _mobxReact.observer)(RoundStats));
+var _default = (0, _mobxReact.inject)('blockStore', 'roundStore')((0, _mobxReact.observer)(RoundProgress));
 
 exports.default = _default;
 
@@ -93784,8 +93907,6 @@ function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
-var api = 'https://api.bplforge.com/api';
-
 function makeApiRequest(_x, _x2) {
   return _makeApiRequest.apply(this, arguments);
 }
@@ -93793,37 +93914,37 @@ function makeApiRequest(_x, _x2) {
 function _makeApiRequest() {
   _makeApiRequest = _asyncToGenerator(
   /*#__PURE__*/
-  regeneratorRuntime.mark(function _callee8(url, params) {
-    return regeneratorRuntime.wrap(function _callee8$(_context8) {
+  regeneratorRuntime.mark(function _callee9(url, params) {
+    return regeneratorRuntime.wrap(function _callee9$(_context9) {
       while (1) {
-        switch (_context8.prev = _context8.next) {
+        switch (_context9.prev = _context9.next) {
           case 0:
-            return _context8.abrupt("return", new Promise(
+            return _context9.abrupt("return", new Promise(
             /*#__PURE__*/
             function () {
               var _ref = _asyncToGenerator(
               /*#__PURE__*/
-              regeneratorRuntime.mark(function _callee7(resolve, reject) {
+              regeneratorRuntime.mark(function _callee8(resolve, reject) {
                 var query, requestUrl, rawResponse, response;
-                return regeneratorRuntime.wrap(function _callee7$(_context7) {
+                return regeneratorRuntime.wrap(function _callee8$(_context8) {
                   while (1) {
-                    switch (_context7.prev = _context7.next) {
+                    switch (_context8.prev = _context8.next) {
                       case 0:
-                        _context7.prev = 0;
+                        _context8.prev = 0;
                         query = params ? "?".concat(_querystring.default.stringify(params)) : '';
-                        requestUrl = "".concat(api, "/").concat(url).concat(query);
-                        _context7.next = 5;
+                        requestUrl = "".concat(url).concat(query);
+                        _context8.next = 5;
                         return (0, _nodeFetch.default)(requestUrl, {
                           method: 'GET'
                         });
 
                       case 5:
-                        rawResponse = _context7.sent;
-                        _context7.next = 8;
+                        rawResponse = _context8.sent;
+                        _context8.next = 8;
                         return rawResponse.json();
 
                       case 8:
-                        response = _context7.sent;
+                        response = _context8.sent;
 
                         if (response.success) {
                           resolve(response);
@@ -93832,33 +93953,33 @@ function _makeApiRequest() {
                           reject(new Error("Request did not complete successfully."));
                         }
 
-                        _context7.next = 15;
+                        _context8.next = 15;
                         break;
 
                       case 12:
-                        _context7.prev = 12;
-                        _context7.t0 = _context7["catch"](0);
-                        reject(_context7.t0);
+                        _context8.prev = 12;
+                        _context8.t0 = _context8["catch"](0);
+                        reject(_context8.t0);
 
                       case 15:
                       case "end":
-                        return _context7.stop();
+                        return _context8.stop();
                     }
                   }
-                }, _callee7, this, [[0, 12]]);
+                }, _callee8, this, [[0, 12]]);
               }));
 
-              return function (_x6, _x7) {
+              return function (_x7, _x8) {
                 return _ref.apply(this, arguments);
               };
             }()));
 
           case 1:
           case "end":
-            return _context8.stop();
+            return _context9.stop();
         }
       }
-    }, _callee8, this);
+    }, _callee9, this);
   }));
   return _makeApiRequest.apply(this, arguments);
 }
@@ -93868,6 +93989,8 @@ var NodeApi =
 function () {
   function NodeApi() {
     _classCallCheck(this, NodeApi);
+
+    this.apiServer = 'https://api.bplforge.com';
   }
 
   _createClass(NodeApi, [{
@@ -93880,7 +94003,7 @@ function () {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                return _context.abrupt("return", makeApiRequest('delegates', 0, 201));
+                return _context.abrupt("return", makeApiRequest(this.getUrl('delegates'), 0, 201));
 
               case 1:
               case "end":
@@ -93911,7 +94034,7 @@ function () {
               case 0:
                 offset = _args2.length > 0 && _args2[0] !== undefined ? _args2[0] : 0;
                 limit = _args2.length > 1 && _args2[1] !== undefined ? _args2[1] : 100;
-                return _context2.abrupt("return", makeApiRequest('blocks', {
+                return _context2.abrupt("return", makeApiRequest(this.getUrl('blocks'), {
                   limit: limit,
                   offset: offset
                 }));
@@ -93940,7 +94063,7 @@ function () {
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
-                return _context3.abrupt("return", makeApiRequest('rounds'));
+                return _context3.abrupt("return", makeApiRequest(this.getUrl('rounds')));
 
               case 1:
               case "end":
@@ -93966,7 +94089,7 @@ function () {
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
-                return _context4.abrupt("return", makeApiRequest('blocks', {
+                return _context4.abrupt("return", makeApiRequest(this.getUrl('blocks'), {
                   generatorPublicKey: generatorPublicKey
                 }));
 
@@ -93985,19 +94108,16 @@ function () {
       return getRewardBlocks;
     }()
   }, {
-    key: "getTransactions",
+    key: "getSyncStatus",
     value: function () {
-      var _getTransactions = _asyncToGenerator(
+      var _getSyncStatus = _asyncToGenerator(
       /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee5(address) {
+      regeneratorRuntime.mark(function _callee5(server) {
         return regeneratorRuntime.wrap(function _callee5$(_context5) {
           while (1) {
             switch (_context5.prev = _context5.next) {
               case 0:
-                return _context5.abrupt("return", makeApiRequest('transactions', {
-                  senderId: address,
-                  recipientId: address
-                }));
+                return _context5.abrupt("return", makeApiRequest(this.getUrl('loader/status/sync', server)));
 
               case 1:
               case "end":
@@ -94007,24 +94127,25 @@ function () {
         }, _callee5, this);
       }));
 
-      function getTransactions(_x4) {
-        return _getTransactions.apply(this, arguments);
+      function getSyncStatus(_x4) {
+        return _getSyncStatus.apply(this, arguments);
       }
 
-      return getTransactions;
+      return getSyncStatus;
     }()
   }, {
-    key: "getVoters",
+    key: "getTransactions",
     value: function () {
-      var _getVoters = _asyncToGenerator(
+      var _getTransactions = _asyncToGenerator(
       /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee6(publicKey) {
+      regeneratorRuntime.mark(function _callee6(address) {
         return regeneratorRuntime.wrap(function _callee6$(_context6) {
           while (1) {
             switch (_context6.prev = _context6.next) {
               case 0:
-                return _context6.abrupt("return", makeApiRequest('delegates/voters', {
-                  publicKey: publicKey
+                return _context6.abrupt("return", makeApiRequest(this.getUrl('transactions'), {
+                  senderId: address,
+                  recipientId: address
                 }));
 
               case 1:
@@ -94035,7 +94156,41 @@ function () {
         }, _callee6, this);
       }));
 
-      function getVoters(_x5) {
+      function getTransactions(_x5) {
+        return _getTransactions.apply(this, arguments);
+      }
+
+      return getTransactions;
+    }()
+  }, {
+    key: "getUrl",
+    value: function getUrl(path, alternateServer) {
+      var server = alternateServer || this.apiServer;
+      return "".concat(server, "/api/").concat(path);
+    }
+  }, {
+    key: "getVoters",
+    value: function () {
+      var _getVoters = _asyncToGenerator(
+      /*#__PURE__*/
+      regeneratorRuntime.mark(function _callee7(publicKey) {
+        return regeneratorRuntime.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                return _context7.abrupt("return", makeApiRequest(this.getUrl('delegates/voters'), {
+                  publicKey: publicKey
+                }));
+
+              case 1:
+              case "end":
+                return _context7.stop();
+            }
+          }
+        }, _callee7, this);
+      }));
+
+      function getVoters(_x6) {
         return _getVoters.apply(this, arguments);
       }
 
@@ -94592,6 +94747,137 @@ exports.default = DelegateStore;
 
 /***/ }),
 
+/***/ "./src/shared/stores/NetworkStore.js":
+/*!*******************************************!*\
+  !*** ./src/shared/stores/NetworkStore.js ***!
+  \*******************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _mobx = __webpack_require__(/*! mobx */ "./node_modules/mobx/lib/mobx.module.js");
+
+var _mobxTask = __webpack_require__(/*! mobx-task */ "./node_modules/mobx-task/lib/index.js");
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var NetworkStore =
+/*#__PURE__*/
+function () {
+  function NetworkStore(nodeApi) {
+    _classCallCheck(this, NetworkStore);
+
+    this.seedNodes = [];
+    this.nodeApi = nodeApi;
+  }
+
+  _createClass(NetworkStore, [{
+    key: "init",
+    value: function () {
+      var _init = _asyncToGenerator(
+      /*#__PURE__*/
+      regeneratorRuntime.mark(function _callee() {
+        var seedNodes, i, server, status;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                seedNodes = ['http://s01.mc.blockpool.io:9030', 'http://s02.mc.blockpool.io:9030', 'http://s03.mc.blockpool.io:9030', 'http://s04.mc.blockpool.io:9030', 'http://s05.mc.blockpool.io:9030', 'http://s06.mc.blockpool.io:9030', 'http://s07.mc.blockpool.io:9030', 'http://s08.mc.blockpool.io:9030', 'http://s09.mc.blockpool.io:9030', 'http://s10.mc.blockpool.io:9030'];
+                i = 0;
+
+              case 2:
+                if (!(i < seedNodes.length)) {
+                  _context.next = 11;
+                  break;
+                }
+
+                server = seedNodes[i];
+                _context.next = 6;
+                return this.nodeApi.getSyncStatus();
+
+              case 6:
+                status = _context.sent;
+                this.seedNodes.push({
+                  server: server,
+                  height: status.height
+                });
+
+              case 8:
+                i += 1;
+                _context.next = 2;
+                break;
+
+              case 11:
+                console.log(seedNodeStatus);
+
+              case 12:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function init() {
+        return _init.apply(this, arguments);
+      }
+
+      return init;
+    }()
+  }, {
+    key: "networkHeight",
+    get: function get() {
+      return this.seedNodes.reduce(function (maxHeight, node) {
+        return node.height > maxHeight ? node.height : maxHeight;
+      }, 0);
+    }
+  }, {
+    key: "seedStatus",
+    get: function get() {
+      var height = this.networkHeight;
+      return this.seedNodes.reduce(function (status, node) {
+        status.total += 1;
+
+        if (height - node.height <= 1) {
+          status.ok += 1;
+        }
+
+        return status;
+      }, {
+        ok: 0,
+        total: 0
+      });
+    }
+  }]);
+
+  return NetworkStore;
+}();
+
+exports.default = NetworkStore;
+(0, _mobx.decorate)(NetworkStore, {
+  init: _mobxTask.task,
+  networkHeight: _mobx.computed,
+  seedNodes: _mobx.observable,
+  seedStatus: _mobx.computed
+});
+
+/***/ }),
+
 /***/ "./src/shared/stores/PriceStore.js":
 /*!*****************************************!*\
   !*** ./src/shared/stores/PriceStore.js ***!
@@ -94808,6 +95094,16 @@ function () {
         return initialHeight + slotValue;
       }, this.newRound.fromBlock - 1) : 0;
     }
+  }, {
+    key: "endHeight",
+    get: function get() {
+      return this.hasNewRound ? this.startHeight + 200 : 'n/a';
+    }
+  }, {
+    key: "startHeight",
+    get: function get() {
+      return this.hasNewRound ? this.newRound.fromBlock : 'n/a';
+    }
   }]);
 
   return RoundStore;
@@ -94815,10 +95111,12 @@ function () {
 
 exports.default = RoundStore;
 (0, _mobx.decorate)(RoundStore, {
+  endHeight: _mobx.computed,
   hasNewRound: _mobx.computed,
   init: _mobx.action,
   initialBlockHeight: _mobx.computed,
-  newRound: _mobx.observable
+  newRound: _mobx.observable,
+  startHeight: _mobx.computed
 });
 
 /***/ }),

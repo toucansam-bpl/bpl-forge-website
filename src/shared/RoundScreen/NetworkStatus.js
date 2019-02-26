@@ -3,9 +3,9 @@ import { inject, observer, } from 'mobx-react'
 import { Card, CardContent, Grid, Typography, } from '@material-ui/core'
 
 
-class RoundProgress extends Component {
+class NetworkStatus extends Component {
   render() {
-    const { slotStore, } = this.props
+    const { networkStore, } = this.props
 
     return (
       <Card>
@@ -13,18 +13,23 @@ class RoundProgress extends Component {
           <Grid container direction="column" spacing={8}>
             <Grid item>
               <Typography variant="subtitle1">
-                Remaining Slots: {slotStore.remainingSlotCount}
+                Network Height: {networkStore.networkHeight}
               </Typography>
             </Grid>
             <Grid item>
               <Typography variant="subtitle1">
-                Successful Forges: {slotStore.successfulForgeCount}
+                Seed Status: {`${networkStore.seedStatus.ok} / ${networkStore.seedStatus.total}`}
               </Typography>
-            </Grid>
-            <Grid item>
-              <Typography variant="subtitle1">
-                Missed Blocks: {slotStore.missedBlockCount}
-              </Typography>
+
+              <ul>
+                {networkStore.seedNodes.map(n => {
+                  return (
+                    <li>
+                      {`${n.server} - ${n.height}`}
+                    </li>
+                  )
+                })}
+              </ul>
             </Grid>
           </Grid>
         </CardContent>
@@ -33,4 +38,4 @@ class RoundProgress extends Component {
   }
 }
 
-export default inject('slotStore')(observer(RoundProgress))
+export default inject('networkStore')(observer(NetworkStatus))

@@ -14,6 +14,7 @@ import NodeApi from '../shared/domain/api/NodeApi'
 import PriceStore from '../shared/stores/PriceStore'
 import RoundStore from '../shared/stores/RoundStore'
 import SlotStore from '../shared/stores/SlotStore'
+import NetworkStore from '../shared/stores/NetworkStore';
 
 
 class Main extends React.Component {
@@ -42,6 +43,7 @@ const theme = createMuiTheme({
 const nodeApi = new NodeApi()
 const priceStore = new PriceStore()
 const delegateStore = new DelegateStore(nodeApi)
+const networkStore = new NetworkStore(nodeApi)
 const roundStore = new RoundStore(nodeApi)
 const blockStore = new BlockStore(nodeApi, roundStore)
 const slotStore = new SlotStore(blockStore, delegateStore, roundStore)
@@ -49,12 +51,14 @@ const slotStore = new SlotStore(blockStore, delegateStore, roundStore)
 const stores = {
   blockStore,
   delegateStore,
+  networkStore,
   priceStore,
   roundStore,
   slotStore,
 }
 
 delegateStore.init()
+networkStore.init()
 roundStore.init()
 slotStore.init()
 

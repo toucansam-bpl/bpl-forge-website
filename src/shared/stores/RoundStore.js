@@ -36,11 +36,25 @@ export default class RoundStore {
         ) 
       : 0
   }
+
+  get endHeight() {
+    return this.hasNewRound
+      ? this.startHeight + 200
+      : 'n/a'
+  }
+
+  get startHeight() {
+    return this.hasNewRound
+      ? this.newRound.fromBlock
+      : 'n/a'
+  }
 }
 
 decorate(RoundStore, {
+  endHeight: computed,
   hasNewRound: computed,
   init: action,
   initialBlockHeight: computed,
   newRound: observable,
+  startHeight: computed,
 })

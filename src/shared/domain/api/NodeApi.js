@@ -1,13 +1,12 @@
 import fetch from 'node-fetch'
 import qs from 'querystring'
 
-const api = 'https://api.bplforge.com/api'
 
 async function makeApiRequest(url, params) {
   return new Promise(async (resolve, reject) => {
     try {
       const query = params ? `?${qs.stringify(params)}` : ''
-      const requestUrl = `${api}/${url}${query}`
+      const requestUrl = `${url}${query}`
 
       const rawResponse = await fetch(requestUrl, {
         method: 'GET',
@@ -27,8 +26,10 @@ async function makeApiRequest(url, params) {
 }
 
 export default class NodeApi {
+  apiServer = 'https://api.bplforge.com'
+
   async getActiveDelegates() {
-    return makeApiRequest('delegates', 0, 201)
+    return makeApiRequest(this.getUrl('delegates'), 0, 201)
     /*
     return {
       delegates: [
@@ -43,11 +44,11 @@ export default class NodeApi {
   }
 
   async getBlocks(offset = 0, limit = 100) {
-    return makeApiRequest('blocks', { limit, offset })
+    return makeApiRequest(this.getUrl('blocks'), { limit, offset })
   }
 
   async getCurrentRound() {
-    return makeApiRequest('rounds')
+    return makeApiRequest(this.getUrl('rounds'))
     /*
     return {
       delegateActivity: [
@@ -64,17 +65,26 @@ export default class NodeApi {
   }
 
   async getRewardBlocks(generatorPublicKey) {
-    return makeApiRequest('blocks', { generatorPublicKey })
+    return makeApiRequest(this.getUrl('blocks'), { generatorPublicKey })
+  }
+
+  async getSyncStatus(server) {
+    return makeApiRequest(this.getUrl('loader/status/sync', server))
   }
 
   async getTransactions(address) {
-    return makeApiRequest('transactions', {
+    return makeApiRequest(this.getUrl('transactions'), {
       senderId: address,
       recipientId: address,
     })
   }
 
+  getUrl(path, alternateServer) {
+    const server = alternateServer || this.apiServer
+    return `${server}/api/${path}`
+  }
+
   async getVoters(publicKey) {
-    return makeApiRequest('delegates/voters', { publicKey })
+    return makeApiRequest(this.getUrl('delegates/voters'), { publicKey })
   }
 }

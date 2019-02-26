@@ -5,7 +5,7 @@ import { Card, CardContent, Grid, Typography, } from '@material-ui/core'
 
 class RoundProgress extends Component {
   render() {
-    const { slotStore, } = this.props
+    const { blockStore, roundStore, } = this.props
 
     return (
       <Card>
@@ -13,17 +13,22 @@ class RoundProgress extends Component {
           <Grid container direction="column" spacing={8}>
             <Grid item>
               <Typography variant="subtitle1">
-                Remaining Slots: {slotStore.remainingSlotCount}
+                Round Status: In Progress
               </Typography>
             </Grid>
             <Grid item>
               <Typography variant="subtitle1">
-                Successful Forges: {slotStore.successfulForgeCount}
+                Current Height: {blockStore.lastProcessedBlockHeight}
               </Typography>
             </Grid>
             <Grid item>
               <Typography variant="subtitle1">
-                Missed Blocks: {slotStore.missedBlockCount}
+                Start Height: {roundStore.startHeight}
+              </Typography>
+            </Grid>
+            <Grid item>
+              <Typography variant="subtitle1">
+                End Height: {roundStore.endHeight}
               </Typography>
             </Grid>
           </Grid>
@@ -33,4 +38,4 @@ class RoundProgress extends Component {
   }
 }
 
-export default inject('slotStore')(observer(RoundProgress))
+export default inject('blockStore', 'roundStore')(observer(RoundProgress))
