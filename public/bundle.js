@@ -93360,6 +93360,8 @@ var _mobxReact = __webpack_require__(/*! mobx-react */ "./node_modules/mobx-reac
 
 var _core = __webpack_require__(/*! @material-ui/core */ "./node_modules/@material-ui/core/index.es.js");
 
+var _green = _interopRequireDefault(__webpack_require__(/*! @material-ui/core/colors/green */ "./node_modules/@material-ui/core/colors/green.js"));
+
 var _Announcement = _interopRequireDefault(__webpack_require__(/*! @material-ui/icons/Announcement */ "./node_modules/@material-ui/icons/Announcement.js"));
 
 var _CheckCircle = _interopRequireDefault(__webpack_require__(/*! @material-ui/icons/CheckCircle */ "./node_modules/@material-ui/icons/CheckCircle.js"));
@@ -93400,7 +93402,7 @@ var styles = function styles(theme) {
       backgroundColor: theme.palette.error.main
     },
     successfulBlockAvatar: {
-      backgroundColor: theme.palette.primary.main
+      backgroundColor: _green.default[500]
     }
   };
 };
@@ -94061,6 +94063,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.getRoundNumberFromHeight = exports.getLastBlockHeightOfRound = exports.firstBlockHeightOfRound = void 0;
+var delegateCount = 201;
 
 var firstBlockHeightOfRound = function firstBlockHeightOfRound(roundNumber) {
   return getLastBlockHeightOfRound(roundNumber - 1) + 1;
@@ -94069,13 +94072,13 @@ var firstBlockHeightOfRound = function firstBlockHeightOfRound(roundNumber) {
 exports.firstBlockHeightOfRound = firstBlockHeightOfRound;
 
 var getLastBlockHeightOfRound = function getLastBlockHeightOfRound(roundNumber) {
-  return roundNumber * 201;
+  return roundNumber * delegateCount;
 };
 
 exports.getLastBlockHeightOfRound = getLastBlockHeightOfRound;
 
 var getRoundNumberFromHeight = function getRoundNumberFromHeight(height) {
-  return Math.floor((height - 1) / slots.delegates) + 1;
+  return Math.floor((height - 1) / delegateCount) + 1;
 };
 
 exports.getRoundNumberFromHeight = getRoundNumberFromHeight;

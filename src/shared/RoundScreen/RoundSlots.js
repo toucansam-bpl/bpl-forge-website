@@ -11,18 +11,18 @@ import {
           TableRow,
           withStyles,
         } from '@material-ui/core'
+import green from '@material-ui/core/colors/green'
 
 import AnnouncementIcon from '@material-ui/icons/Announcement'
 import CheckCircle from '@material-ui/icons/CheckCircle'
 import UpdateIcon from '@material-ui/icons/Update'
-
 
 const styles = theme => ({
   missedBlockAvatar: {
     backgroundColor: theme.palette.error.main,
   },
   successfulBlockAvatar: {
-    backgroundColor: theme.palette.primary.main,
+    backgroundColor: green[500],
   },
 })
 

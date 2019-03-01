@@ -1210,6 +1210,8 @@ var _mobxReact = __webpack_require__(/*! mobx-react */ "mobx-react");
 
 var _core = __webpack_require__(/*! @material-ui/core */ "@material-ui/core");
 
+var _green = _interopRequireDefault(__webpack_require__(/*! @material-ui/core/colors/green */ "@material-ui/core/colors/green"));
+
 var _Announcement = _interopRequireDefault(__webpack_require__(/*! @material-ui/icons/Announcement */ "@material-ui/icons/Announcement"));
 
 var _CheckCircle = _interopRequireDefault(__webpack_require__(/*! @material-ui/icons/CheckCircle */ "@material-ui/icons/CheckCircle"));
@@ -1250,7 +1252,7 @@ var styles = function styles(theme) {
       backgroundColor: theme.palette.error.main
     },
     successfulBlockAvatar: {
-      backgroundColor: theme.palette.primary.main
+      backgroundColor: _green.default[500]
     }
   };
 };
@@ -1911,6 +1913,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.getRoundNumberFromHeight = exports.getLastBlockHeightOfRound = exports.firstBlockHeightOfRound = void 0;
+var delegateCount = 201;
 
 var firstBlockHeightOfRound = function firstBlockHeightOfRound(roundNumber) {
   return getLastBlockHeightOfRound(roundNumber - 1) + 1;
@@ -1919,13 +1922,13 @@ var firstBlockHeightOfRound = function firstBlockHeightOfRound(roundNumber) {
 exports.firstBlockHeightOfRound = firstBlockHeightOfRound;
 
 var getLastBlockHeightOfRound = function getLastBlockHeightOfRound(roundNumber) {
-  return roundNumber * 201;
+  return roundNumber * delegateCount;
 };
 
 exports.getLastBlockHeightOfRound = getLastBlockHeightOfRound;
 
 var getRoundNumberFromHeight = function getRoundNumberFromHeight(height) {
-  return Math.floor((height - 1) / slots.delegates) + 1;
+  return Math.floor((height - 1) / delegateCount) + 1;
 };
 
 exports.getRoundNumberFromHeight = getRoundNumberFromHeight;
@@ -3324,6 +3327,17 @@ module.exports = require("@babel/polyfill");
 /***/ (function(module, exports) {
 
 module.exports = require("@material-ui/core");
+
+/***/ }),
+
+/***/ "@material-ui/core/colors/green":
+/*!*************************************************!*\
+  !*** external "@material-ui/core/colors/green" ***!
+  \*************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("@material-ui/core/colors/green");
 
 /***/ }),
 
