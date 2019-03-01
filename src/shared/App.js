@@ -2,7 +2,6 @@ import React, { Component } from 'react'
 import {
   AppBar,
   CssBaseline,
-  Hidden,
   Toolbar,
   Typography,
   withStyles,
@@ -10,7 +9,6 @@ import {
 import { Link, Route, Switch } from 'react-router-dom'
 
 import logo from '../../public/img/bpl-logo.png'
-import CalculatorScreen from './CalculatorScreen/CalculatorScreen'
 import DelegateScreen from './DelegateScreen/DelegateScreen'
 import RoundScreen from './RoundScreen/RoundScreen'
 
@@ -28,7 +26,11 @@ const styles = theme => ({
     marginLeft: -12,
     marginRight: 20,
   },
-});
+  headerLink: {
+    color: '#fff',
+    textDecoration: 'none',
+  },
+})
 
 
 class App extends Component {
@@ -51,14 +53,9 @@ class App extends Component {
                 style={{ height: '1.16667em', verticalAlign: 'bottom' }}
               />
               <span style={{ marginLeft: '15px' }}>
-                <Link to="/">BPL Delegate Explorer</Link>
+                <Link to="/" className={classes.headerLink}>BPL Delegate Explorer</Link>
               </span>
             </Typography>
-
-            <Link to="/calculator">Calculator</Link>
-            <Hidden smDown>
-              <Typography color="inherit" />
-            </Hidden>
           </Toolbar>
         </AppBar>
 
@@ -66,7 +63,6 @@ class App extends Component {
           <Switch>
             <Route path="/" exact component={RoundScreen} />
             <Route path="/delegate/:address" component={DelegateScreen} />
-            <Route path="/calculator" exact component={CalculatorScreen} />
           </Switch>
         </div>
       </React.Fragment>

@@ -92354,7 +92354,7 @@ var _reactRouterDom = __webpack_require__(/*! react-router-dom */ "./node_module
 
 var _styles = __webpack_require__(/*! @material-ui/core/styles */ "./node_modules/@material-ui/core/styles/index.js");
 
-var _green = _interopRequireDefault(__webpack_require__(/*! @material-ui/core/colors/green */ "./node_modules/@material-ui/core/colors/green.js"));
+var _grey = _interopRequireDefault(__webpack_require__(/*! @material-ui/core/colors/grey */ "./node_modules/@material-ui/core/colors/grey.js"));
 
 var _red = _interopRequireDefault(__webpack_require__(/*! @material-ui/core/colors/red */ "./node_modules/@material-ui/core/colors/red.js"));
 
@@ -92428,7 +92428,7 @@ function (_React$Component) {
 
 var theme = (0, _styles.createMuiTheme)({
   palette: {
-    primary: _green.default,
+    primary: _grey.default,
     accent: _red.default,
     type: 'light'
   }
@@ -92481,8 +92481,6 @@ var _reactRouterDom = __webpack_require__(/*! react-router-dom */ "./node_module
 
 var _bplLogo = _interopRequireDefault(__webpack_require__(/*! ../../public/img/bpl-logo.png */ "./public/img/bpl-logo.png"));
 
-var _CalculatorScreen = _interopRequireDefault(__webpack_require__(/*! ./CalculatorScreen/CalculatorScreen */ "./src/shared/CalculatorScreen/CalculatorScreen.js"));
-
 var _DelegateScreen = _interopRequireDefault(__webpack_require__(/*! ./DelegateScreen/DelegateScreen */ "./src/shared/DelegateScreen/DelegateScreen.js"));
 
 var _RoundScreen = _interopRequireDefault(__webpack_require__(/*! ./RoundScreen/RoundScreen */ "./src/shared/RoundScreen/RoundScreen.js"));
@@ -92522,6 +92520,10 @@ var styles = function styles(theme) {
     menuButton: {
       marginLeft: -12,
       marginRight: 20
+    },
+    headerLink: {
+      color: '#fff',
+      textDecoration: 'none'
     }
   };
 };
@@ -92559,14 +92561,9 @@ function (_Component) {
           marginLeft: '15px'
         }
       }, _react.default.createElement(_reactRouterDom.Link, {
-        to: "/"
-      }, "BPL Delegate Explorer"))), _react.default.createElement(_reactRouterDom.Link, {
-        to: "/calculator"
-      }, "Calculator"), _react.default.createElement(_core.Hidden, {
-        smDown: true
-      }, _react.default.createElement(_core.Typography, {
-        color: "inherit"
-      })))), _react.default.createElement("div", {
+        to: "/",
+        className: classes.headerLink
+      }, "BPL Delegate Explorer"))))), _react.default.createElement("div", {
         className: classes.content
       }, _react.default.createElement(_reactRouterDom.Switch, null, _react.default.createElement(_reactRouterDom.Route, {
         path: "/",
@@ -92575,10 +92572,6 @@ function (_Component) {
       }), _react.default.createElement(_reactRouterDom.Route, {
         path: "/delegate/:address",
         component: _DelegateScreen.default
-      }), _react.default.createElement(_reactRouterDom.Route, {
-        path: "/calculator",
-        exact: true,
-        component: _CalculatorScreen.default
       }))));
     }
   }]);
@@ -92589,388 +92582,6 @@ function (_Component) {
 var _default = (0, _core.withStyles)(styles)(App);
 
 exports.default = _default;
-
-/***/ }),
-
-/***/ "./src/shared/CalculatorScreen/BplPrice.js":
-/*!*************************************************!*\
-  !*** ./src/shared/CalculatorScreen/BplPrice.js ***!
-  \*************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = exports.BplPrice = void 0;
-
-var _react = _interopRequireWildcard(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
-
-var _mobxReact = __webpack_require__(/*! mobx-react */ "./node_modules/mobx-react/index.module.js");
-
-var _core = __webpack_require__(/*! @material-ui/core */ "./node_modules/@material-ui/core/index.es.js");
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
-
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
-
-function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
-function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
-
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
-var BplPrice =
-/*#__PURE__*/
-function (_Component) {
-  _inherits(BplPrice, _Component);
-
-  function BplPrice() {
-    var _getPrototypeOf2;
-
-    var _this;
-
-    _classCallCheck(this, BplPrice);
-
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-
-    _this = _possibleConstructorReturn(this, (_getPrototypeOf2 = _getPrototypeOf(BplPrice)).call.apply(_getPrototypeOf2, [this].concat(args)));
-
-    _this.handleCurrencyChange = function (evt) {
-      _this.props.priceStore.setCurrency(evt.target.value);
-    };
-
-    return _this;
-  }
-
-  _createClass(BplPrice, [{
-    key: "render",
-    value: function render() {
-      var priceStore = this.props.priceStore;
-      return _react.default.createElement(_core.Card, null, _react.default.createElement(_core.CardHeader, {
-        title: "BPL Price"
-      }), _react.default.createElement(_core.CardContent, null, _react.default.createElement(_core.FormControl, null, _react.default.createElement(_core.InputLabel, {
-        htmlFor: "bpl-price"
-      }, "Price"), _react.default.createElement(_core.TextField, {
-        value: priceStore.price,
-        inputProps: {
-          name: 'bpl-price',
-          id: 'bpl-price'
-        }
-      })), _react.default.createElement(_core.FormControl, null, _react.default.createElement(_core.InputLabel, {
-        htmlFor: "bpl-currency"
-      }, "Currency"), _react.default.createElement(_core.Select, {
-        native: true,
-        defaultValue: 'USD',
-        onChange: this.handleCurrencyChange,
-        inputProps: {
-          name: 'bpl-currency',
-          id: 'bpl-currency'
-        }
-      }, _react.default.createElement("option", null, "AUD"), _react.default.createElement("option", null, "BTC"), _react.default.createElement("option", null, "CNY"), _react.default.createElement("option", null, "EUR"), _react.default.createElement("option", null, "GBP"), _react.default.createElement("option", null, "USD")))));
-    }
-  }]);
-
-  return BplPrice;
-}(_react.Component);
-
-exports.BplPrice = BplPrice;
-
-var _default = (0, _mobxReact.inject)('priceStore')((0, _mobxReact.observer)(BplPrice));
-
-exports.default = _default;
-
-/***/ }),
-
-/***/ "./src/shared/CalculatorScreen/CalculatorScreen.js":
-/*!*********************************************************!*\
-  !*** ./src/shared/CalculatorScreen/CalculatorScreen.js ***!
-  \*********************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _react = _interopRequireWildcard(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
-
-var _core = __webpack_require__(/*! @material-ui/core */ "./node_modules/@material-ui/core/index.es.js");
-
-var _BplPrice = _interopRequireDefault(__webpack_require__(/*! ./BplPrice */ "./src/shared/CalculatorScreen/BplPrice.js"));
-
-var _DelegateStake = _interopRequireDefault(__webpack_require__(/*! ./DelegateStake */ "./src/shared/CalculatorScreen/DelegateStake.js"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
-
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
-
-function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
-function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
-
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
-var CalculatorScreen =
-/*#__PURE__*/
-function (_Component) {
-  _inherits(CalculatorScreen, _Component);
-
-  function CalculatorScreen() {
-    _classCallCheck(this, CalculatorScreen);
-
-    return _possibleConstructorReturn(this, _getPrototypeOf(CalculatorScreen).apply(this, arguments));
-  }
-
-  _createClass(CalculatorScreen, [{
-    key: "render",
-    value: function render() {
-      return _react.default.createElement(_core.Grid, {
-        container: true
-      }, _react.default.createElement(_core.Grid, {
-        item: true,
-        xs: 12,
-        sm: 3
-      }, _react.default.createElement(_DelegateStake.default, null), _react.default.createElement(_BplPrice.default, null)));
-    }
-  }]);
-
-  return CalculatorScreen;
-}(_react.Component);
-/*
-      <div class="row">
-      
-      <div class="col-md-3">
-
-      <div class="card card-nav-tabs">
-        <div class="card-header card-header-rose">
-          BPL Price
-        </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-9">
-              <input type="number" id="bpl-price" class="form-control" />
-            </div>
-
-            <div class="col-md-3">
-              <select id="selected-currency" style="-moz-appearance: menulist; -webkit-appearance: menulist;">
-
-              </select>
-            </div>
-          </div>
-        </div>
-
-
-        <div class="card-footer text-muted">
-          <div id="price-loading">Loading...</div>
-          <div id="price-load-date" style="display: none;">
-            As of May 2, 2018 1:09 PM
-          </div>
-          <div id="user-entered-price" class="text-info" style="display: none;">
-            This price has been entered, it may not be the current actual price.
-            <button type="button" id="reset-price" class="btn btn-primary">Reload Current Price</button>
-          </div>
-        </div>
-      </div>
-
-
-    </div>
-
-
-    <div class="col-md-9">
-
-<div class="card">
-<div class="card-header">
-  <ul id="reward-time-period" class="nav nav-pills nav-pills-rose card-header-pills">
-    <li class="nav-item">
-      <a class="nav-link" id="reward-per-day" data-time-period="day" href="#">Per Day</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" id="reward-per-week" data-time-period="week" href="#">Per Week</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link active" id="reward-per-month" data-time-period="month" href="#">Per Month</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" id="reward-rest-of-year" data-time-period="restOfYear" href="#">Rest of Year</a>
-    </li>
-  </ul>
-</div>
-
-<div class="card-body">
-  <div class="row">
-    <div class="col">
-      <h2>Market Cap</h2>
-      <h3><span id="market-cap"></span></h3>
-      
-      <div style="margin-top: 25px; position: relative;">
-        <h2>Block Reward
-          <i class="material-icons" data-toggle="modal" data-target="#block-reward-details">help</i>
-        </h2>
-      </div>
-      <h3><span id="block-reward"></span> BPL</h3>
-
-      <div class="form-check">
-        <label class="form-check-label">
-          Include fixed reward
-          <input id="include-fixed-reward" class="form-check-input" type="checkbox" value="">
-          <span class="form-check-sign">
-            <span class="check"></span>
-          </span>
-        </label>
-      </div>              
-    </div>
-    <div class="col">
-      <h2>Estimated Reward</h2>
-      <h1><span id="currency-value"></span></h1>
-      <h2><span id="bpl-value"></span> BPL</h2>
-    </div>
-  </div>
-
-</div>
-</div>
-
-</div>
-</div>
-
-</div>
-</div>
-
-
-<div id="block-reward-details" class="modal" tabindex="-1" role="dialog">
-<div class="modal-dialog" role="document">
-<div class="modal-content">
-  <div class="modal-header">
-    <h5 class="modal-title">Block Reward Details</h5>
-    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-      <span aria-hidden="true">&times;</span>
-    </button>
-  </div>
-  <div class="modal-body">
-    <table>
-      <tbody>
-        <tr>
-          <td class="reward-category">Interest (5% of stake annually)</td>
-          <td id="interest-value" class="bpl-amount"></td>
-        </tr>
-        <tr>
-          <td class="reward-category" >Fees (Average over the past 2 days)</td>
-          <td id="fees-value" class="bpl-amount"></td>
-        </tr>
-        <tr>
-          <td class="reward-category">Fixed reward (Current plan, but not final)</td>
-          <td id="fixed-reward-value" class="bpl-amount"></td>
-        </tr>
-        <tr id="total-row">
-          <td class="reward-category">Total</td>
-          <td id="total-value" class="bpl-amount"></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-*/
-
-
-exports.default = CalculatorScreen;
-
-/***/ }),
-
-/***/ "./src/shared/CalculatorScreen/DelegateStake.js":
-/*!******************************************************!*\
-  !*** ./src/shared/CalculatorScreen/DelegateStake.js ***!
-  \******************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _react = _interopRequireWildcard(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
-
-var _core = __webpack_require__(/*! @material-ui/core */ "./node_modules/@material-ui/core/index.es.js");
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
-
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
-
-function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
-function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
-
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
-var CalculatorScreen =
-/*#__PURE__*/
-function (_Component) {
-  _inherits(CalculatorScreen, _Component);
-
-  function CalculatorScreen() {
-    _classCallCheck(this, CalculatorScreen);
-
-    return _possibleConstructorReturn(this, _getPrototypeOf(CalculatorScreen).apply(this, arguments));
-  }
-
-  _createClass(CalculatorScreen, [{
-    key: "render",
-    value: function render() {
-      return _react.default.createElement(_core.Card, null, _react.default.createElement(_core.CardHeader, {
-        title: "Delegate Stake (BPL)"
-      }), _react.default.createElement(_core.CardContent, null, _react.default.createElement(_core.TextField, null), _react.default.createElement(_core.Typography, {
-        variant: "subtitle1"
-      }, "Stake includes BPL held by the delegate as well as BPL from all addresses voting for the delegate.")));
-    }
-  }]);
-
-  return CalculatorScreen;
-}(_react.Component);
-
-exports.default = CalculatorScreen;
 
 /***/ }),
 

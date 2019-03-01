@@ -3,7 +3,7 @@ import { Provider as MobxProvider } from 'mobx-react'
 import { hydrate } from 'react-dom'
 import { BrowserRouter } from 'react-router-dom'
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles'
-import green from '@material-ui/core/colors/green'
+import grey from '@material-ui/core/colors/grey'
 import red from '@material-ui/core/colors/red'
 
 
@@ -34,7 +34,7 @@ class Main extends React.Component {
 // Create a theme instance.
 const theme = createMuiTheme({
   palette: {
-    primary: green,
+    primary: grey,
     accent: red,
     type: 'light',
   },

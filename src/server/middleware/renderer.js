@@ -7,7 +7,7 @@ import { SheetsRegistry } from 'react-jss/lib/jss'
 import JssProvider from 'react-jss/lib/JssProvider'
 import { StaticRouter } from 'react-router-dom'
 import { MuiThemeProvider, createMuiTheme, createGenerateClassName, } from '@material-ui/core/styles'
-import green from '@material-ui/core/colors/green'
+import grey from '@material-ui/core/colors/grey'
 import red from '@material-ui/core/colors/red'
 
 import App from '../../shared/App'
@@ -49,7 +49,7 @@ export default (req, res) => {
   // Create a theme instance.
   const theme = createMuiTheme({
     palette: {
-      primary: green,
+      primary: grey,
       accent: red,
       type: 'light',
     },
