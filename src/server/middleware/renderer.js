@@ -59,9 +59,9 @@ export default (req, res) => {
   const nodeApi = new NodeApi()
   const priceStore = new PriceStore()
   const delegateStore = new DelegateStore(nodeApi)
-  const networkStore = new NetworkStore(nodeApi)
   const roundStore = new RoundStore(nodeApi)
   const blockStore = new BlockStore(nodeApi, roundStore)
+  const networkStore = new NetworkStore(nodeApi, roundStore)
   const slotStore = new SlotStore(blockStore, delegateStore, roundStore)
   
   const stores = {

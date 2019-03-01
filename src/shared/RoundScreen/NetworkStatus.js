@@ -24,7 +24,7 @@ class NetworkStatus extends Component {
               <ul>
                 {networkStore.seedNodes.map(n => {
                   return (
-                    <li>
+                    <li key={n.server}>
                       {`${n.server} - ${n.height}`}
                     </li>
                   )

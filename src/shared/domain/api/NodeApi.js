@@ -1,7 +1,6 @@
 import fetch from 'node-fetch'
 import qs from 'querystring'
 
-
 async function makeApiRequest(url, params) {
   return new Promise(async (resolve, reject) => {
     try {
@@ -86,5 +85,9 @@ export default class NodeApi {
 
   async getVoters(publicKey) {
     return makeApiRequest(this.getUrl('delegates/voters'), { publicKey })
+  }
+
+  setApiServer(server) {
+    this.apiServer = server
   }
 }

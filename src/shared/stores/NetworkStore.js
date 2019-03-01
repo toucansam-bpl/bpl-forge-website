@@ -2,15 +2,23 @@ import { action,
          computed, 
          decorate,
          observable,
+         runInAction,
        } from 'mobx'
 import { task } from 'mobx-task'
 
 
 export default class NetworkStore {
+  apiServers = [
+    { name: 'https://api.bplforge.com', url: 'https://api.bplforge.com' },
+    { name: 'https://explorer.dated.fun', url: 'https://explorer.dated.fun/node' },
+    { name: 'https://api.blockpool.io', url: 'https://api.blockpool.io' },
+  ]
+  apiServer = this.apiServers[0]
   seedNodes = []
 
-  constructor(nodeApi) {
+  constructor(nodeApi, roundStore) {
     this.nodeApi = nodeApi
+    this.roundStore = roundStore
   }
 
   async init() {
@@ -27,16 +35,19 @@ export default class NetworkStore {
     , 'http://s10.mc.blockpool.io:9030'
     ]
 
+    const seedNodeStatus = []
     for (let i = 0; i < seedNodes.length; i += 1) {
       let server = seedNodes[i]
       let status = await this.nodeApi.getSyncStatus()
-      this.seedNodes.push({
+      seedNodeStatus.push({
         server,
         height: status.height,
       })
     }
 
-    console.log(seedNodeStatus)
+    runInAction(() => {
+      this.seedNodes.replace(seedNodeStatus)
+    })
   }
 
   get networkHeight() {
@@ -56,11 +67,21 @@ export default class NetworkStore {
       total: 0,
     })
   }
+
+  setApiServer(serverName) {
+    const selectedServer = this.apiServers.filter(s => s.name === serverName)[0]
+    this.apiServer = selectedServer
+    this.nodeApi.setApiServer(selectedServer.url)
+    this.roundStore.init()
+  }
 }
 
 decorate(NetworkStore, {
+  apiServer: observable,
+  apiServers: observable,
   init: task,
   networkHeight: computed,
   seedNodes: observable,
   seedStatus: computed,
+  setApiServer: action,
 })

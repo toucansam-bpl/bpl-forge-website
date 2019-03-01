@@ -92436,9 +92436,9 @@ var theme = (0, _styles.createMuiTheme)({
 var nodeApi = new _NodeApi.default();
 var priceStore = new _PriceStore.default();
 var delegateStore = new _DelegateStore.default(nodeApi);
-var networkStore = new _NetworkStore.default(nodeApi);
 var roundStore = new _RoundStore.default(nodeApi);
 var blockStore = new _BlockStore.default(nodeApi, roundStore);
+var networkStore = new _NetworkStore.default(nodeApi, roundStore);
 var slotStore = new _SlotStore.default(blockStore, delegateStore, roundStore);
 var stores = {
   blockStore: blockStore,
@@ -92479,7 +92479,7 @@ var _core = __webpack_require__(/*! @material-ui/core */ "./node_modules/@materi
 
 var _reactRouterDom = __webpack_require__(/*! react-router-dom */ "./node_modules/react-router-dom/es/index.js");
 
-var _bplLogo = _interopRequireDefault(__webpack_require__(/*! ../../public/img/bpl-logo.png */ "./public/img/bpl-logo.png"));
+var _AppToolbar = _interopRequireDefault(__webpack_require__(/*! ./AppToolbar */ "./src/shared/AppToolbar.js"));
 
 var _DelegateScreen = _interopRequireDefault(__webpack_require__(/*! ./DelegateScreen/DelegateScreen */ "./src/shared/DelegateScreen/DelegateScreen.js"));
 
@@ -92513,17 +92513,6 @@ var styles = function styles(theme) {
       marginTop: "70px",
       padding: "30px 15px",
       minHeight: "calc(100% - 123px)"
-    },
-    flex: {
-      flex: 1
-    },
-    menuButton: {
-      marginLeft: -12,
-      marginRight: 20
-    },
-    headerLink: {
-      color: '#fff',
-      textDecoration: 'none'
     }
   };
 };
@@ -92543,7 +92532,117 @@ function (_Component) {
     key: "render",
     value: function render() {
       var classes = this.props.classes;
-      return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(_core.CssBaseline, null), _react.default.createElement(_core.AppBar, {
+      return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(_core.CssBaseline, null), _react.default.createElement(_AppToolbar.default, null), _react.default.createElement("div", {
+        className: classes.content
+      }, _react.default.createElement(_reactRouterDom.Switch, null, _react.default.createElement(_reactRouterDom.Route, {
+        path: "/",
+        exact: true,
+        component: _RoundScreen.default
+      }), _react.default.createElement(_reactRouterDom.Route, {
+        path: "/delegate/:address",
+        component: _DelegateScreen.default
+      }))));
+    }
+  }]);
+
+  return App;
+}(_react.Component);
+
+var _default = (0, _core.withStyles)(styles)(App);
+
+exports.default = _default;
+
+/***/ }),
+
+/***/ "./src/shared/AppToolbar.js":
+/*!**********************************!*\
+  !*** ./src/shared/AppToolbar.js ***!
+  \**********************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _react = _interopRequireWildcard(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
+
+var _mobxReact = __webpack_require__(/*! mobx-react */ "./node_modules/mobx-react/index.module.js");
+
+var _reactRouterDom = __webpack_require__(/*! react-router-dom */ "./node_modules/react-router-dom/es/index.js");
+
+var _core = __webpack_require__(/*! @material-ui/core */ "./node_modules/@material-ui/core/index.es.js");
+
+var _bplLogo = _interopRequireDefault(__webpack_require__(/*! ../../public/img/bpl-logo.png */ "./public/img/bpl-logo.png"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+var styles = function styles(theme) {
+  return {
+    flex: {
+      flex: 1
+    },
+    formControl: {
+      margin: theme.spacing.unit,
+      minWidth: 120
+    },
+    headerLink: {
+      color: '#fff',
+      textDecoration: 'none'
+    }
+  };
+};
+
+var AppToolbar =
+/*#__PURE__*/
+function (_Component) {
+  _inherits(AppToolbar, _Component);
+
+  function AppToolbar() {
+    _classCallCheck(this, AppToolbar);
+
+    return _possibleConstructorReturn(this, _getPrototypeOf(AppToolbar).apply(this, arguments));
+  }
+
+  _createClass(AppToolbar, [{
+    key: "handleServerChange",
+    value: function handleServerChange(evt) {
+      console.log(evt.target.value);
+      this.props.networkStore.setApiServer(evt.target.value);
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      var _this = this;
+
+      var _this$props = this.props,
+          classes = _this$props.classes,
+          networkStore = _this$props.networkStore;
+      return _react.default.createElement(_core.AppBar, {
         position: "fixed"
       }, _react.default.createElement(_core.Toolbar, null, _react.default.createElement(_core.Typography, {
         variant: "title",
@@ -92563,23 +92662,33 @@ function (_Component) {
       }, _react.default.createElement(_reactRouterDom.Link, {
         to: "/",
         className: classes.headerLink
-      }, "BPL Delegate Explorer"))))), _react.default.createElement("div", {
-        className: classes.content
-      }, _react.default.createElement(_reactRouterDom.Switch, null, _react.default.createElement(_reactRouterDom.Route, {
-        path: "/",
-        exact: true,
-        component: _RoundScreen.default
-      }), _react.default.createElement(_reactRouterDom.Route, {
-        path: "/delegate/:address",
-        component: _DelegateScreen.default
-      }))));
+      }, "BPL Delegate Explorer"))), _react.default.createElement("form", null, _react.default.createElement(_core.FormControl, {
+        variant: "filled",
+        className: classes.formControl
+      }, _react.default.createElement(_core.InputLabel, {
+        htmlFor: "server"
+      }, "Server"), _react.default.createElement(_core.Select, {
+        value: networkStore.apiServer.name,
+        onChange: function onChange(evt) {
+          return _this.handleServerChange(evt);
+        },
+        input: _react.default.createElement(_core.FilledInput, {
+          name: "server",
+          id: "server"
+        })
+      }, networkStore.apiServers.map(function (server) {
+        return _react.default.createElement(_core.MenuItem, {
+          key: server.name,
+          value: server.name
+        }, server.name);
+      }))))));
     }
   }]);
 
-  return App;
+  return AppToolbar;
 }(_react.Component);
 
-var _default = (0, _core.withStyles)(styles)(App);
+var _default = (0, _core.withStyles)(styles)((0, _mobxReact.inject)('networkStore')((0, _mobxReact.observer)(AppToolbar)));
 
 exports.default = _default;
 
@@ -93022,7 +93131,9 @@ function (_Component) {
       }, _react.default.createElement(_core.Typography, {
         variant: "subtitle1"
       }, "Seed Status: ", "".concat(networkStore.seedStatus.ok, " / ").concat(networkStore.seedStatus.total)), _react.default.createElement("ul", null, networkStore.seedNodes.map(function (n) {
-        return _react.default.createElement("li", null, "".concat(n.server, " - ").concat(n.height));
+        return _react.default.createElement("li", {
+          key: n.server
+        }, "".concat(n.server, " - ").concat(n.height));
       }))))));
     }
   }]);
@@ -93807,6 +93918,11 @@ function () {
 
       return getVoters;
     }()
+  }, {
+    key: "setApiServer",
+    value: function setApiServer(server) {
+      this.apiServer = server;
+    }
   }]);
 
   return NodeApi;
@@ -94390,11 +94506,23 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 var NetworkStore =
 /*#__PURE__*/
 function () {
-  function NetworkStore(nodeApi) {
+  function NetworkStore(nodeApi, roundStore) {
     _classCallCheck(this, NetworkStore);
 
+    this.apiServers = [{
+      name: 'https://api.bplforge.com',
+      url: 'https://api.bplforge.com'
+    }, {
+      name: 'https://explorer.dated.fun',
+      url: 'https://explorer.dated.fun/node'
+    }, {
+      name: 'https://api.blockpool.io',
+      url: 'https://api.blockpool.io'
+    }];
+    this.apiServer = this.apiServers[0];
     this.seedNodes = [];
     this.nodeApi = nodeApi;
+    this.roundStore = roundStore;
   }
 
   _createClass(NetworkStore, [{
@@ -94403,40 +94531,45 @@ function () {
       var _init = _asyncToGenerator(
       /*#__PURE__*/
       regeneratorRuntime.mark(function _callee() {
-        var seedNodes, i, server, status;
+        var _this = this;
+
+        var seedNodes, seedNodeStatus, i, server, status;
         return regeneratorRuntime.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
                 seedNodes = ['http://s01.mc.blockpool.io:9030', 'http://s02.mc.blockpool.io:9030', 'http://s03.mc.blockpool.io:9030', 'http://s04.mc.blockpool.io:9030', 'http://s05.mc.blockpool.io:9030', 'http://s06.mc.blockpool.io:9030', 'http://s07.mc.blockpool.io:9030', 'http://s08.mc.blockpool.io:9030', 'http://s09.mc.blockpool.io:9030', 'http://s10.mc.blockpool.io:9030'];
+                seedNodeStatus = [];
                 i = 0;
 
-              case 2:
+              case 3:
                 if (!(i < seedNodes.length)) {
-                  _context.next = 11;
+                  _context.next = 12;
                   break;
                 }
 
                 server = seedNodes[i];
-                _context.next = 6;
+                _context.next = 7;
                 return this.nodeApi.getSyncStatus();
 
-              case 6:
+              case 7:
                 status = _context.sent;
-                this.seedNodes.push({
+                seedNodeStatus.push({
                   server: server,
                   height: status.height
                 });
 
-              case 8:
+              case 9:
                 i += 1;
-                _context.next = 2;
+                _context.next = 3;
                 break;
 
-              case 11:
-                console.log(seedNodeStatus);
-
               case 12:
+                (0, _mobx.runInAction)(function () {
+                  _this.seedNodes.replace(seedNodeStatus);
+                });
+
+              case 13:
               case "end":
                 return _context.stop();
             }
@@ -94450,6 +94583,16 @@ function () {
 
       return init;
     }()
+  }, {
+    key: "setApiServer",
+    value: function setApiServer(serverName) {
+      var selectedServer = this.apiServers.filter(function (s) {
+        return s.name === serverName;
+      })[0];
+      this.apiServer = selectedServer;
+      this.nodeApi.setApiServer(selectedServer.url);
+      this.roundStore.init();
+    }
   }, {
     key: "networkHeight",
     get: function get() {
@@ -94481,10 +94624,13 @@ function () {
 
 exports.default = NetworkStore;
 (0, _mobx.decorate)(NetworkStore, {
+  apiServer: _mobx.observable,
+  apiServers: _mobx.observable,
   init: _mobxTask.task,
   networkHeight: _mobx.computed,
   seedNodes: _mobx.observable,
-  seedStatus: _mobx.computed
+  seedStatus: _mobx.computed,
+  setApiServer: _mobx.action
 });
 
 /***/ }),
