@@ -57,6 +57,7 @@ const stores = {
   slotStore,
 }
 
+blockStore.init()
 delegateStore.init()
 networkStore.init()
 roundStore.init()

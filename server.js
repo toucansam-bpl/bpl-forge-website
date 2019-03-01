@@ -1100,8 +1100,6 @@ exports.default = void 0;
 
 var _react = _interopRequireWildcard(__webpack_require__(/*! react */ "react"));
 
-var _mobxReact = __webpack_require__(/*! mobx-react */ "mobx-react");
-
 var _core = __webpack_require__(/*! @material-ui/core */ "@material-ui/core");
 
 var _NetworkStatus = _interopRequireDefault(__webpack_require__(/*! ./NetworkStatus */ "./src/shared/RoundScreen/NetworkStatus.js"));
@@ -1148,7 +1146,6 @@ function (_Component) {
   _createClass(RoundScreen, [{
     key: "render",
     value: function render() {
-      var roundStore = this.props.roundStore;
       return _react.default.createElement(_core.Grid, {
         container: true,
         direction: "column",
@@ -1158,7 +1155,7 @@ function (_Component) {
         xs: 12
       }, _react.default.createElement(_core.Typography, {
         variant: "headline"
-      }, "Current Forging Round", roundStore.hasNewRound ? " ".concat(roundStore.newRound.roundNumber) : null)), _react.default.createElement(_core.Grid, {
+      }, "Current Forging Round")), _react.default.createElement(_core.Grid, {
         item: true,
         xs: 12
       }, _react.default.createElement(_core.Grid, {
@@ -1188,9 +1185,7 @@ function (_Component) {
   return RoundScreen;
 }(_react.Component);
 
-var _default = (0, _mobxReact.inject)('roundStore')((0, _mobxReact.observer)(RoundScreen));
-
-exports.default = _default;
+exports.default = RoundScreen;
 
 /***/ }),
 
@@ -1413,37 +1408,45 @@ function (_Component) {
   _createClass(RoundProgress, [{
     key: "render",
     value: function render() {
-      var _this$props = this.props,
-          blockStore = _this$props.blockStore,
-          roundStore = _this$props.roundStore;
-      return _react.default.createElement(_core.Card, null, _react.default.createElement(_core.CardContent, null, _react.default.createElement(_core.Grid, {
-        container: true,
-        direction: "column",
-        spacing: 8
-      }, _react.default.createElement(_core.Grid, {
-        item: true
-      }, _react.default.createElement(_core.Typography, {
-        variant: "subtitle1"
-      }, "Round Status: In Progress")), _react.default.createElement(_core.Grid, {
-        item: true
-      }, _react.default.createElement(_core.Typography, {
-        variant: "subtitle1"
-      }, "Current Height: ", blockStore.lastProcessedBlockHeight)), _react.default.createElement(_core.Grid, {
-        item: true
-      }, _react.default.createElement(_core.Typography, {
-        variant: "subtitle1"
-      }, "Start Height: ", roundStore.startHeight)), _react.default.createElement(_core.Grid, {
-        item: true
-      }, _react.default.createElement(_core.Typography, {
-        variant: "subtitle1"
-      }, "End Height: ", roundStore.endHeight)))));
+      var blockStore = this.props.blockStore;
+      return _react.default.createElement(_core.Card, null, _react.default.createElement(_core.CardContent, null, blockStore.init.match({
+        pending: function pending() {
+          return _react.default.createElement("div", null, "Loading, please wait..");
+        },
+        rejected: function rejected(err) {
+          return _react.default.createElement("div", null, "Error: ", err.message);
+        },
+        resolved: function resolved() {
+          return _react.default.createElement(_core.Grid, {
+            container: true,
+            direction: "column",
+            spacing: 8
+          }, _react.default.createElement(_core.Grid, {
+            item: true
+          }, _react.default.createElement(_core.Typography, {
+            variant: "subtitle1"
+          }, "Round Status: In Progress")), _react.default.createElement(_core.Grid, {
+            item: true
+          }, _react.default.createElement(_core.Typography, {
+            variant: "subtitle1"
+          }, "Current Height: ", blockStore.lastProcessedBlockHeight)), _react.default.createElement(_core.Grid, {
+            item: true
+          }, _react.default.createElement(_core.Typography, {
+            variant: "subtitle1"
+          }, "Start Height: ", blockStore.startHeight)), _react.default.createElement(_core.Grid, {
+            item: true
+          }, _react.default.createElement(_core.Typography, {
+            variant: "subtitle1"
+          }, "End Height: ", blockStore.endHeight)));
+        }
+      })));
     }
   }]);
 
   return RoundProgress;
 }(_react.Component);
 
-var _default = (0, _mobxReact.inject)('blockStore', 'roundStore')((0, _mobxReact.observer)(RoundProgress));
+var _default = (0, _mobxReact.inject)('blockStore')((0, _mobxReact.observer)(RoundProgress));
 
 exports.default = _default;
 
@@ -1487,37 +1490,37 @@ function makeApiRequest(_x, _x2) {
 function _makeApiRequest() {
   _makeApiRequest = _asyncToGenerator(
   /*#__PURE__*/
-  regeneratorRuntime.mark(function _callee9(url, params) {
-    return regeneratorRuntime.wrap(function _callee9$(_context9) {
+  regeneratorRuntime.mark(function _callee10(url, params) {
+    return regeneratorRuntime.wrap(function _callee10$(_context10) {
       while (1) {
-        switch (_context9.prev = _context9.next) {
+        switch (_context10.prev = _context10.next) {
           case 0:
-            return _context9.abrupt("return", new Promise(
+            return _context10.abrupt("return", new Promise(
             /*#__PURE__*/
             function () {
-              var _ref = _asyncToGenerator(
+              var _ref2 = _asyncToGenerator(
               /*#__PURE__*/
-              regeneratorRuntime.mark(function _callee8(resolve, reject) {
+              regeneratorRuntime.mark(function _callee9(resolve, reject) {
                 var query, requestUrl, rawResponse, response;
-                return regeneratorRuntime.wrap(function _callee8$(_context8) {
+                return regeneratorRuntime.wrap(function _callee9$(_context9) {
                   while (1) {
-                    switch (_context8.prev = _context8.next) {
+                    switch (_context9.prev = _context9.next) {
                       case 0:
-                        _context8.prev = 0;
+                        _context9.prev = 0;
                         query = params ? "?".concat(_querystring.default.stringify(params)) : '';
                         requestUrl = "".concat(url).concat(query);
-                        _context8.next = 5;
+                        _context9.next = 5;
                         return (0, _nodeFetch.default)(requestUrl, {
                           method: 'GET'
                         });
 
                       case 5:
-                        rawResponse = _context8.sent;
-                        _context8.next = 8;
+                        rawResponse = _context9.sent;
+                        _context9.next = 8;
                         return rawResponse.json();
 
                       case 8:
-                        response = _context8.sent;
+                        response = _context9.sent;
 
                         if (response.success) {
                           resolve(response);
@@ -1526,33 +1529,33 @@ function _makeApiRequest() {
                           reject(new Error("Request did not complete successfully."));
                         }
 
-                        _context8.next = 15;
+                        _context9.next = 15;
                         break;
 
                       case 12:
-                        _context8.prev = 12;
-                        _context8.t0 = _context8["catch"](0);
-                        reject(_context8.t0);
+                        _context9.prev = 12;
+                        _context9.t0 = _context9["catch"](0);
+                        reject(_context9.t0);
 
                       case 15:
                       case "end":
-                        return _context8.stop();
+                        return _context9.stop();
                     }
                   }
-                }, _callee8, this, [[0, 12]]);
+                }, _callee9, this, [[0, 12]]);
               }));
 
-              return function (_x7, _x8) {
-                return _ref.apply(this, arguments);
+              return function (_x9, _x10) {
+                return _ref2.apply(this, arguments);
               };
             }()));
 
           case 1:
           case "end":
-            return _context9.stop();
+            return _context10.stop();
         }
       }
-    }, _callee9, this);
+    }, _callee10, this);
   }));
   return _makeApiRequest.apply(this, arguments);
 }
@@ -1597,27 +1600,66 @@ function () {
     value: function () {
       var _getBlocks = _asyncToGenerator(
       /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee2() {
+      regeneratorRuntime.mark(function _callee3() {
+        var _this = this;
+
         var offset,
             limit,
-            _args2 = arguments;
-        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+            _args3 = arguments;
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
           while (1) {
-            switch (_context2.prev = _context2.next) {
+            switch (_context3.prev = _context3.next) {
               case 0:
-                offset = _args2.length > 0 && _args2[0] !== undefined ? _args2[0] : 0;
-                limit = _args2.length > 1 && _args2[1] !== undefined ? _args2[1] : 100;
-                return _context2.abrupt("return", makeApiRequest(this.getUrl('blocks'), {
-                  limit: limit,
-                  offset: offset
-                }));
+                offset = _args3.length > 0 && _args3[0] !== undefined ? _args3[0] : 0;
+                limit = _args3.length > 1 && _args3[1] !== undefined ? _args3[1] : 100;
+                return _context3.abrupt("return", new Promise(
+                /*#__PURE__*/
+                function () {
+                  var _ref = _asyncToGenerator(
+                  /*#__PURE__*/
+                  regeneratorRuntime.mark(function _callee2(resolve, reject) {
+                    var blockResponse;
+                    return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                      while (1) {
+                        switch (_context2.prev = _context2.next) {
+                          case 0:
+                            _context2.prev = 0;
+                            _context2.next = 3;
+                            return makeApiRequest(_this.getUrl('blocks'), {
+                              limit: limit,
+                              offset: offset
+                            });
+
+                          case 3:
+                            blockResponse = _context2.sent;
+                            resolve(blockResponse.blocks);
+                            _context2.next = 10;
+                            break;
+
+                          case 7:
+                            _context2.prev = 7;
+                            _context2.t0 = _context2["catch"](0);
+                            reject(_context2.t0);
+
+                          case 10:
+                          case "end":
+                            return _context2.stop();
+                        }
+                      }
+                    }, _callee2, this, [[0, 7]]);
+                  }));
+
+                  return function (_x3, _x4) {
+                    return _ref.apply(this, arguments);
+                  };
+                }()));
 
               case 3:
               case "end":
-                return _context2.stop();
+                return _context3.stop();
             }
           }
-        }, _callee2, this);
+        }, _callee3, this);
       }));
 
       function getBlocks() {
@@ -1631,19 +1673,19 @@ function () {
     value: function () {
       var _getCurrentRound = _asyncToGenerator(
       /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee3() {
-        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+      regeneratorRuntime.mark(function _callee4() {
+        return regeneratorRuntime.wrap(function _callee4$(_context4) {
           while (1) {
-            switch (_context3.prev = _context3.next) {
+            switch (_context4.prev = _context4.next) {
               case 0:
-                return _context3.abrupt("return", makeApiRequest(this.getUrl('rounds')));
+                return _context4.abrupt("return", makeApiRequest(this.getUrl('rounds')));
 
               case 1:
               case "end":
-                return _context3.stop();
+                return _context4.stop();
             }
           }
-        }, _callee3, this);
+        }, _callee4, this);
       }));
 
       function getCurrentRound() {
@@ -1657,24 +1699,24 @@ function () {
     value: function () {
       var _getRewardBlocks = _asyncToGenerator(
       /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee4(generatorPublicKey) {
-        return regeneratorRuntime.wrap(function _callee4$(_context4) {
+      regeneratorRuntime.mark(function _callee5(generatorPublicKey) {
+        return regeneratorRuntime.wrap(function _callee5$(_context5) {
           while (1) {
-            switch (_context4.prev = _context4.next) {
+            switch (_context5.prev = _context5.next) {
               case 0:
-                return _context4.abrupt("return", makeApiRequest(this.getUrl('blocks'), {
+                return _context5.abrupt("return", makeApiRequest(this.getUrl('blocks'), {
                   generatorPublicKey: generatorPublicKey
                 }));
 
               case 1:
               case "end":
-                return _context4.stop();
+                return _context5.stop();
             }
           }
-        }, _callee4, this);
+        }, _callee5, this);
       }));
 
-      function getRewardBlocks(_x3) {
+      function getRewardBlocks(_x5) {
         return _getRewardBlocks.apply(this, arguments);
       }
 
@@ -1685,22 +1727,22 @@ function () {
     value: function () {
       var _getSyncStatus = _asyncToGenerator(
       /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee5(server) {
-        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+      regeneratorRuntime.mark(function _callee6(server) {
+        return regeneratorRuntime.wrap(function _callee6$(_context6) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context6.prev = _context6.next) {
               case 0:
-                return _context5.abrupt("return", makeApiRequest(this.getUrl('loader/status/sync', server)));
+                return _context6.abrupt("return", makeApiRequest(this.getUrl('loader/status/sync', server)));
 
               case 1:
               case "end":
-                return _context5.stop();
+                return _context6.stop();
             }
           }
-        }, _callee5, this);
+        }, _callee6, this);
       }));
 
-      function getSyncStatus(_x4) {
+      function getSyncStatus(_x6) {
         return _getSyncStatus.apply(this, arguments);
       }
 
@@ -1711,25 +1753,25 @@ function () {
     value: function () {
       var _getTransactions = _asyncToGenerator(
       /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee6(address) {
-        return regeneratorRuntime.wrap(function _callee6$(_context6) {
+      regeneratorRuntime.mark(function _callee7(address) {
+        return regeneratorRuntime.wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
-                return _context6.abrupt("return", makeApiRequest(this.getUrl('transactions'), {
+                return _context7.abrupt("return", makeApiRequest(this.getUrl('transactions'), {
                   senderId: address,
                   recipientId: address
                 }));
 
               case 1:
               case "end":
-                return _context6.stop();
+                return _context7.stop();
             }
           }
-        }, _callee6, this);
+        }, _callee7, this);
       }));
 
-      function getTransactions(_x5) {
+      function getTransactions(_x7) {
         return _getTransactions.apply(this, arguments);
       }
 
@@ -1746,24 +1788,24 @@ function () {
     value: function () {
       var _getVoters = _asyncToGenerator(
       /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee7(publicKey) {
-        return regeneratorRuntime.wrap(function _callee7$(_context7) {
+      regeneratorRuntime.mark(function _callee8(publicKey) {
+        return regeneratorRuntime.wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
-                return _context7.abrupt("return", makeApiRequest(this.getUrl('delegates/voters'), {
+                return _context8.abrupt("return", makeApiRequest(this.getUrl('delegates/voters'), {
                   publicKey: publicKey
                 }));
 
               case 1:
               case "end":
-                return _context7.stop();
+                return _context8.stop();
             }
           }
-        }, _callee7, this);
+        }, _callee8, this);
       }));
 
-      function getVoters(_x6) {
+      function getVoters(_x8) {
         return _getVoters.apply(this, arguments);
       }
 
@@ -1852,6 +1894,41 @@ exports.log = log;
 function log() {
   console.log.apply(console, Array.prototype.slice.call(arguments, 0));
 }
+
+/***/ }),
+
+/***/ "./src/shared/domain/util/rounds.js":
+/*!******************************************!*\
+  !*** ./src/shared/domain/util/rounds.js ***!
+  \******************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.getRoundNumberFromHeight = exports.getLastBlockHeightOfRound = exports.firstBlockHeightOfRound = void 0;
+
+var firstBlockHeightOfRound = function firstBlockHeightOfRound(roundNumber) {
+  return getLastBlockHeightOfRound(roundNumber - 1) + 1;
+};
+
+exports.firstBlockHeightOfRound = firstBlockHeightOfRound;
+
+var getLastBlockHeightOfRound = function getLastBlockHeightOfRound(roundNumber) {
+  return roundNumber * 201;
+};
+
+exports.getLastBlockHeightOfRound = getLastBlockHeightOfRound;
+
+var getRoundNumberFromHeight = function getRoundNumberFromHeight(height) {
+  return Math.floor((height - 1) / slots.delegates) + 1;
+};
+
+exports.getRoundNumberFromHeight = getRoundNumberFromHeight;
 
 /***/ }),
 
@@ -1954,7 +2031,11 @@ exports.default = void 0;
 
 var _mobx = __webpack_require__(/*! mobx */ "mobx");
 
+var _mobxTask = __webpack_require__(/*! mobx-task */ "mobx-task");
+
 var _logger = __webpack_require__(/*! ../domain/util/logger */ "./src/shared/domain/util/logger.js");
+
+var _rounds = __webpack_require__(/*! ../domain/util/rounds */ "./src/shared/domain/util/rounds.js");
 
 var _sorters = __webpack_require__(/*! ../domain/util/sorters */ "./src/shared/domain/util/sorters.js");
 
@@ -1979,7 +2060,9 @@ function () {
     _classCallCheck(this, BlockStore);
 
     this.blockListener = void 0;
+    this.endHeight = void 0;
     this.lastProcessedBlockHeight = void 0;
+    this.startHeight = void 0;
     this.unprocessedBlocks = new Map();
 
     this.resume = function () {
@@ -2007,39 +2090,63 @@ function () {
 
   _createClass(BlockStore, [{
     key: "init",
-    value: function init() {
-      (0, _logger.log)('Initializing Block Store.');
-      this.lastProcessedBlockHeight = this.roundStore.initialBlockHeight;
-      (0, _logger.log)("Block store will load blocks after height ".concat(this.lastProcessedBlockHeight));
-    }
+    value: function () {
+      var _init = _asyncToGenerator(
+      /*#__PURE__*/
+      regeneratorRuntime.mark(function _callee() {
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                (0, _logger.log)('Initializing Block Store.');
+                _context.next = 3;
+                return this.loadRoundBlocks();
+
+              case 3:
+                (0, _logger.log)("Block store will load blocks after height ".concat(this.lastProcessedBlockHeight));
+
+              case 4:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function init() {
+        return _init.apply(this, arguments);
+      }
+
+      return init;
+    }()
   }, {
     key: "listenForNewBlocks",
     value: function () {
       var _listenForNewBlocks = _asyncToGenerator(
       /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee() {
+      regeneratorRuntime.mark(function _callee2() {
         var _this2 = this;
 
         var offset, hasLoadedNewBlocks, blocks, newBlocks;
-        return regeneratorRuntime.wrap(function _callee$(_context) {
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
           while (1) {
-            switch (_context.prev = _context.next) {
+            switch (_context2.prev = _context2.next) {
               case 0:
                 offset = 0;
                 hasLoadedNewBlocks = true;
 
               case 2:
                 if (!(!this.hasNextBlock && hasLoadedNewBlocks)) {
-                  _context.next = 10;
+                  _context2.next = 10;
                   break;
                 }
 
-                _context.next = 5;
+                _context2.next = 5;
                 return this.nodeApi.getBlocks(offset, 10);
 
               case 5:
-                blocks = _context.sent;
-                newBlocks = blocks.blocks.filter(function (b) {
+                blocks = _context2.sent;
+                newBlocks = blocks.filter(function (b) {
                   return b.height > _this2.lastProcessedBlockHeight;
                 });
 
@@ -2054,15 +2161,15 @@ function () {
                   hasLoadedNewBlocks = false;
                 }
 
-                _context.next = 2;
+                _context2.next = 2;
                 break;
 
               case 10:
               case "end":
-                return _context.stop();
+                return _context2.stop();
             }
           }
-        }, _callee, this);
+        }, _callee2, this);
       }));
 
       function listenForNewBlocks() {
@@ -2070,6 +2177,75 @@ function () {
       }
 
       return listenForNewBlocks;
+    }()
+  }, {
+    key: "loadRoundBlocks",
+    value: function () {
+      var _loadRoundBlocks = _asyncToGenerator(
+      /*#__PURE__*/
+      regeneratorRuntime.mark(function _callee3() {
+        var _this3 = this;
+
+        var blocks, currentBlock, roundNumber, firstBlockHeightOfRound, i, firstLoadedBlock, additionalBlocks;
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                _context3.next = 2;
+                return this.nodeApi.getBlocks();
+
+              case 2:
+                blocks = _context3.sent;
+                currentBlock = blocks[0];
+                roundNumber = (0, _rounds.getRoundNumberFromHeight)(currentBlock.height);
+                firstBlockHeightOfRound = (0, _rounds.getFirstBlockHeightOfRound)(roundNumber);
+                i = 1;
+
+              case 7:
+                if (!(i <= 2)) {
+                  _context3.next = 17;
+                  break;
+                }
+
+                firstLoadedBlock = blocks[blocks.length - 1];
+
+                if (!(firstLoadedBlock.height > firstBlockHeightOfRound)) {
+                  _context3.next = 14;
+                  break;
+                }
+
+                _context3.next = 12;
+                return this.nodeApi.getBlocks(100 * i);
+
+              case 12:
+                additionalBlocks = _context3.sent;
+                blocks = blocks.concat(additionalBlocks);
+
+              case 14:
+                i += 1;
+                _context3.next = 7;
+                break;
+
+              case 17:
+                (0, _mobx.runInAction)(function () {
+                  _this3.endHeight = (0, _rounds.getLastBlockHeightOfRound)(roundNumber);
+                  _this3.lastProcessedBlockHeight = currentBlock.height;
+                  _this3.startHeight = firstBlockHeightOfRound;
+                });
+
+              case 18:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function loadRoundBlocks() {
+        return _loadRoundBlocks.apply(this, arguments);
+      }
+
+      return loadRoundBlocks;
     }()
   }, {
     key: "nextBlock",
@@ -2097,6 +2273,7 @@ function () {
 exports.default = BlockStore;
 (0, _mobx.decorate)(BlockStore, {
   hasNextBlock: _mobx.computed,
+  init: _mobxTask.task,
   lastProcessedBlockHeight: _mobx.observable,
   listenForNewBlocks: _mobx.action,
   nextBlock: _mobx.action,

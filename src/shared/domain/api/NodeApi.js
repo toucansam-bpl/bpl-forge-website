@@ -43,7 +43,14 @@ export default class NodeApi {
   }
 
   async getBlocks(offset = 0, limit = 100) {
-    return makeApiRequest(this.getUrl('blocks'), { limit, offset })
+    return new Promise(async (resolve, reject) => {
+      try {
+        const blockResponse = await makeApiRequest(this.getUrl('blocks'), { limit, offset })
+        resolve(blockResponse.blocks)
+      } catch(ex) {
+        reject(ex)
+      }
+    })
   }
 
   async getCurrentRound() {

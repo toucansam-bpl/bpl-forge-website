@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import { inject, observer, } from 'mobx-react'
 import { Grid, Typography, } from '@material-ui/core'
 
 import NetworkStatus from './NetworkStatus'
@@ -8,16 +7,13 @@ import RoundSlots from './RoundSlots'
 import RoundStatus from './RoundStatus';
 
 
-class RoundScreen extends Component {
+export default class RoundScreen extends Component {
   render() {
-    const { roundStore, } = this.props
-
     return (
       <Grid container direction="column" spacing={24}>
         <Grid item xs={12}>
           <Typography variant="headline">
             Current Forging Round 
-            {roundStore.hasNewRound ? ` ${roundStore.newRound.roundNumber}` : null}
           </Typography>
         </Grid>
         <Grid item xs={12}>
@@ -45,5 +41,3 @@ class RoundScreen extends Component {
     )
   }
 }
-
-export default inject('roundStore')(observer(RoundScreen))
