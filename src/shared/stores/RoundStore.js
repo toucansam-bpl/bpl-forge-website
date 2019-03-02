@@ -20,10 +20,10 @@ export default class RoundStore {
 
   async init() {
     log(`Loading initial current round.`)
-    const currentRound = await this.nodeApi.getCurrentRound()
+    // const currentRound = await this.nodeApi.getCurrentRound()
     log(`Initial current round loaded.`, currentRound)
 
-    this.newRound = currentRound
+    // this.newRound = currentRound
   }
 
   get initialBlockHeight() {

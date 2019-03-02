@@ -24,17 +24,17 @@ export default class SlotStore {
   upcomingSlots = []
   unprocessedSlots = []
 
-  constructor(blockStore, delegateStore, roundStore) {
+  constructor(blockStore, delegateStore) {
     this.blockStore = blockStore
     this.delegateStore = delegateStore
-    this.roundStore = roundStore
   }
 
   async init() {
     log('Initializing Slot Store.')
-    await when(() => this.roundStore.hasNewRound && this.delegateStore.hasLoadedDelegates)
+    await when(() => this.blockStore.hasLoadedBlocks && this.delegateStore.hasLoadedDelegates)
 
-    const result = getSlotsFromInitialData(this.roundStore.newRound, this.delegateStore)    
+    log('Generating initial slots.')
+    const result = getSlotsFromInitialData(this.blockStore.unprocessedBlocks, this.delegateStore)    
     this.watchForNextBlock()
     this.watchForUnprocessedSlot()
 

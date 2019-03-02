@@ -16,9 +16,9 @@ export default class NetworkStore {
   apiServer = this.apiServers[0]
   seedNodes = []
 
-  constructor(nodeApi, roundStore) {
+  constructor(nodeApi, blockStore) {
     this.nodeApi = nodeApi
-    this.roundStore = roundStore
+    this.blockStore = blockStore
   }
 
   async init() {
@@ -72,7 +72,7 @@ export default class NetworkStore {
     const selectedServer = this.apiServers.filter(s => s.name === serverName)[0]
     this.apiServer = selectedServer
     this.nodeApi.setApiServer(selectedServer.url)
-    this.roundStore.init()
+    this.blockStore.init()
   }
 }
 

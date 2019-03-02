@@ -22,15 +22,13 @@ const blockInterval = 15 * 1000
 export default class BlockStore {
   blockListener
   endHeight
+  hasLoadedInitialBlocks = false
   lastProcessedBlockHeight
   startHeight
   unprocessedBlocks = new Map()
 
-  constructor(nodeApi, roundStore) {
+  constructor(nodeApi) {
     this.nodeApi = nodeApi
-    this.roundStore = roundStore
-
-    when(() => this.roundStore.hasNewRound, () => this.init())
 
     onBecomeObserved(this, 'hasNextBlock', this.resume)
     onBecomeUnobserved(this, 'hasNextBlock', this.suspend)
@@ -38,8 +36,7 @@ export default class BlockStore {
 
   async init() {
     log('Initializing Block Store.')
-    await this.loadRoundBlocks()
-    log(`Block store will load blocks after height ${this.lastProcessedBlockHeight}`)
+    await this.loadInitialBlocks()
   }
 
   resume = () => {
@@ -74,25 +71,37 @@ export default class BlockStore {
     return this.unprocessedBlocks.has(this.nextBlockHeight)
   }
 
-  async loadRoundBlocks() {
-    let blocks = await this.nodeApi.getBlocks()
-    const currentBlock = blocks[0]
-    const roundNumber = getRoundNumberFromHeight(currentBlock.height)
-    const firstBlockHeightOfRound = getFirstBlockHeightOfRound(roundNumber)
-
-
-    for (let i = 1; i <= 2; i += 1) {
-      let firstLoadedBlock = blocks[blocks.length - 1]
-      if(firstLoadedBlock.height > firstBlockHeightOfRound) {
-        let additionalBlocks = await this.nodeApi.getBlocks(100 * i)
-        blocks = blocks.concat(additionalBlocks)
-      }
-    }
+  async loadInitialBlocks() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        let blocks = await this.nodeApi.getBlocks()
+        const currentBlock = blocks[0]
+        const roundNumber = getRoundNumberFromHeight(currentBlock.height)
+        const firstBlockHeightOfRound = getFirstBlockHeightOfRound(roundNumber)
     
-    runInAction(() => {
-      this.endHeight = getLastBlockHeightOfRound(roundNumber)
-      this.lastProcessedBlockHeight = currentBlock.height
-      this.startHeight = firstBlockHeightOfRound
+        const firstLoadedBlock = blocks[blocks.length - 1]
+        if(firstLoadedBlock.height > firstBlockHeightOfRound) {
+          let additionalBlocks = await this.nodeApi.getBlocks(100)
+          blocks = blocks.concat(additionalBlocks.filter(b => b.height >= firstBlockHeightOfRound))
+        }
+    
+        if(blocks.length === 200) {
+          let firstBlock = await this.nodeApi.getBlocks(200, 1)
+          blocks.push(firstBlock)
+        }
+        
+        runInAction(() => {
+          this.endHeight = getLastBlockHeightOfRound(roundNumber)
+          this.lastProcessedBlockHeight = getLastBlockHeightOfRound(roundNumber - 1)
+          this.startHeight = firstBlockHeightOfRound
+          this.unprocessedBlocks.merge(blocks)
+          this.hasLoadedInitialBlocks = true
+        })
+        
+        resolve()
+      } catch (ex) {
+        reject(ex)
+      }
     })
   }
 
@@ -109,6 +118,7 @@ export default class BlockStore {
 }
 
 decorate(BlockStore, {
+  hasLoadedInitialBlocks: observable,
   hasNextBlock: computed,
   init: task,
   lastProcessedBlockHeight: observable,

@@ -144,8 +144,6 @@ var _NodeApi = _interopRequireDefault(__webpack_require__(/*! ../../shared/domai
 
 var _PriceStore = _interopRequireDefault(__webpack_require__(/*! ../../shared/stores/PriceStore */ "./src/shared/stores/PriceStore.js"));
 
-var _RoundStore = _interopRequireDefault(__webpack_require__(/*! ../../shared/stores/RoundStore */ "./src/shared/stores/RoundStore.js"));
-
 var _SlotStore = _interopRequireDefault(__webpack_require__(/*! ../../shared/stores/SlotStore */ "./src/shared/stores/SlotStore.js"));
 
 var _NetworkStore = _interopRequireDefault(__webpack_require__(/*! ../../shared/stores/NetworkStore */ "./src/shared/stores/NetworkStore.js"));
@@ -206,16 +204,14 @@ var _default = function _default(req, res) {
   var nodeApi = new _NodeApi.default();
   var priceStore = new _PriceStore.default();
   var delegateStore = new _DelegateStore.default(nodeApi);
-  var roundStore = new _RoundStore.default(nodeApi);
-  var blockStore = new _BlockStore.default(nodeApi, roundStore);
-  var networkStore = new _NetworkStore.default(nodeApi, roundStore);
-  var slotStore = new _SlotStore.default(blockStore, delegateStore, roundStore);
+  var blockStore = new _BlockStore.default(nodeApi);
+  var networkStore = new _NetworkStore.default(nodeApi, blockStore);
+  var slotStore = new _SlotStore.default(blockStore, delegateStore);
   var stores = {
     blockStore: blockStore,
     delegateStore: delegateStore,
     networkStore: networkStore,
     priceStore: priceStore,
-    roundStore: roundStore,
     slotStore: slotStore // Render the component to a string.
 
   };
@@ -1912,14 +1908,14 @@ function log() {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.getRoundNumberFromHeight = exports.getLastBlockHeightOfRound = exports.firstBlockHeightOfRound = void 0;
+exports.getRoundNumberFromHeight = exports.getLastBlockHeightOfRound = exports.getFirstBlockHeightOfRound = void 0;
 var delegateCount = 201;
 
-var firstBlockHeightOfRound = function firstBlockHeightOfRound(roundNumber) {
+var getFirstBlockHeightOfRound = function getFirstBlockHeightOfRound(roundNumber) {
   return getLastBlockHeightOfRound(roundNumber - 1) + 1;
 };
 
-exports.firstBlockHeightOfRound = firstBlockHeightOfRound;
+exports.getFirstBlockHeightOfRound = getFirstBlockHeightOfRound;
 
 var getLastBlockHeightOfRound = function getLastBlockHeightOfRound(roundNumber) {
   return roundNumber * delegateCount;
@@ -2057,13 +2053,14 @@ var blockInterval = 15 * 1000;
 var BlockStore =
 /*#__PURE__*/
 function () {
-  function BlockStore(nodeApi, roundStore) {
+  function BlockStore(nodeApi) {
     var _this = this;
 
     _classCallCheck(this, BlockStore);
 
     this.blockListener = void 0;
     this.endHeight = void 0;
+    this.hasLoadedInitialBlocks = false;
     this.lastProcessedBlockHeight = void 0;
     this.startHeight = void 0;
     this.unprocessedBlocks = new Map();
@@ -2081,12 +2078,6 @@ function () {
     };
 
     this.nodeApi = nodeApi;
-    this.roundStore = roundStore;
-    (0, _mobx.when)(function () {
-      return _this.roundStore.hasNewRound;
-    }, function () {
-      return _this.init();
-    });
     (0, _mobx.onBecomeObserved)(this, 'hasNextBlock', this.resume);
     (0, _mobx.onBecomeUnobserved)(this, 'hasNextBlock', this.suspend);
   }
@@ -2103,12 +2094,9 @@ function () {
               case 0:
                 (0, _logger.log)('Initializing Block Store.');
                 _context.next = 3;
-                return this.loadRoundBlocks();
+                return this.loadInitialBlocks();
 
               case 3:
-                (0, _logger.log)("Block store will load blocks after height ".concat(this.lastProcessedBlockHeight));
-
-              case 4:
               case "end":
                 return _context.stop();
             }
@@ -2182,73 +2170,111 @@ function () {
       return listenForNewBlocks;
     }()
   }, {
-    key: "loadRoundBlocks",
+    key: "loadInitialBlocks",
     value: function () {
-      var _loadRoundBlocks = _asyncToGenerator(
+      var _loadInitialBlocks = _asyncToGenerator(
       /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee3() {
+      regeneratorRuntime.mark(function _callee4() {
         var _this3 = this;
 
-        var blocks, currentBlock, roundNumber, firstBlockHeightOfRound, i, firstLoadedBlock, additionalBlocks;
-        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+        return regeneratorRuntime.wrap(function _callee4$(_context4) {
           while (1) {
-            switch (_context3.prev = _context3.next) {
+            switch (_context4.prev = _context4.next) {
               case 0:
-                _context3.next = 2;
-                return this.nodeApi.getBlocks();
+                return _context4.abrupt("return", new Promise(
+                /*#__PURE__*/
+                function () {
+                  var _ref = _asyncToGenerator(
+                  /*#__PURE__*/
+                  regeneratorRuntime.mark(function _callee3(resolve, reject) {
+                    var blocks, currentBlock, roundNumber, firstBlockHeightOfRound, firstLoadedBlock, additionalBlocks, firstBlock;
+                    return regeneratorRuntime.wrap(function _callee3$(_context3) {
+                      while (1) {
+                        switch (_context3.prev = _context3.next) {
+                          case 0:
+                            _context3.prev = 0;
+                            _context3.next = 3;
+                            return _this3.nodeApi.getBlocks();
 
-              case 2:
-                blocks = _context3.sent;
-                currentBlock = blocks[0];
-                roundNumber = (0, _rounds.getRoundNumberFromHeight)(currentBlock.height);
-                firstBlockHeightOfRound = (0, _rounds.getFirstBlockHeightOfRound)(roundNumber);
-                i = 1;
+                          case 3:
+                            blocks = _context3.sent;
+                            currentBlock = blocks[0];
+                            roundNumber = (0, _rounds.getRoundNumberFromHeight)(currentBlock.height);
+                            firstBlockHeightOfRound = (0, _rounds.getFirstBlockHeightOfRound)(roundNumber);
+                            firstLoadedBlock = blocks[blocks.length - 1];
 
-              case 7:
-                if (!(i <= 2)) {
-                  _context3.next = 17;
-                  break;
-                }
+                            if (!(firstLoadedBlock.height > firstBlockHeightOfRound)) {
+                              _context3.next = 13;
+                              break;
+                            }
 
-                firstLoadedBlock = blocks[blocks.length - 1];
+                            _context3.next = 11;
+                            return _this3.nodeApi.getBlocks(100);
 
-                if (!(firstLoadedBlock.height > firstBlockHeightOfRound)) {
-                  _context3.next = 14;
-                  break;
-                }
+                          case 11:
+                            additionalBlocks = _context3.sent;
+                            blocks = blocks.concat(additionalBlocks.filter(function (b) {
+                              return b.height >= firstBlockHeightOfRound;
+                            }));
 
-                _context3.next = 12;
-                return this.nodeApi.getBlocks(100 * i);
+                          case 13:
+                            if (!(blocks.length === 200)) {
+                              _context3.next = 18;
+                              break;
+                            }
 
-              case 12:
-                additionalBlocks = _context3.sent;
-                blocks = blocks.concat(additionalBlocks);
+                            _context3.next = 16;
+                            return _this3.nodeApi.getBlocks(200, 1);
 
-              case 14:
-                i += 1;
-                _context3.next = 7;
-                break;
+                          case 16:
+                            firstBlock = _context3.sent;
+                            blocks.push(firstBlock);
 
-              case 17:
-                (0, _mobx.runInAction)(function () {
-                  _this3.endHeight = (0, _rounds.getLastBlockHeightOfRound)(roundNumber);
-                  _this3.lastProcessedBlockHeight = currentBlock.height;
-                  _this3.startHeight = firstBlockHeightOfRound;
-                });
+                          case 18:
+                            (0, _mobx.runInAction)(function () {
+                              _this3.endHeight = (0, _rounds.getLastBlockHeightOfRound)(roundNumber);
+                              _this3.lastProcessedBlockHeight = (0, _rounds.getLastBlockHeightOfRound)(roundNumber - 1);
+                              _this3.startHeight = firstBlockHeightOfRound;
 
-              case 18:
+                              _this3.unprocessedBlocks.merge(blocks);
+
+                              _this3.hasLoadedInitialBlocks = true;
+                            });
+                            resolve();
+                            _context3.next = 25;
+                            break;
+
+                          case 22:
+                            _context3.prev = 22;
+                            _context3.t0 = _context3["catch"](0);
+                            reject(_context3.t0);
+
+                          case 25:
+                          case "end":
+                            return _context3.stop();
+                        }
+                      }
+                    }, _callee3, this, [[0, 22]]);
+                  }));
+
+                  return function (_x, _x2) {
+                    return _ref.apply(this, arguments);
+                  };
+                }()));
+
+              case 1:
               case "end":
-                return _context3.stop();
+                return _context4.stop();
             }
           }
-        }, _callee3, this);
+        }, _callee4, this);
       }));
 
-      function loadRoundBlocks() {
-        return _loadRoundBlocks.apply(this, arguments);
+      function loadInitialBlocks() {
+        return _loadInitialBlocks.apply(this, arguments);
       }
 
-      return loadRoundBlocks;
+      return loadInitialBlocks;
     }()
   }, {
     key: "nextBlock",
@@ -2275,6 +2301,7 @@ function () {
 
 exports.default = BlockStore;
 (0, _mobx.decorate)(BlockStore, {
+  hasLoadedInitialBlocks: _mobx.observable,
   hasNextBlock: _mobx.computed,
   init: _mobxTask.task,
   lastProcessedBlockHeight: _mobx.observable,
@@ -2537,7 +2564,7 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 var NetworkStore =
 /*#__PURE__*/
 function () {
-  function NetworkStore(nodeApi, roundStore) {
+  function NetworkStore(nodeApi, blockStore) {
     _classCallCheck(this, NetworkStore);
 
     this.apiServers = [{
@@ -2553,7 +2580,7 @@ function () {
     this.apiServer = this.apiServers[0];
     this.seedNodes = [];
     this.nodeApi = nodeApi;
-    this.roundStore = roundStore;
+    this.blockStore = blockStore;
   }
 
   _createClass(NetworkStore, [{
@@ -2622,7 +2649,7 @@ function () {
       })[0];
       this.apiServer = selectedServer;
       this.nodeApi.setApiServer(selectedServer.url);
-      this.roundStore.init();
+      this.blockStore.init();
     }
   }, {
     key: "networkHeight",
@@ -2796,119 +2823,6 @@ exports.default = PriceStore;
 
 /***/ }),
 
-/***/ "./src/shared/stores/RoundStore.js":
-/*!*****************************************!*\
-  !*** ./src/shared/stores/RoundStore.js ***!
-  \*****************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _mobx = __webpack_require__(/*! mobx */ "mobx");
-
-var _logger = __webpack_require__(/*! ../domain/util/logger */ "./src/shared/domain/util/logger.js");
-
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
-
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-var RoundStore =
-/*#__PURE__*/
-function () {
-  function RoundStore(nodeApi) {
-    _classCallCheck(this, RoundStore);
-
-    this.newRound = null;
-    this.nodeApi = nodeApi;
-  }
-
-  _createClass(RoundStore, [{
-    key: "init",
-    value: function () {
-      var _init = _asyncToGenerator(
-      /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee() {
-        var currentRound;
-        return regeneratorRuntime.wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                (0, _logger.log)("Loading initial current round.");
-                _context.next = 3;
-                return this.nodeApi.getCurrentRound();
-
-              case 3:
-                currentRound = _context.sent;
-                (0, _logger.log)("Initial current round loaded.", currentRound);
-                this.newRound = currentRound;
-
-              case 6:
-              case "end":
-                return _context.stop();
-            }
-          }
-        }, _callee, this);
-      }));
-
-      function init() {
-        return _init.apply(this, arguments);
-      }
-
-      return init;
-    }()
-  }, {
-    key: "hasNewRound",
-    get: function get() {
-      return this.newRound !== null;
-    }
-  }, {
-    key: "initialBlockHeight",
-    get: function get() {
-      return this.hasNewRound ? this.newRound.delegateActivity.reduce(function (initialHeight, slot) {
-        var slotValue = slot.hasMissedBlock ? 0 : 1;
-        return initialHeight + slotValue;
-      }, this.newRound.fromBlock - 1) : 0;
-    }
-  }, {
-    key: "endHeight",
-    get: function get() {
-      return this.hasNewRound ? this.startHeight + 200 : 'n/a';
-    }
-  }, {
-    key: "startHeight",
-    get: function get() {
-      return this.hasNewRound ? this.newRound.fromBlock : 'n/a';
-    }
-  }]);
-
-  return RoundStore;
-}();
-
-exports.default = RoundStore;
-(0, _mobx.decorate)(RoundStore, {
-  endHeight: _mobx.computed,
-  hasNewRound: _mobx.computed,
-  init: _mobx.action,
-  initialBlockHeight: _mobx.computed,
-  newRound: _mobx.observable,
-  startHeight: _mobx.computed
-});
-
-/***/ }),
-
 /***/ "./src/shared/stores/SlotStore.js":
 /*!****************************************!*\
   !*** ./src/shared/stores/SlotStore.js ***!
@@ -2953,7 +2867,7 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 var SlotStore =
 /*#__PURE__*/
 function () {
-  function SlotStore(blockStore, delegateStore, roundStore) {
+  function SlotStore(blockStore, delegateStore) {
     _classCallCheck(this, SlotStore);
 
     this.completedSlots = [];
@@ -2967,7 +2881,6 @@ function () {
     this.unprocessedSlots = [];
     this.blockStore = blockStore;
     this.delegateStore = delegateStore;
-    this.roundStore = roundStore;
   }
 
   _createClass(SlotStore, [{
@@ -2986,11 +2899,12 @@ function () {
                 (0, _logger.log)('Initializing Slot Store.');
                 _context.next = 3;
                 return (0, _mobx.when)(function () {
-                  return _this.roundStore.hasNewRound && _this.delegateStore.hasLoadedDelegates;
+                  return _this.blockStore.hasLoadedBlocks && _this.delegateStore.hasLoadedDelegates;
                 });
 
               case 3:
-                result = (0, _slotFactory.default)(this.roundStore.newRound, this.delegateStore);
+                (0, _logger.log)('Generating initial slots.');
+                result = (0, _slotFactory.default)(this.blockStore.unprocessedBlocks, this.delegateStore);
                 this.watchForNextBlock();
                 this.watchForUnprocessedSlot();
                 (0, _mobx.runInAction)(function () {
@@ -3009,7 +2923,7 @@ function () {
                   });
                 });
 
-              case 7:
+              case 8:
               case "end":
                 return _context.stop();
             }
