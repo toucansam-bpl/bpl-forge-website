@@ -9,20 +9,21 @@ import { task } from 'mobx-task'
 
 export default class NetworkStore {
   apiServers = [
-    { name: 'https://api.bplforge.com', url: 'https://api.bplforge.com' },
     { name: 'https://explorer.dated.fun', url: 'https://explorer.dated.fun/node' },
+    { name: 'https://api.bplforge.com', url: 'https://api.bplforge.com' },
     { name: 'https://api.blockpool.io', url: 'https://api.blockpool.io' },
   ]
   apiServer = this.apiServers[0]
+  hasChangedServer = false
   seedNodes = []
 
-  constructor(nodeApi, blockStore) {
+  constructor(nodeApi) {
     this.nodeApi = nodeApi
-    this.blockStore = blockStore
   }
 
   async init() {
     const seedNodes = [
+      /*
       'http://s01.mc.blockpool.io:9030'
     , 'http://s02.mc.blockpool.io:9030'
     , 'http://s03.mc.blockpool.io:9030'
@@ -33,12 +34,23 @@ export default class NetworkStore {
     , 'http://s08.mc.blockpool.io:9030'
     , 'http://s09.mc.blockpool.io:9030'
     , 'http://s10.mc.blockpool.io:9030'
+    */
+      'http://158.176.106.45:9030'
+    , 'http://158.176.106.42:9030'
+    , 'http://158.176.106.58:9030'
+    , 'http://158.176.106.41:9030'
+    , 'http://158.176.106.56:9030'
+    , 'http://158.176.106.54:9030'
+    , 'http://158.176.106.34:9030'
+    , 'http://158.176.106.52:9030'
+    , 'http://158.176.106.55:9030'
+    , 'http://158.176.106.38:9030'
     ]
 
     const seedNodeStatus = []
     for (let i = 0; i < seedNodes.length; i += 1) {
       let server = seedNodes[i]
-      let status = await this.nodeApi.getSyncStatus()
+      let status = await this.nodeApi.getSyncStatus(server)
       seedNodeStatus.push({
         server,
         height: status.height,
@@ -72,13 +84,14 @@ export default class NetworkStore {
     const selectedServer = this.apiServers.filter(s => s.name === serverName)[0]
     this.apiServer = selectedServer
     this.nodeApi.setApiServer(selectedServer.url)
-    this.blockStore.init()
+    this.hasChangedServer = true
   }
 }
 
 decorate(NetworkStore, {
   apiServer: observable,
   apiServers: observable,
+  hasChangedServer: observable,
   init: task,
   networkHeight: computed,
   seedNodes: observable,

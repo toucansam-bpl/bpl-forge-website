@@ -1,4 +1,5 @@
-const blockInterval = 15 * 1000
+export const blockInterval = 15
+const blockIntervalInMs = blockInterval * 1000
 const epochTimeUtc = Date.UTC(2017, 2, 21, 13, 0, 0, 0)
 const epochSeconds = Math.floor(epochTimeUtc / 1000)
 
@@ -16,7 +17,7 @@ export function getApiTimestamp() {
 }
 
 export const nextMsTimestamp = msTimestamp =>
-  msTimestamp + blockInterval
+  msTimestamp + blockIntervalInMs
 
 export function getTimestamp(apiTimestamp) {
   return (apiTimestamp + epochSeconds) * 1000

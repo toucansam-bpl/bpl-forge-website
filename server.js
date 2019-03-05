@@ -204,9 +204,9 @@ var _default = function _default(req, res) {
   var nodeApi = new _NodeApi.default();
   var priceStore = new _PriceStore.default();
   var delegateStore = new _DelegateStore.default(nodeApi);
-  var blockStore = new _BlockStore.default(nodeApi);
-  var networkStore = new _NetworkStore.default(nodeApi, blockStore);
-  var slotStore = new _SlotStore.default(blockStore, delegateStore);
+  var networkStore = new _NetworkStore.default(nodeApi);
+  var blockStore = new _BlockStore.default(nodeApi, networkStore);
+  var slotStore = new _SlotStore.default(nodeApi, blockStore, delegateStore, networkStore);
   var stores = {
     blockStore: blockStore,
     delegateStore: delegateStore,
@@ -1488,37 +1488,37 @@ function makeApiRequest(_x, _x2) {
 function _makeApiRequest() {
   _makeApiRequest = _asyncToGenerator(
   /*#__PURE__*/
-  regeneratorRuntime.mark(function _callee10(url, params) {
-    return regeneratorRuntime.wrap(function _callee10$(_context10) {
+  regeneratorRuntime.mark(function _callee11(url, params) {
+    return regeneratorRuntime.wrap(function _callee11$(_context11) {
       while (1) {
-        switch (_context10.prev = _context10.next) {
+        switch (_context11.prev = _context11.next) {
           case 0:
-            return _context10.abrupt("return", new Promise(
+            return _context11.abrupt("return", new Promise(
             /*#__PURE__*/
             function () {
               var _ref2 = _asyncToGenerator(
               /*#__PURE__*/
-              regeneratorRuntime.mark(function _callee9(resolve, reject) {
+              regeneratorRuntime.mark(function _callee10(resolve, reject) {
                 var query, requestUrl, rawResponse, response;
-                return regeneratorRuntime.wrap(function _callee9$(_context9) {
+                return regeneratorRuntime.wrap(function _callee10$(_context10) {
                   while (1) {
-                    switch (_context9.prev = _context9.next) {
+                    switch (_context10.prev = _context10.next) {
                       case 0:
-                        _context9.prev = 0;
+                        _context10.prev = 0;
                         query = params ? "?".concat(_querystring.default.stringify(params)) : '';
                         requestUrl = "".concat(url).concat(query);
-                        _context9.next = 5;
+                        _context10.next = 5;
                         return (0, _nodeFetch.default)(requestUrl, {
                           method: 'GET'
                         });
 
                       case 5:
-                        rawResponse = _context9.sent;
-                        _context9.next = 8;
+                        rawResponse = _context10.sent;
+                        _context10.next = 8;
                         return rawResponse.json();
 
                       case 8:
-                        response = _context9.sent;
+                        response = _context10.sent;
 
                         if (response.success) {
                           resolve(response);
@@ -1527,20 +1527,21 @@ function _makeApiRequest() {
                           reject(new Error("Request did not complete successfully."));
                         }
 
-                        _context9.next = 15;
+                        _context10.next = 16;
                         break;
 
                       case 12:
-                        _context9.prev = 12;
-                        _context9.t0 = _context9["catch"](0);
-                        reject(_context9.t0);
+                        _context10.prev = 12;
+                        _context10.t0 = _context10["catch"](0);
+                        console.log("Error from ".concat(url));
+                        reject(_context10.t0);
 
-                      case 15:
+                      case 16:
                       case "end":
-                        return _context9.stop();
+                        return _context10.stop();
                     }
                   }
-                }, _callee9, this, [[0, 12]]);
+                }, _callee10, this, [[0, 12]]);
               }));
 
               return function (_x9, _x10) {
@@ -1550,10 +1551,10 @@ function _makeApiRequest() {
 
           case 1:
           case "end":
-            return _context10.stop();
+            return _context11.stop();
         }
       }
-    }, _callee10, this);
+    }, _callee11, this);
   }));
   return _makeApiRequest.apply(this, arguments);
 }
@@ -1564,7 +1565,7 @@ function () {
   function NodeApi() {
     _classCallCheck(this, NodeApi);
 
-    this.apiServer = 'https://api.bplforge.com';
+    this.apiServer = 'https://explorer.dated.fun/node';
   }
 
   _createClass(NodeApi, [{
@@ -1693,17 +1694,17 @@ function () {
       return getCurrentRound;
     }()
   }, {
-    key: "getRewardBlocks",
+    key: "getRoundForgerData",
     value: function () {
-      var _getRewardBlocks = _asyncToGenerator(
+      var _getRoundForgerData = _asyncToGenerator(
       /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee5(generatorPublicKey) {
+      regeneratorRuntime.mark(function _callee5() {
         return regeneratorRuntime.wrap(function _callee5$(_context5) {
           while (1) {
             switch (_context5.prev = _context5.next) {
               case 0:
-                return _context5.abrupt("return", makeApiRequest(this.getUrl('blocks'), {
-                  generatorPublicKey: generatorPublicKey
+                return _context5.abrupt("return", makeApiRequest(this.getUrl('delegates/getNextForgers'), {
+                  limit: 201
                 }));
 
               case 1:
@@ -1712,6 +1713,34 @@ function () {
             }
           }
         }, _callee5, this);
+      }));
+
+      function getRoundForgerData() {
+        return _getRoundForgerData.apply(this, arguments);
+      }
+
+      return getRoundForgerData;
+    }()
+  }, {
+    key: "getRewardBlocks",
+    value: function () {
+      var _getRewardBlocks = _asyncToGenerator(
+      /*#__PURE__*/
+      regeneratorRuntime.mark(function _callee6(generatorPublicKey) {
+        return regeneratorRuntime.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                return _context6.abrupt("return", makeApiRequest(this.getUrl('blocks'), {
+                  generatorPublicKey: generatorPublicKey
+                }));
+
+              case 1:
+              case "end":
+                return _context6.stop();
+            }
+          }
+        }, _callee6, this);
       }));
 
       function getRewardBlocks(_x5) {
@@ -1725,19 +1754,19 @@ function () {
     value: function () {
       var _getSyncStatus = _asyncToGenerator(
       /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee6(server) {
-        return regeneratorRuntime.wrap(function _callee6$(_context6) {
+      regeneratorRuntime.mark(function _callee7(server) {
+        return regeneratorRuntime.wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
-                return _context6.abrupt("return", makeApiRequest(this.getUrl('loader/status/sync', server)));
+                return _context7.abrupt("return", makeApiRequest(this.getUrl('loader/status/sync', server)));
 
               case 1:
               case "end":
-                return _context6.stop();
+                return _context7.stop();
             }
           }
-        }, _callee6, this);
+        }, _callee7, this);
       }));
 
       function getSyncStatus(_x6) {
@@ -1751,22 +1780,22 @@ function () {
     value: function () {
       var _getTransactions = _asyncToGenerator(
       /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee7(address) {
-        return regeneratorRuntime.wrap(function _callee7$(_context7) {
+      regeneratorRuntime.mark(function _callee8(address) {
+        return regeneratorRuntime.wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
-                return _context7.abrupt("return", makeApiRequest(this.getUrl('transactions'), {
+                return _context8.abrupt("return", makeApiRequest(this.getUrl('transactions'), {
                   senderId: address,
                   recipientId: address
                 }));
 
               case 1:
               case "end":
-                return _context7.stop();
+                return _context8.stop();
             }
           }
-        }, _callee7, this);
+        }, _callee8, this);
       }));
 
       function getTransactions(_x7) {
@@ -1786,21 +1815,21 @@ function () {
     value: function () {
       var _getVoters = _asyncToGenerator(
       /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee8(publicKey) {
-        return regeneratorRuntime.wrap(function _callee8$(_context8) {
+      regeneratorRuntime.mark(function _callee9(publicKey) {
+        return regeneratorRuntime.wrap(function _callee9$(_context9) {
           while (1) {
-            switch (_context8.prev = _context8.next) {
+            switch (_context9.prev = _context9.next) {
               case 0:
-                return _context8.abrupt("return", makeApiRequest(this.getUrl('delegates/voters'), {
+                return _context9.abrupt("return", makeApiRequest(this.getUrl('delegates/voters'), {
                   publicKey: publicKey
                 }));
 
               case 1:
               case "end":
-                return _context8.stop();
+                return _context9.stop();
             }
           }
-        }, _callee8, this);
+        }, _callee9, this);
       }));
 
       function getVoters(_x8) {
@@ -1979,8 +2008,10 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.getApiTimestamp = getApiTimestamp;
 exports.getTimestamp = getTimestamp;
-exports.nextMsTimestamp = exports.fromApiToMs = exports.currentMsTimestamp = void 0;
-var blockInterval = 15 * 1000;
+exports.nextMsTimestamp = exports.fromApiToMs = exports.currentMsTimestamp = exports.blockInterval = void 0;
+var blockInterval = 15;
+exports.blockInterval = blockInterval;
+var blockIntervalInMs = blockInterval * 1000;
 var epochTimeUtc = Date.UTC(2017, 2, 21, 13, 0, 0, 0);
 var epochSeconds = Math.floor(epochTimeUtc / 1000);
 
@@ -2002,7 +2033,7 @@ function getApiTimestamp() {
 }
 
 var nextMsTimestamp = function nextMsTimestamp(msTimestamp) {
-  return msTimestamp + blockInterval;
+  return msTimestamp + blockIntervalInMs;
 };
 
 exports.nextMsTimestamp = nextMsTimestamp;
@@ -2053,7 +2084,7 @@ var blockInterval = 15 * 1000;
 var BlockStore =
 /*#__PURE__*/
 function () {
-  function BlockStore(nodeApi) {
+  function BlockStore(nodeApi, networkStore) {
     var _this = this;
 
     _classCallCheck(this, BlockStore);
@@ -2061,6 +2092,7 @@ function () {
     this.blockListener = void 0;
     this.endHeight = void 0;
     this.hasLoadedInitialBlocks = false;
+    this.initialBlocks = [];
     this.lastProcessedBlockHeight = void 0;
     this.startHeight = void 0;
     this.unprocessedBlocks = new Map();
@@ -2078,8 +2110,14 @@ function () {
     };
 
     this.nodeApi = nodeApi;
+    this.networkStore = networkStore;
     (0, _mobx.onBecomeObserved)(this, 'hasNextBlock', this.resume);
     (0, _mobx.onBecomeUnobserved)(this, 'hasNextBlock', this.suspend);
+    (0, _mobx.when)(function () {
+      return _this.networkStore.hasChangedServer;
+    }, function () {
+      return _this.init();
+    });
   }
 
   _createClass(BlockStore, [{
@@ -2187,7 +2225,8 @@ function () {
                   var _ref = _asyncToGenerator(
                   /*#__PURE__*/
                   regeneratorRuntime.mark(function _callee3(resolve, reject) {
-                    var blocks, currentBlock, roundNumber, firstBlockHeightOfRound, firstLoadedBlock, additionalBlocks, firstBlock;
+                    var blocks, currentBlock, roundNumber, lastBlockHeightOfLastRound, additionalBlocks, _additionalBlocks;
+
                     return regeneratorRuntime.wrap(function _callee3$(_context3) {
                       while (1) {
                         switch (_context3.prev = _context3.next) {
@@ -2200,10 +2239,12 @@ function () {
                             blocks = _context3.sent;
                             currentBlock = blocks[0];
                             roundNumber = (0, _rounds.getRoundNumberFromHeight)(currentBlock.height);
-                            firstBlockHeightOfRound = (0, _rounds.getFirstBlockHeightOfRound)(roundNumber);
-                            firstLoadedBlock = blocks[blocks.length - 1];
+                            lastBlockHeightOfLastRound = (0, _rounds.getLastBlockHeightOfRound)(roundNumber - 1);
+                            blocks = blocks.filter(function (b) {
+                              return b.height >= lastBlockHeightOfLastRound;
+                            });
 
-                            if (!(firstLoadedBlock.height > firstBlockHeightOfRound)) {
+                            if (!(blocks.length === 100)) {
                               _context3.next = 13;
                               break;
                             }
@@ -2214,7 +2255,7 @@ function () {
                           case 11:
                             additionalBlocks = _context3.sent;
                             blocks = blocks.concat(additionalBlocks.filter(function (b) {
-                              return b.height >= firstBlockHeightOfRound;
+                              return b.height >= lastBlockHeightOfLastRound;
                             }));
 
                           case 13:
@@ -2224,19 +2265,22 @@ function () {
                             }
 
                             _context3.next = 16;
-                            return _this3.nodeApi.getBlocks(200, 1);
+                            return _this3.nodeApi.getBlocks(200, 2);
 
                           case 16:
-                            firstBlock = _context3.sent;
-                            blocks.push(firstBlock);
+                            _additionalBlocks = _context3.sent;
+                            blocks = blocks.concat(_additionalBlocks.filter(function (b) {
+                              return b.height >= lastBlockHeightOfLastRound;
+                            }));
 
                           case 18:
                             (0, _mobx.runInAction)(function () {
                               _this3.endHeight = (0, _rounds.getLastBlockHeightOfRound)(roundNumber);
-                              _this3.lastProcessedBlockHeight = (0, _rounds.getLastBlockHeightOfRound)(roundNumber - 1);
-                              _this3.startHeight = firstBlockHeightOfRound;
+                              _this3.lastBlockOfLastRound = blocks.pop();
+                              _this3.lastProcessedBlockHeight = lastBlockHeightOfLastRound;
+                              _this3.startHeight = (0, _rounds.getFirstBlockHeightOfRound)(roundNumber);
 
-                              _this3.unprocessedBlocks.merge(blocks);
+                              _this3.initialBlocks.replace(blocks);
 
                               _this3.hasLoadedInitialBlocks = true;
                             });
@@ -2304,6 +2348,7 @@ exports.default = BlockStore;
   hasLoadedInitialBlocks: _mobx.observable,
   hasNextBlock: _mobx.computed,
   init: _mobxTask.task,
+  initialBlocks: _mobx.observable,
   lastProcessedBlockHeight: _mobx.observable,
   listenForNewBlocks: _mobx.action,
   nextBlock: _mobx.action,
@@ -2564,23 +2609,23 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 var NetworkStore =
 /*#__PURE__*/
 function () {
-  function NetworkStore(nodeApi, blockStore) {
+  function NetworkStore(nodeApi) {
     _classCallCheck(this, NetworkStore);
 
     this.apiServers = [{
-      name: 'https://api.bplforge.com',
-      url: 'https://api.bplforge.com'
-    }, {
       name: 'https://explorer.dated.fun',
       url: 'https://explorer.dated.fun/node'
+    }, {
+      name: 'https://api.bplforge.com',
+      url: 'https://api.bplforge.com'
     }, {
       name: 'https://api.blockpool.io',
       url: 'https://api.blockpool.io'
     }];
     this.apiServer = this.apiServers[0];
+    this.hasChangedServer = false;
     this.seedNodes = [];
     this.nodeApi = nodeApi;
-    this.blockStore = blockStore;
   }
 
   _createClass(NetworkStore, [{
@@ -2596,7 +2641,20 @@ function () {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                seedNodes = ['http://s01.mc.blockpool.io:9030', 'http://s02.mc.blockpool.io:9030', 'http://s03.mc.blockpool.io:9030', 'http://s04.mc.blockpool.io:9030', 'http://s05.mc.blockpool.io:9030', 'http://s06.mc.blockpool.io:9030', 'http://s07.mc.blockpool.io:9030', 'http://s08.mc.blockpool.io:9030', 'http://s09.mc.blockpool.io:9030', 'http://s10.mc.blockpool.io:9030'];
+                seedNodes = [
+                /*
+                'http://s01.mc.blockpool.io:9030'
+                , 'http://s02.mc.blockpool.io:9030'
+                , 'http://s03.mc.blockpool.io:9030'
+                , 'http://s04.mc.blockpool.io:9030'
+                , 'http://s05.mc.blockpool.io:9030'
+                , 'http://s06.mc.blockpool.io:9030'
+                , 'http://s07.mc.blockpool.io:9030'
+                , 'http://s08.mc.blockpool.io:9030'
+                , 'http://s09.mc.blockpool.io:9030'
+                , 'http://s10.mc.blockpool.io:9030'
+                */
+                'http://158.176.106.45:9030', 'http://158.176.106.42:9030', 'http://158.176.106.58:9030', 'http://158.176.106.41:9030', 'http://158.176.106.56:9030', 'http://158.176.106.54:9030', 'http://158.176.106.34:9030', 'http://158.176.106.52:9030', 'http://158.176.106.55:9030', 'http://158.176.106.38:9030'];
                 seedNodeStatus = [];
                 i = 0;
 
@@ -2608,7 +2666,7 @@ function () {
 
                 server = seedNodes[i];
                 _context.next = 7;
-                return this.nodeApi.getSyncStatus();
+                return this.nodeApi.getSyncStatus(server);
 
               case 7:
                 status = _context.sent;
@@ -2649,7 +2707,7 @@ function () {
       })[0];
       this.apiServer = selectedServer;
       this.nodeApi.setApiServer(selectedServer.url);
-      this.blockStore.init();
+      this.hasChangedServer = true;
     }
   }, {
     key: "networkHeight",
@@ -2684,6 +2742,7 @@ exports.default = NetworkStore;
 (0, _mobx.decorate)(NetworkStore, {
   apiServer: _mobx.observable,
   apiServers: _mobx.observable,
+  hasChangedServer: _mobx.observable,
   init: _mobxTask.task,
   networkHeight: _mobx.computed,
   seedNodes: _mobx.observable,
@@ -2864,10 +2923,14 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
+var delegateCount = 201;
+
 var SlotStore =
 /*#__PURE__*/
 function () {
-  function SlotStore(blockStore, delegateStore) {
+  function SlotStore(nodeApi, blockStore, delegateStore, networkStore) {
+    var _this = this;
+
     _classCallCheck(this, SlotStore);
 
     this.completedSlots = [];
@@ -2879,8 +2942,15 @@ function () {
     this.slots = [];
     this.upcomingSlots = [];
     this.unprocessedSlots = [];
+    this.nodeApi = nodeApi;
     this.blockStore = blockStore;
     this.delegateStore = delegateStore;
+    this.networkStore = networkStore;
+    (0, _mobx.when)(function () {
+      return _this.networkStore.hasChangedServer;
+    }, function () {
+      return _this.init();
+    });
   }
 
   _createClass(SlotStore, [{
@@ -2889,41 +2959,68 @@ function () {
       var _init = _asyncToGenerator(
       /*#__PURE__*/
       regeneratorRuntime.mark(function _callee() {
-        var _this = this;
+        var _this2 = this;
 
-        var result;
+        var blockInfo, lastSlotOfLastRound, firstSlot, currentSlot, slotDiff, reverseIndex, firstForgerIndex, processingSlot, forgerIndex, returnedForgers, firstForgers, remainingForgers, forgingInfo, result;
         return regeneratorRuntime.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
                 (0, _logger.log)('Initializing Slot Store.');
                 _context.next = 3;
-                return (0, _mobx.when)(function () {
-                  return _this.blockStore.hasLoadedBlocks && _this.delegateStore.hasLoadedDelegates;
-                });
+                return this.nodeApi.getRoundForgerData();
 
               case 3:
-                (0, _logger.log)('Generating initial slots.');
-                result = (0, _slotFactory.default)(this.blockStore.unprocessedBlocks, this.delegateStore);
-                this.watchForNextBlock();
-                this.watchForUnprocessedSlot();
-                (0, _mobx.runInAction)(function () {
-                  _this.completedSlots.replace(result.completed);
-
-                  _this.upcomingSlots.replace(result.upcoming);
-
-                  _this.slots.replace(result.slots);
-
-                  _this.completedSlots.forEach(function (s) {
-                    return _this.roundSlots.set(s.slot, s);
-                  });
-
-                  _this.upcomingSlots.forEach(function (s) {
-                    return _this.roundSlots.set(s.slot, s);
-                  });
+                this.forgerData = _context.sent;
+                _context.next = 6;
+                return (0, _mobx.when)(function () {
+                  return _this2.blockStore.hasLoadedInitialBlocks && _this2.delegateStore.hasLoadedDelegates;
                 });
 
-              case 8:
+              case 6:
+                (0, _logger.log)('Generating initial slots.');
+                blockInfo = {
+                  endOfLastRoundTimestamp: this.blockStore.lastBlockOfLastRound.timestamp,
+                  blocks: this.blockStore.initialBlocks.filter(function (b) {
+                    return b.height <= _this2.forgerData.currentBlock;
+                  }).reverse()
+                };
+                lastSlotOfLastRound = this.getSlotNumber(blockInfo.endOfLastRoundTimestamp);
+                firstSlot = lastSlotOfLastRound + 1;
+                currentSlot = this.forgerData.currentSlot;
+                slotDiff = firstSlot - currentSlot - 1;
+                reverseIndex = slotDiff % delegateCount;
+                firstForgerIndex = reverseIndex === 0 ? 0 : reverseIndex + delegateCount;
+                processingSlot = currentSlot;
+                forgerIndex = 0;
+                returnedForgers = [];
+
+                while (processingSlot > lastSlotOfLastRound) {
+                  returnedForgers.push({
+                    globalSlot: processingSlot,
+                    localSlot: forgerIndex + 1,
+                    delegate: this.delegateStore.get(this.forgerData.delegates[forgerIndex]).username
+                  });
+                  forgerIndex = forgerIndex === 0 ? 200 : forgerIndex - 1;
+                  processingSlot -= 1;
+                }
+
+                firstForgers = this.forgerData.delegates.slice(firstForgerIndex);
+                remainingForgers = this.forgerData.delegates.slice(0, firstForgerIndex);
+                forgingInfo = {
+                  firstSlot: firstSlot,
+                  currentSlot: currentSlot,
+                  forgers: firstForgers.concat(remainingForgers)
+                };
+                result = (0, _slotFactory.default)(forgingInfo, blockInfo, this.delegateStore);
+                console.log(result); // this.watchForNextBlock()
+                // this.watchForUnprocessedSlot()
+
+                (0, _mobx.runInAction)(function () {
+                  _this2.slots.replace(result.slots);
+                });
+
+              case 24:
               case "end":
                 return _context.stop();
             }
@@ -2938,14 +3035,19 @@ function () {
       return init;
     }()
   }, {
+    key: "getSlotNumber",
+    value: function getSlotNumber(blockTimestamp) {
+      return Math.floor(blockTimestamp / _time.blockInterval);
+    }
+  }, {
     key: "watchForNextBlock",
     value: function watchForNextBlock() {
-      var _this2 = this;
+      var _this3 = this;
 
       (0, _mobx.when)(function () {
-        return _this2.blockStore.hasNextBlock && _this2.isAwaitingBlock;
+        return _this3.blockStore.hasNextBlock && _this3.isAwaitingBlock;
       }, function () {
-        return _this2.processReceivedBlock();
+        return _this3.processReceivedBlock();
       });
     }
   }, {
@@ -2957,7 +3059,7 @@ function () {
   }, {
     key: "processReceivedBlock",
     value: function processReceivedBlock() {
-      var _this3 = this;
+      var _this4 = this;
 
       this.isAwaitingBlock = false;
       this.watchForNextBlock();
@@ -2974,11 +3076,11 @@ function () {
           if (completedSlot.hasMissedBlock) {
             all.totalSlotCount += 1;
 
-            var roundSlot = _this3.getRoundSlot(all.totalSlotCount);
+            var roundSlot = _this4.getRoundSlot(all.totalSlotCount);
 
-            var matchingDelegate = _this3.delegateStore.get(roundSlot.publicKey);
+            var matchingDelegate = _this4.delegateStore.get(roundSlot.publicKey);
 
-            var lastSlot = _this3.upcomingSlots[_this3.upcomingSlots.length - 1];
+            var lastSlot = _this4.upcomingSlots[_this4.upcomingSlots.length - 1];
             all.additionalSlots.push((0, _slotFactory.basicSlot)(all.totalSlotCount, matchingDelegate, (0, _time.nextMsTimestamp)(lastSlot.timestamp)));
           }
         }
@@ -2999,12 +3101,12 @@ function () {
   }, {
     key: "watchForUnprocessedSlot",
     value: function watchForUnprocessedSlot() {
-      var _this4 = this;
+      var _this5 = this;
 
       (0, _mobx.when)(function () {
-        return _this4.isAwaitingSlot && _this4.hasUnprocessedSlots;
+        return _this5.isAwaitingSlot && _this5.hasUnprocessedSlots;
       }, function () {
-        return _this4.processNextSlot();
+        return _this5.processNextSlot();
       });
     }
   }, {
@@ -3015,7 +3117,7 @@ function () {
   }, {
     key: "processNextSlot",
     value: function processNextSlot() {
-      var _this5 = this;
+      var _this6 = this;
 
       this.isAwaitingSlot = false;
       this.watchForUnprocessedSlot();
@@ -3027,7 +3129,7 @@ function () {
         slot: nextSlot
       };
       setTimeout(function () {
-        return _this5.slotInProcess.shouldBeVisible = false;
+        return _this6.slotInProcess.shouldBeVisible = false;
       }, 0);
     }
   }, {
@@ -3044,11 +3146,11 @@ function () {
   }, {
     key: "slotLeftUpcoming",
     value: function slotLeftUpcoming() {
-      var _this6 = this;
+      var _this7 = this;
 
       this.slotInProcess.hasLeftUpcoming = true;
       setTimeout(function () {
-        return _this6.slotInProcess.shouldBeVisible = true;
+        return _this7.slotInProcess.shouldBeVisible = true;
       }, 0);
     }
   }, {
@@ -3064,26 +3166,26 @@ function () {
   }, {
     key: "missedBlockCount",
     get: function get() {
-      return this.completedSlots.filter(function (s) {
+      return this.slots.filter(function (s) {
         return s.hasMissedBlock;
       }).length;
     }
   }, {
     key: "remainingSlotCount",
     get: function get() {
-      return this.unprocessedSlots.length + this.upcomingSlots.length;
+      return delegateCount - this.successfulForgeCount;
     }
   }, {
     key: "successfulForgeCount",
     get: function get() {
-      return this.completedSlots.filter(function (s) {
-        return !s.hasMissedBlock;
+      return this.slots.filter(function (s) {
+        return s.hasBeenCompleted && !s.hasMissedBlock;
       }).length;
     }
   }, {
     key: "totalForgedAmount",
     get: function get() {
-      return this.completedSlots.filter(function (s) {
+      return this.slots.filter(function (s) {
         return !s.hasMissedBlock;
       }).reduce(function (sum, slot) {
         return sum.plus(slot.totalForged);
@@ -3148,14 +3250,18 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
+var delegateCount = 201;
+
 function createSlotFromBlock(slot, block) {
-  var hasMissedBlock = slot.publicKey !== block.generatorPublicKey;
+  var hasMissedBlock = !block || slot.publicKey !== block.generatorPublicKey;
   var blockProps = hasMissedBlock ? {} : {
     totalForged: (0, _format.fromApiString)(block.totalForged)
   };
   return _objectSpread({}, slot, {
     hasMissedBlock: hasMissedBlock
-  }, blockProps);
+  }, blockProps, {
+    hasBeenCompleted: true
+  });
 }
 
 function completedSlotFromDelegate(slot, delegate, timestamp) {
@@ -3182,28 +3288,46 @@ function basicSlot(number, delegate, timestamp) {
   };
 }
 
-function getSlotsFromInitialData(currentRound, delegates) {
+function getSlotsFromInitialData(forgingInfo, blockInfo, delegates) {
+  var blocksToProcess = blockInfo.blocks.concat([]);
   var result = {
-    completed: [],
-    lastTimestamp: (0, _time.currentMsTimestamp)(),
-    slots: [],
-    upcoming: []
+    blocksToProcess: blocksToProcess,
+    hasProcessedAllSlots: false,
+    lastProcessedRoundSlot: 0,
+    lastProcessedGlobalSlot: forgingInfo.firstSlot - 1,
+    lastTimestamp: (0, _time.nextMsTimestamp)((0, _time.fromApiToMs)(blockInfo.endOfLastRoundTimestamp)),
+    remainingBlockCount: delegateCount - blocksToProcess.length,
+    slots: []
   };
-  result = currentRound.delegateActivity.reduce(function (all, slot) {
-    all.lastTimestamp = slot.hasMissedBlock ? (0, _time.nextMsTimestamp)(all.lastTimestamp) : (0, _time.fromApiToMs)(slot.timestamp);
-    var newSlot = completedSlotFromDelegate(slot, delegates.get(slot.publicKey), all.lastTimestamp);
-    all.completed.push(newSlot);
-    all.slots.push(newSlot);
-    return all;
-  }, result);
-  result = currentRound.expectedForgers.reduce(function (all, slot) {
-    all.lastTimestamp = (0, _time.nextMsTimestamp)(all.lastTimestamp);
-    var newslot = basicSlot(slot.blockRoundSlot, delegates.get(slot.publicKey), all.lastTimestamp);
-    all.upcoming.push(newslot);
-    all.slots.push(newslot);
-    return all;
-  }, result);
-  result.completed.sort((0, _sorters.byDescending)('slot'));
+
+  while (!result.hasProcessedAllSlots || result.remainingBlockCount > 0) {
+    result = forgingInfo.forgers.reduce(function (all, forger) {
+      var globalSlot = all.lastProcessedGlobalSlot + 1;
+      all.hasProcessedAllSlots = globalSlot >= forgingInfo.currentSlot;
+      if (all.hasProcessedAllSlots && all.remainingBlockCount === 0) return all;
+      var roundSlot = all.lastProcessedRoundSlot + 1;
+      var slotTimestamp = (0, _time.nextMsTimestamp)(all.lastTimestamp);
+      var slot = basicSlot(roundSlot, delegates.get(forger), slotTimestamp);
+
+      if (!all.hasProcessedAllSlots) {
+        var block = all.blocksToProcess[0];
+        slot = createSlotFromBlock(slot, block);
+
+        if (!slot.hasMissedBlock) {
+          all.blocksToProcess.shift();
+        }
+      } else {
+        all.remainingBlockCount -= 1;
+      }
+
+      all.lastProcessedRoundSlot = roundSlot;
+      all.lastProcessedGlobalSlot = globalSlot;
+      all.lastTimestamp = slotTimestamp;
+      all.slots.push(slot);
+      return all;
+    }, result);
+  }
+
   return result;
 }
 

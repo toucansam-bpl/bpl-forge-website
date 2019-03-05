@@ -2,8 +2,10 @@ import { fromApiString } from '../domain/util/format'
 import { byDescending } from '../domain/util/sorters'
 import { currentMsTimestamp, fromApiToMs, nextMsTimestamp } from '../domain/util/time'
 
+const delegateCount = 201
+
 export function createSlotFromBlock(slot, block) {
-  let hasMissedBlock = slot.publicKey !== block.generatorPublicKey
+  let hasMissedBlock = !block || slot.publicKey !== block.generatorPublicKey
   let blockProps = hasMissedBlock ? {} : {
     totalForged: fromApiString(block.totalForged),
   }
@@ -11,6 +13,7 @@ export function createSlotFromBlock(slot, block) {
     ... slot,
     hasMissedBlock,
     ... blockProps,
+    hasBeenCompleted: true,
   }
 }
 
@@ -40,33 +43,47 @@ export function basicSlot(number, delegate, timestamp) {
   }
 }
 
-export default function getSlotsFromInitialData(currentRound, delegates) {
+export default function getSlotsFromInitialData(forgingInfo, blockInfo, delegates) {
+
+  const blocksToProcess = blockInfo.blocks.concat([])
   let result = {
-    completed: [],
-    lastTimestamp: currentMsTimestamp(),
+    blocksToProcess,
+    hasProcessedAllSlots: false,
+    lastProcessedRoundSlot: 0,
+    lastProcessedGlobalSlot: forgingInfo.firstSlot - 1,
+    lastTimestamp: nextMsTimestamp(fromApiToMs(blockInfo.endOfLastRoundTimestamp)),
+    remainingBlockCount: delegateCount - blocksToProcess.length,
     slots: [],
-    upcoming: [],
   }
 
-  result = currentRound.delegateActivity.reduce((all, slot) => {
-    all.lastTimestamp = slot.hasMissedBlock
-      ? nextMsTimestamp(all.lastTimestamp)
-      : fromApiToMs(slot.timestamp)
-    const newSlot = completedSlotFromDelegate(slot, delegates.get(slot.publicKey), all.lastTimestamp)
-    all.completed.push(newSlot)
-    all.slots.push(newSlot)
-    return all
-  }, result)
+  while (!result.hasProcessedAllSlots || result.remainingBlockCount > 0) {
+    result = forgingInfo.forgers.reduce((all, forger) => {
+      const globalSlot = all.lastProcessedGlobalSlot + 1
+      all.hasProcessedAllSlots = globalSlot >= forgingInfo.currentSlot
+      if (all.hasProcessedAllSlots && all.remainingBlockCount === 0) return all
 
-  result = currentRound.expectedForgers.reduce((all, slot) => {
-    all.lastTimestamp = nextMsTimestamp(all.lastTimestamp)
-    const newslot = basicSlot(slot.blockRoundSlot, delegates.get(slot.publicKey), all.lastTimestamp)
-    all.upcoming.push(newslot)
-    all.slots.push(newslot)
-    return all
-  }, result)
+      const roundSlot = all.lastProcessedRoundSlot + 1
+      const slotTimestamp = nextMsTimestamp(all.lastTimestamp)
+      let slot = basicSlot(roundSlot, delegates.get(forger), slotTimestamp)
 
-  result.completed.sort(byDescending('slot'))
+      if (!all.hasProcessedAllSlots) {
+        let block = all.blocksToProcess[0]
+        slot = createSlotFromBlock(slot, block)
+  
+        if (!slot.hasMissedBlock) {
+          all.blocksToProcess.shift()
+        }
+      } else {
+        all.remainingBlockCount -= 1
+      }
+
+      all.lastProcessedRoundSlot = roundSlot
+      all.lastProcessedGlobalSlot = globalSlot
+      all.lastTimestamp = slotTimestamp
+      all.slots.push(slot)
+      return all
+    }, result)
+  }
 
   return result
 }

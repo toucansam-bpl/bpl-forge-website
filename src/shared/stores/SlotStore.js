@@ -10,7 +10,9 @@ import { task } from 'mobx-task'
 
 import { log } from '../domain/util/logger'
 import getSlotsFromInitialData, { createSlotFromBlock, basicSlot } from './slotFactory'
-import { nextMsTimestamp } from '../domain/util/time';
+import { blockInterval, getEpochTime, nextMsTimestamp, } from '../domain/util/time'
+
+const delegateCount = 201
 
 
 export default class SlotStore {
@@ -24,29 +26,67 @@ export default class SlotStore {
   upcomingSlots = []
   unprocessedSlots = []
 
-  constructor(blockStore, delegateStore) {
+  constructor(nodeApi, blockStore, delegateStore, networkStore) {
+    this.nodeApi = nodeApi
     this.blockStore = blockStore
     this.delegateStore = delegateStore
+    this.networkStore = networkStore
+
+    when(() => this.networkStore.hasChangedServer, () => this.init())
   }
 
   async init() {
     log('Initializing Slot Store.')
-    await when(() => this.blockStore.hasLoadedBlocks && this.delegateStore.hasLoadedDelegates)
+    this.forgerData = await this.nodeApi.getRoundForgerData()
+    await when(() => this.blockStore.hasLoadedInitialBlocks && this.delegateStore.hasLoadedDelegates)
 
     log('Generating initial slots.')
-    const result = getSlotsFromInitialData(this.blockStore.unprocessedBlocks, this.delegateStore)    
-    this.watchForNextBlock()
-    this.watchForUnprocessedSlot()
+    const blockInfo = {
+      endOfLastRoundTimestamp: this.blockStore.lastBlockOfLastRound.timestamp,
+      blocks: this.blockStore.initialBlocks.filter(b => b.height <= this.forgerData.currentBlock).reverse(),
+    }
+    
+    const lastSlotOfLastRound = this.getSlotNumber(blockInfo.endOfLastRoundTimestamp)
+    const firstSlot = lastSlotOfLastRound + 1
+    const currentSlot = this.forgerData.currentSlot
+    const slotDiff = firstSlot - currentSlot - 1
+    const reverseIndex = slotDiff % delegateCount
+    const firstForgerIndex = reverseIndex === 0 ? 0 : reverseIndex + delegateCount
+
+    let processingSlot = currentSlot
+    let forgerIndex = 0
+    const returnedForgers = []
+    while (processingSlot > lastSlotOfLastRound) {
+      returnedForgers.push({
+        globalSlot: processingSlot,
+        localSlot: forgerIndex + 1,
+        delegate: this.delegateStore.get(this.forgerData.delegates[forgerIndex]).username,
+      })
+      forgerIndex = forgerIndex === 0 ? 200 : forgerIndex - 1
+      processingSlot -= 1
+    }
+
+    const firstForgers = this.forgerData.delegates.slice(firstForgerIndex)
+    const remainingForgers = this.forgerData.delegates.slice(0, firstForgerIndex)
+    const forgingInfo = {
+      firstSlot,
+      currentSlot,
+      forgers: firstForgers.concat(remainingForgers),
+    }
+    const result = getSlotsFromInitialData(forgingInfo, blockInfo, this.delegateStore)    
+    console.log(result)
+
+    // this.watchForNextBlock()
+    // this.watchForUnprocessedSlot()
 
     runInAction(() => {
-      this.completedSlots.replace(result.completed)
-      this.upcomingSlots.replace(result.upcoming)
       this.slots.replace(result.slots)
-
-      this.completedSlots.forEach(s => this.roundSlots.set(s.slot, s))
-      this.upcomingSlots.forEach(s => this.roundSlots.set(s.slot, s))
     }) 
   }
+
+  getSlotNumber(blockTimestamp) {
+		return Math.floor(blockTimestamp / blockInterval)
+	}
 
   watchForNextBlock() {
     when(() => this.blockStore.hasNextBlock && this.isAwaitingBlock, () => this.processReceivedBlock())
@@ -129,19 +169,19 @@ export default class SlotStore {
   }
 
   get missedBlockCount() {
-    return this.completedSlots.filter(s => s.hasMissedBlock).length
+    return this.slots.filter(s => s.hasMissedBlock).length
   }
 
   get remainingSlotCount() {
-    return this.unprocessedSlots.length + this.upcomingSlots.length
+    return delegateCount - this.successfulForgeCount
   }
 
   get successfulForgeCount() {
-    return this.completedSlots.filter(s => !s.hasMissedBlock).length
+    return this.slots.filter(s => s.hasBeenCompleted && !s.hasMissedBlock).length
   }
   
   get totalForgedAmount() {
-    return this.completedSlots
+    return this.slots
       .filter(s => !s.hasMissedBlock)
       .reduce((sum, slot) => sum.plus(slot.totalForged), Big(0))
   }

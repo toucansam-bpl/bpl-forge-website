@@ -19,13 +19,14 @@ async function makeApiRequest(url, params) {
         reject(new Error(`Request did not complete successfully.`))
       }
     } catch (err) {
+      console.log(`Error from ${url}`)
       reject(err)
     }
   })
 }
 
 export default class NodeApi {
-  apiServer = 'https://api.bplforge.com'
+  apiServer = 'https://explorer.dated.fun/node'
 
   async getActiveDelegates() {
     return makeApiRequest(this.getUrl('delegates'), 0, 201)
@@ -68,6 +69,10 @@ export default class NodeApi {
       ],
     }
     */
+  }
+
+  async getRoundForgerData() {
+    return makeApiRequest(this.getUrl('delegates/getNextForgers'), { limit: 201, })
   }
 
   async getRewardBlocks(generatorPublicKey) {

@@ -42,9 +42,9 @@ const theme = createMuiTheme({
 const nodeApi = new NodeApi()
 const priceStore = new PriceStore()
 const delegateStore = new DelegateStore(nodeApi)
-const blockStore = new BlockStore(nodeApi)
-const networkStore = new NetworkStore(nodeApi, blockStore)
-const slotStore = new SlotStore(blockStore, delegateStore)
+const networkStore = new NetworkStore(nodeApi)
+const blockStore = new BlockStore(nodeApi, networkStore)
+const slotStore = new SlotStore(nodeApi, blockStore, delegateStore, networkStore)
 
 const stores = {
   blockStore,
