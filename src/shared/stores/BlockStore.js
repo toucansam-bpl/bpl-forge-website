@@ -22,8 +22,7 @@ const blockInterval = 15 * 1000
 export default class BlockStore {
   blockListener
   endHeight
-  hasLoadedInitialBlocks = false
-  initialBlocks = []
+  isReady = false
   lastProcessedBlockHeight
   startHeight
   unprocessedBlocks = new Map()
@@ -100,8 +99,8 @@ export default class BlockStore {
           this.lastBlockOfLastRound = blocks.pop()
           this.lastProcessedBlockHeight = lastBlockHeightOfLastRound
           this.startHeight = getFirstBlockHeightOfRound(roundNumber)
-          this.initialBlocks.replace(blocks)
-          this.hasLoadedInitialBlocks = true
+          blocks.forEach(b => this.unprocessedBlocks.set(b.height, b))
+          this.isReady = true
         })
         
         resolve()
@@ -124,10 +123,9 @@ export default class BlockStore {
 }
 
 decorate(BlockStore, {
-  hasLoadedInitialBlocks: observable,
   hasNextBlock: computed,
+  isReady: observable,
   init: task,
-  initialBlocks: observable,
   lastProcessedBlockHeight: observable,
   listenForNewBlocks: action,
   nextBlock: action,

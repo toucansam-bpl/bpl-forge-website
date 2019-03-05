@@ -94240,8 +94240,7 @@ function () {
 
     this.blockListener = void 0;
     this.endHeight = void 0;
-    this.hasLoadedInitialBlocks = false;
-    this.initialBlocks = [];
+    this.isReady = false;
     this.lastProcessedBlockHeight = void 0;
     this.startHeight = void 0;
     this.unprocessedBlocks = new Map();
@@ -94428,10 +94427,10 @@ function () {
                               _this3.lastBlockOfLastRound = blocks.pop();
                               _this3.lastProcessedBlockHeight = lastBlockHeightOfLastRound;
                               _this3.startHeight = (0, _rounds.getFirstBlockHeightOfRound)(roundNumber);
-
-                              _this3.initialBlocks.replace(blocks);
-
-                              _this3.hasLoadedInitialBlocks = true;
+                              blocks.forEach(function (b) {
+                                return _this3.unprocessedBlocks.set(b.height, b);
+                              });
+                              _this3.isReady = true;
                             });
                             resolve();
                             _context3.next = 25;
@@ -94494,10 +94493,9 @@ function () {
 
 exports.default = BlockStore;
 (0, _mobx.decorate)(BlockStore, {
-  hasLoadedInitialBlocks: _mobx.observable,
   hasNextBlock: _mobx.computed,
+  isReady: _mobx.observable,
   init: _mobxTask.task,
-  initialBlocks: _mobx.observable,
   lastProcessedBlockHeight: _mobx.observable,
   listenForNewBlocks: _mobx.action,
   nextBlock: _mobx.action,
@@ -95054,11 +95052,9 @@ var _mobxTask = __webpack_require__(/*! mobx-task */ "./node_modules/mobx-task/l
 
 var _logger = __webpack_require__(/*! ../domain/util/logger */ "./src/shared/domain/util/logger.js");
 
-var _slotFactory = _interopRequireWildcard(__webpack_require__(/*! ./slotFactory */ "./src/shared/stores/slotFactory.js"));
+var _slotFactory = __webpack_require__(/*! ./slotFactory */ "./src/shared/stores/slotFactory.js");
 
 var _time = __webpack_require__(/*! ../domain/util/time */ "./src/shared/domain/util/time.js");
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -95082,15 +95078,14 @@ function () {
 
     _classCallCheck(this, SlotStore);
 
-    this.completedSlots = [];
     this.hasCompletedSlotsForRound = false;
     this.isAwaitingBlock = true;
     this.isAwaitingSlot = true;
-    this.roundSlots = new Map();
     this.slotInProcess = null;
-    this.slots = [];
-    this.upcomingSlots = [];
     this.unprocessedSlots = [];
+    this.completedSlots = [];
+    this.roundSlots = new Map();
+    this.upcomingSlots = [];
     this.nodeApi = nodeApi;
     this.blockStore = blockStore;
     this.delegateStore = delegateStore;
@@ -95110,7 +95105,7 @@ function () {
       regeneratorRuntime.mark(function _callee() {
         var _this2 = this;
 
-        var blockInfo, lastSlotOfLastRound, firstSlot, currentSlot, slotDiff, reverseIndex, firstForgerIndex, processingSlot, forgerIndex, returnedForgers, firstForgers, remainingForgers, forgingInfo, result;
+        var endOfLastRoundTimestamp, lastSlotOfLastRound, firstSlot, currentSlot, slotDiff, reverseIndex, firstForgerIndex, firstForgers, remainingForgers;
         return regeneratorRuntime.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
@@ -95123,53 +95118,45 @@ function () {
                 this.forgerData = _context.sent;
                 _context.next = 6;
                 return (0, _mobx.when)(function () {
-                  return _this2.blockStore.hasLoadedInitialBlocks && _this2.delegateStore.hasLoadedDelegates;
+                  return _this2.blockStore.isReady && _this2.delegateStore.isInitialized;
                 });
 
               case 6:
-                (0, _logger.log)('Generating initial slots.');
-                blockInfo = {
-                  endOfLastRoundTimestamp: this.blockStore.lastBlockOfLastRound.timestamp,
-                  blocks: this.blockStore.initialBlocks.filter(function (b) {
-                    return b.height <= _this2.forgerData.currentBlock;
-                  }).reverse()
-                };
-                lastSlotOfLastRound = this.getSlotNumber(blockInfo.endOfLastRoundTimestamp);
+                (0, _logger.log)('Generating forging list');
+                endOfLastRoundTimestamp = this.blockStore.lastBlockOfLastRound.timestamp;
+                lastSlotOfLastRound = this.getSlotNumber(endOfLastRoundTimestamp);
                 firstSlot = lastSlotOfLastRound + 1;
                 currentSlot = this.forgerData.currentSlot;
                 slotDiff = firstSlot - currentSlot - 1;
                 reverseIndex = slotDiff % delegateCount;
                 firstForgerIndex = reverseIndex === 0 ? 0 : reverseIndex + delegateCount;
-                processingSlot = currentSlot;
-                forgerIndex = 0;
-                returnedForgers = [];
-
-                while (processingSlot > lastSlotOfLastRound) {
-                  returnedForgers.push({
-                    globalSlot: processingSlot,
-                    localSlot: forgerIndex + 1,
-                    delegate: this.delegateStore.get(this.forgerData.delegates[forgerIndex]).username
-                  });
-                  forgerIndex = forgerIndex === 0 ? 200 : forgerIndex - 1;
-                  processingSlot -= 1;
-                }
-
                 firstForgers = this.forgerData.delegates.slice(firstForgerIndex);
                 remainingForgers = this.forgerData.delegates.slice(0, firstForgerIndex);
-                forgingInfo = {
-                  firstSlot: firstSlot,
-                  currentSlot: currentSlot,
-                  forgers: firstForgers.concat(remainingForgers)
-                };
-                result = (0, _slotFactory.default)(forgingInfo, blockInfo, this.delegateStore);
-                console.log(result); // this.watchForNextBlock()
-                // this.watchForUnprocessedSlot()
-
                 (0, _mobx.runInAction)(function () {
-                  _this2.slots.replace(result.slots);
+                  var result = firstForgers.concat(remainingForgers).reduce(function (all, publicKey, i) {
+                    var slotNumber = i + 1;
+                    var timestamp = (0, _time.nextMsTimestamp)(all.lastProcessedTimestamp);
+
+                    _this2.roundSlots.set(slotNumber, {
+                      slotNumber: slotNumber,
+                      publicKey: publicKey
+                    });
+
+                    all.upcomingSlots.push((0, _slotFactory.basicSlot)(slotNumber, _this2.delegateStore.get(publicKey), timestamp));
+                    all.lastProcessedTimestamp = timestamp;
+                    return all;
+                  }, {
+                    lastProcessedTimestamp: (0, _time.fromApiToMs)(endOfLastRoundTimestamp),
+                    upcomingSlots: []
+                  });
+
+                  _this2.upcomingSlots.replace(result.upcomingSlots);
+
+                  _this2.isReady = true; // this.watchForNextBlock()
+                  // this.watchForUnprocessedSlot()
                 });
 
-              case 24:
+              case 17:
               case "end":
                 return _context.stop();
             }
@@ -95282,27 +95269,6 @@ function () {
       }, 0);
     }
   }, {
-    key: "slotJoinedCompleted",
-    value: function slotJoinedCompleted() {
-      this.isAwaitingSlot = true;
-      this.completedSlots.unshift(this.slotInProcess.slot);
-      this.slotInProcess = null;
-
-      if (!this.hasUnprocessedSlots) {
-        this.isAwaitingBlock = true;
-      }
-    }
-  }, {
-    key: "slotLeftUpcoming",
-    value: function slotLeftUpcoming() {
-      var _this7 = this;
-
-      this.slotInProcess.hasLeftUpcoming = true;
-      setTimeout(function () {
-        return _this7.slotInProcess.shouldBeVisible = true;
-      }, 0);
-    }
-  }, {
     key: "hasUnprocessedSlots",
     get: function get() {
       return this.unprocessedSlots.length > 0;
@@ -95315,26 +95281,31 @@ function () {
   }, {
     key: "missedBlockCount",
     get: function get() {
-      return this.slots.filter(function (s) {
+      return this.completedSlots.filter(function (s) {
         return s.hasMissedBlock;
       }).length;
     }
   }, {
     key: "remainingSlotCount",
     get: function get() {
-      return delegateCount - this.successfulForgeCount;
+      return this.upcomingSlots.length;
+    }
+  }, {
+    key: "slots",
+    get: function get() {
+      return this.completedSlots.concat(this.upcomingSlots);
     }
   }, {
     key: "successfulForgeCount",
     get: function get() {
-      return this.slots.filter(function (s) {
-        return s.hasBeenCompleted && !s.hasMissedBlock;
+      return this.completedSlots.filter(function (s) {
+        return !s.hasMissedBlock;
       }).length;
     }
   }, {
     key: "totalForgedAmount",
     get: function get() {
-      return this.slots.filter(function (s) {
+      return this.completedSlots.filter(function (s) {
         return !s.hasMissedBlock;
       }).reduce(function (sum, slot) {
         return sum.plus(slot.totalForged);
@@ -95348,24 +95319,22 @@ function () {
 exports.default = SlotStore;
 (0, _mobx.decorate)(SlotStore, {
   completedSlots: _mobx.observable,
+  init: _mobxTask.task,
+  missedBlockCount: _mobx.computed,
+  slots: _mobx.computed,
+  successfulForgeCount: _mobx.computed,
+  totalForgedAmount: _mobx.computed,
+  upcomingSlots: _mobx.observable,
   hasCompletedSlotsForRound: _mobx.observable,
   hasSlotInProcess: _mobx.computed,
   hasUnprocessedSlots: _mobx.computed,
-  init: _mobxTask.task,
   isAwaitingBlock: _mobx.observable,
   isAwaitingSlot: _mobx.observable,
-  missedBlockCount: _mobx.computed,
   nextUnprocessedSlot: _mobx.action,
   processReceivedBlock: _mobx.action,
   processNextSlot: _mobx.action,
   remainingSlotCount: _mobx.computed,
   slotInProcess: _mobx.observable,
-  slotJoinedCompleted: _mobx.action,
-  slotLeftUpcoming: _mobx.action,
-  slots: _mobx.observable,
-  successfulForgeCount: _mobx.computed,
-  totalForgedAmount: _mobx.computed,
-  upcomingSlots: _mobx.observable,
   unprocessedSlots: _mobx.observable
 });
 
