@@ -2109,9 +2109,9 @@ function () {
     };
 
     this.nodeApi = nodeApi;
-    this.networkStore = networkStore;
-    (0, _mobx.onBecomeObserved)(this, 'hasNextBlock', this.resume);
-    (0, _mobx.onBecomeUnobserved)(this, 'hasNextBlock', this.suspend);
+    this.networkStore = networkStore; // onBecomeObserved(this, 'hasNextBlock', this.resume)
+    // onBecomeUnobserved(this, 'hasNextBlock', this.suspend)
+
     (0, _mobx.when)(function () {
       return _this.networkStore.hasChangedServer;
     }, function () {
@@ -2134,6 +2134,9 @@ function () {
                 return this.loadInitialBlocks();
 
               case 3:
+                this.resume();
+
+              case 4:
               case "end":
                 return _context.stop();
             }
@@ -2639,20 +2642,7 @@ function () {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                seedNodes = [
-                /*
-                'http://s01.mc.blockpool.io:9030'
-                , 'http://s02.mc.blockpool.io:9030'
-                , 'http://s03.mc.blockpool.io:9030'
-                , 'http://s04.mc.blockpool.io:9030'
-                , 'http://s05.mc.blockpool.io:9030'
-                , 'http://s06.mc.blockpool.io:9030'
-                , 'http://s07.mc.blockpool.io:9030'
-                , 'http://s08.mc.blockpool.io:9030'
-                , 'http://s09.mc.blockpool.io:9030'
-                , 'http://s10.mc.blockpool.io:9030'
-                */
-                'http://158.176.106.45:9030', 'http://158.176.106.42:9030', 'http://158.176.106.58:9030', 'http://158.176.106.41:9030', 'http://158.176.106.56:9030', 'http://158.176.106.54:9030', 'http://158.176.106.34:9030', 'http://158.176.106.52:9030', 'http://158.176.106.55:9030', 'http://158.176.106.38:9030'];
+                seedNodes = ['http://s01.mc.blockpool.io:9030', 'http://s02.mc.blockpool.io:9030', 'http://s03.mc.blockpool.io:9030', 'http://s04.mc.blockpool.io:9030', 'http://s05.mc.blockpool.io:9030', 'http://s06.mc.blockpool.io:9030', 'http://s07.mc.blockpool.io:9030', 'http://s08.mc.blockpool.io:9030', 'http://s09.mc.blockpool.io:9030', 'http://s10.mc.blockpool.io:9030'];
                 seedNodeStatus = [];
                 i = 0;
 
@@ -2929,12 +2919,9 @@ function () {
 
     _classCallCheck(this, SlotStore);
 
+    this.completedSlots = [];
     this.hasCompletedSlotsForRound = false;
     this.isAwaitingBlock = true;
-    this.isAwaitingSlot = true;
-    this.slotInProcess = null;
-    this.unprocessedSlots = [];
-    this.completedSlots = [];
     this.roundSlots = new Map();
     this.upcomingSlots = [];
     this.nodeApi = nodeApi;
@@ -3003,8 +2990,9 @@ function () {
 
                   _this2.upcomingSlots.replace(result.upcomingSlots);
 
-                  _this2.isReady = true; // this.watchForNextBlock()
-                  // this.watchForUnprocessedSlot()
+                  _this2.isReady = true;
+
+                  _this2.watchForNextBlock();
                 });
 
               case 17:
@@ -3058,7 +3046,7 @@ function () {
         } else {
           var completedSlot = (0, _slotFactory.createSlotFromBlock)(slot, all.block);
           all.hasFoundProcessedSlot = !completedSlot.hasMissedBlock;
-          all.unprocessedSlots.push(completedSlot);
+          all.completedSlots.push(completedSlot);
 
           if (completedSlot.hasMissedBlock) {
             all.totalSlotCount += 1;
@@ -3067,7 +3055,9 @@ function () {
 
             var matchingDelegate = _this4.delegateStore.get(roundSlot.publicKey);
 
-            var lastSlot = _this4.upcomingSlots[_this4.upcomingSlots.length - 1];
+            var lastSlot = _this4.completedSlots[_this4.completedSlots.length - 1] || {
+              timestamp: _this4.lastProcessedTimestamp
+            };
             all.additionalSlots.push((0, _slotFactory.basicSlot)(all.totalSlotCount, matchingDelegate, (0, _time.nextMsTimestamp)(lastSlot.timestamp)));
           }
         }
@@ -3076,58 +3066,15 @@ function () {
       }, {
         additionalSlots: [],
         block: nextBlock,
+        completedSlots: [],
         hasFoundProcessedSlot: false,
         totalSlotCount: this.completedSlots.length + this.upcomingSlots.length,
-        unprocessedSlots: [],
         upcomingSlots: []
       });
-      this.unprocessedSlots.replace(this.unprocessedSlots.concat(blockSlots.unprocessedSlots));
+      this.completedSlots.replace(this.completedSlots.concat(blockSlots.completedSlots));
       this.upcomingSlots.replace(blockSlots.upcomingSlots.concat(blockSlots.additionalSlots));
-      this.hasCompletedSlotsForRound = this.unprocessedSlots.length === 0 && this.upcomingSlots.length === 0;
-    }
-  }, {
-    key: "watchForUnprocessedSlot",
-    value: function watchForUnprocessedSlot() {
-      var _this5 = this;
-
-      (0, _mobx.when)(function () {
-        return _this5.isAwaitingSlot && _this5.hasUnprocessedSlots;
-      }, function () {
-        return _this5.processNextSlot();
-      });
-    }
-  }, {
-    key: "nextUnprocessedSlot",
-    value: function nextUnprocessedSlot() {
-      return this.unprocessedSlots.shift();
-    }
-  }, {
-    key: "processNextSlot",
-    value: function processNextSlot() {
-      var _this6 = this;
-
-      this.isAwaitingSlot = false;
-      this.watchForUnprocessedSlot();
-      var nextSlot = this.nextUnprocessedSlot();
-      (0, _logger.log)('Processing next slot.', nextSlot);
-      this.slotInProcess = {
-        hasLeftUpcoming: false,
-        shouldBeVisible: true,
-        slot: nextSlot
-      };
-      setTimeout(function () {
-        return _this6.slotInProcess.shouldBeVisible = false;
-      }, 0);
-    }
-  }, {
-    key: "hasUnprocessedSlots",
-    get: function get() {
-      return this.unprocessedSlots.length > 0;
-    }
-  }, {
-    key: "hasSlotInProcess",
-    get: function get() {
-      return this.slotInProcess !== null;
+      this.hasCompletedSlotsForRound = this.upcomingSlots.length === 0;
+      this.isAwaitingBlock = true;
     }
   }, {
     key: "missedBlockCount",
@@ -3170,23 +3117,16 @@ function () {
 exports.default = SlotStore;
 (0, _mobx.decorate)(SlotStore, {
   completedSlots: _mobx.observable,
+  hasCompletedSlotsForRound: _mobx.observable,
   init: _mobxTask.task,
+  isAwaitingBlock: _mobx.observable,
   missedBlockCount: _mobx.computed,
+  processReceivedBlock: _mobx.action,
+  remainingSlotCount: _mobx.computed,
   slots: _mobx.computed,
   successfulForgeCount: _mobx.computed,
   totalForgedAmount: _mobx.computed,
-  upcomingSlots: _mobx.observable,
-  hasCompletedSlotsForRound: _mobx.observable,
-  hasSlotInProcess: _mobx.computed,
-  hasUnprocessedSlots: _mobx.computed,
-  isAwaitingBlock: _mobx.observable,
-  isAwaitingSlot: _mobx.observable,
-  nextUnprocessedSlot: _mobx.action,
-  processReceivedBlock: _mobx.action,
-  processNextSlot: _mobx.action,
-  remainingSlotCount: _mobx.computed,
-  slotInProcess: _mobx.observable,
-  unprocessedSlots: _mobx.observable
+  upcomingSlots: _mobx.observable
 });
 
 /***/ }),

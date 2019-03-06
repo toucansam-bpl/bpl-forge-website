@@ -31,8 +31,8 @@ export default class BlockStore {
     this.nodeApi = nodeApi
     this.networkStore = networkStore
 
-    onBecomeObserved(this, 'hasNextBlock', this.resume)
-    onBecomeUnobserved(this, 'hasNextBlock', this.suspend)
+    // onBecomeObserved(this, 'hasNextBlock', this.resume)
+    // onBecomeUnobserved(this, 'hasNextBlock', this.suspend)
 
     when(() => this.networkStore.hasChangedServer, () => this.init())
   }
@@ -40,6 +40,7 @@ export default class BlockStore {
   async init() {
     log('Initializing Block Store.')
     await this.loadInitialBlocks()
+    this.resume()
   }
 
   resume = () => {

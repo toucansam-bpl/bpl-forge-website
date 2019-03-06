@@ -23,7 +23,6 @@ export default class NetworkStore {
 
   async init() {
     const seedNodes = [
-      /*
       'http://s01.mc.blockpool.io:9030'
     , 'http://s02.mc.blockpool.io:9030'
     , 'http://s03.mc.blockpool.io:9030'
@@ -34,17 +33,6 @@ export default class NetworkStore {
     , 'http://s08.mc.blockpool.io:9030'
     , 'http://s09.mc.blockpool.io:9030'
     , 'http://s10.mc.blockpool.io:9030'
-    */
-      'http://158.176.106.45:9030'
-    , 'http://158.176.106.42:9030'
-    , 'http://158.176.106.58:9030'
-    , 'http://158.176.106.41:9030'
-    , 'http://158.176.106.56:9030'
-    , 'http://158.176.106.54:9030'
-    , 'http://158.176.106.34:9030'
-    , 'http://158.176.106.52:9030'
-    , 'http://158.176.106.55:9030'
-    , 'http://158.176.106.38:9030'
     ]
 
     const seedNodeStatus = []

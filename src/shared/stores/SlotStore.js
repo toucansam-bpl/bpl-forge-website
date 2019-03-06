@@ -10,19 +10,15 @@ import { task } from 'mobx-task'
 
 import { log } from '../domain/util/logger'
 import { createSlotFromBlock, basicSlot } from './slotFactory'
-import { blockInterval, getEpochTime, nextMsTimestamp, fromApiToMs, } from '../domain/util/time'
+import { blockInterval, nextMsTimestamp, fromApiToMs, } from '../domain/util/time'
 
 const delegateCount = 201
 
 
 export default class SlotStore {
+  completedSlots = []
   hasCompletedSlotsForRound = false
   isAwaitingBlock = true
-  isAwaitingSlot = true
-  slotInProcess = null
-  unprocessedSlots = []
-
-  completedSlots = []
   roundSlots = new Map()
   upcomingSlots = []
 
@@ -71,8 +67,7 @@ export default class SlotStore {
       this.upcomingSlots.replace(result.upcomingSlots)
       this.isReady = true
 
-      // this.watchForNextBlock()
-      // this.watchForUnprocessedSlot()
+      this.watchForNextBlock()
     }) 
   }
 
@@ -102,13 +97,15 @@ export default class SlotStore {
       } else {
         const completedSlot = createSlotFromBlock(slot, all.block)
         all.hasFoundProcessedSlot = !completedSlot.hasMissedBlock
-        all.unprocessedSlots.push(completedSlot)
+        all.completedSlots.push(completedSlot)
 
         if (completedSlot.hasMissedBlock) {
           all.totalSlotCount += 1
           let roundSlot = this.getRoundSlot(all.totalSlotCount)
           let matchingDelegate = this.delegateStore.get(roundSlot.publicKey)
-          let lastSlot = this.upcomingSlots[this.upcomingSlots.length - 1]
+          let lastSlot = this.completedSlots[this.completedSlots.length - 1] || {
+            timestamp: this.lastProcessedTimestamp,
+          }
           all.additionalSlots.push(basicSlot(all.totalSlotCount, matchingDelegate, nextMsTimestamp(lastSlot.timestamp)))
         }
       }
@@ -116,48 +113,17 @@ export default class SlotStore {
     }, {
       additionalSlots: [],
       block: nextBlock,
+      completedSlots: [],
       hasFoundProcessedSlot: false,
       totalSlotCount: this.completedSlots.length + this.upcomingSlots.length,
-      unprocessedSlots: [],
       upcomingSlots: [],
     })
 
-    this.unprocessedSlots.replace(this.unprocessedSlots.concat(blockSlots.unprocessedSlots))
+    this.completedSlots.replace(this.completedSlots.concat(blockSlots.completedSlots))
     this.upcomingSlots.replace(blockSlots.upcomingSlots.concat(blockSlots.additionalSlots))
 
-    this.hasCompletedSlotsForRound = this.unprocessedSlots.length === 0 && this.upcomingSlots.length === 0
-  }
-
-  watchForUnprocessedSlot() {
-    when(() => this.isAwaitingSlot && this.hasUnprocessedSlots, () => this.processNextSlot())
-  }
-  
-  get hasUnprocessedSlots() {
-    return this.unprocessedSlots.length > 0
-  }
-
-  nextUnprocessedSlot() {
-    return this.unprocessedSlots.shift()
-  }
-
-  processNextSlot() {
-    this.isAwaitingSlot = false
-    this.watchForUnprocessedSlot()
-
-    const nextSlot = this.nextUnprocessedSlot()
-    log('Processing next slot.', nextSlot)
-
-    this.slotInProcess = {
-      hasLeftUpcoming: false,
-      shouldBeVisible: true,
-      slot: nextSlot,
-    }
-
-    setTimeout(() => this.slotInProcess.shouldBeVisible = false, 0)
-  }
-
-  get hasSlotInProcess() {
-    return this.slotInProcess !== null
+    this.hasCompletedSlotsForRound = this.upcomingSlots.length === 0
+    this.isAwaitingBlock = true
   }
 
   get missedBlockCount() {
@@ -185,24 +151,14 @@ export default class SlotStore {
 
 decorate(SlotStore, {
   completedSlots: observable,
+  hasCompletedSlotsForRound: observable,
   init: task,
+  isAwaitingBlock: observable,
   missedBlockCount: computed,
+  processReceivedBlock: action,
+  remainingSlotCount: computed,
   slots: computed,
   successfulForgeCount: computed,
   totalForgedAmount: computed,
   upcomingSlots: observable,
-
-
-
-  hasCompletedSlotsForRound: observable,
-  hasSlotInProcess: computed,
-  hasUnprocessedSlots: computed,
-  isAwaitingBlock: observable,
-  isAwaitingSlot: observable,
-  nextUnprocessedSlot: action,
-  processReceivedBlock: action,
-  processNextSlot: action,
-  remainingSlotCount: computed,
-  slotInProcess: observable,
-  unprocessedSlots: observable,
 })
