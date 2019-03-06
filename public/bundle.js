@@ -93614,99 +93614,17 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
-var _nodeFetch = _interopRequireDefault(__webpack_require__(/*! node-fetch */ "./node_modules/node-fetch/browser.js"));
+var _makeApiRequest = __webpack_require__(/*! ./makeApiRequest */ "./src/shared/domain/api/makeApiRequest.js");
 
-var _querystring = _interopRequireDefault(__webpack_require__(/*! querystring */ "./node_modules/querystring-es3/index.js"));
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
-
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
-
-function makeApiRequest(_x, _x2) {
-  return _makeApiRequest.apply(this, arguments);
-}
-
-function _makeApiRequest() {
-  _makeApiRequest = _asyncToGenerator(
-  /*#__PURE__*/
-  regeneratorRuntime.mark(function _callee11(url, params) {
-    return regeneratorRuntime.wrap(function _callee11$(_context11) {
-      while (1) {
-        switch (_context11.prev = _context11.next) {
-          case 0:
-            return _context11.abrupt("return", new Promise(
-            /*#__PURE__*/
-            function () {
-              var _ref2 = _asyncToGenerator(
-              /*#__PURE__*/
-              regeneratorRuntime.mark(function _callee10(resolve, reject) {
-                var query, requestUrl, rawResponse, response;
-                return regeneratorRuntime.wrap(function _callee10$(_context10) {
-                  while (1) {
-                    switch (_context10.prev = _context10.next) {
-                      case 0:
-                        _context10.prev = 0;
-                        query = params ? "?".concat(_querystring.default.stringify(params)) : '';
-                        requestUrl = "".concat(url).concat(query);
-                        _context10.next = 5;
-                        return (0, _nodeFetch.default)(requestUrl, {
-                          method: 'GET'
-                        });
-
-                      case 5:
-                        rawResponse = _context10.sent;
-                        _context10.next = 8;
-                        return rawResponse.json();
-
-                      case 8:
-                        response = _context10.sent;
-
-                        if (response.success) {
-                          resolve(response);
-                        } else {
-                          console.log(response);
-                          reject(new Error("Request did not complete successfully."));
-                        }
-
-                        _context10.next = 16;
-                        break;
-
-                      case 12:
-                        _context10.prev = 12;
-                        _context10.t0 = _context10["catch"](0);
-                        console.log("Error from ".concat(url));
-                        reject(_context10.t0);
-
-                      case 16:
-                      case "end":
-                        return _context10.stop();
-                    }
-                  }
-                }, _callee10, this, [[0, 12]]);
-              }));
-
-              return function (_x9, _x10) {
-                return _ref2.apply(this, arguments);
-              };
-            }()));
-
-          case 1:
-          case "end":
-            return _context11.stop();
-        }
-      }
-    }, _callee11, this);
-  }));
-  return _makeApiRequest.apply(this, arguments);
-}
 
 var NodeApi =
 /*#__PURE__*/
@@ -93727,7 +93645,7 @@ function () {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                return _context.abrupt("return", makeApiRequest(this.getUrl('delegates'), 0, 201));
+                return _context.abrupt("return", (0, _makeApiRequest.makeApiRequest)(this.getUrl('delegates'), 0, 201));
 
               case 1:
               case "end":
@@ -93773,7 +93691,7 @@ function () {
                           case 0:
                             _context2.prev = 0;
                             _context2.next = 3;
-                            return makeApiRequest(_this.getUrl('blocks'), {
+                            return (0, _makeApiRequest.makeApiRequest)(_this.getUrl('blocks'), {
                               limit: limit,
                               offset: offset
                             });
@@ -93797,7 +93715,7 @@ function () {
                     }, _callee2, this, [[0, 7]]);
                   }));
 
-                  return function (_x3, _x4) {
+                  return function (_x, _x2) {
                     return _ref.apply(this, arguments);
                   };
                 }()));
@@ -93826,7 +93744,7 @@ function () {
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
-                return _context4.abrupt("return", makeApiRequest(this.getUrl('rounds')));
+                return _context4.abrupt("return", (0, _makeApiRequest.makeApiRequest)(this.getUrl('rounds')));
 
               case 1:
               case "end":
@@ -93852,7 +93770,7 @@ function () {
           while (1) {
             switch (_context5.prev = _context5.next) {
               case 0:
-                return _context5.abrupt("return", makeApiRequest(this.getUrl('delegates/getNextForgers'), {
+                return _context5.abrupt("return", (0, _makeApiRequest.makeApiRequest)(this.getUrl('delegates/getNextForgers'), {
                   limit: 201
                 }));
 
@@ -93880,7 +93798,7 @@ function () {
           while (1) {
             switch (_context6.prev = _context6.next) {
               case 0:
-                return _context6.abrupt("return", makeApiRequest(this.getUrl('blocks'), {
+                return _context6.abrupt("return", (0, _makeApiRequest.makeApiRequest)(this.getUrl('blocks'), {
                   generatorPublicKey: generatorPublicKey
                 }));
 
@@ -93892,23 +93810,26 @@ function () {
         }, _callee6, this);
       }));
 
-      function getRewardBlocks(_x5) {
+      function getRewardBlocks(_x3) {
         return _getRewardBlocks.apply(this, arguments);
       }
 
       return getRewardBlocks;
     }()
   }, {
-    key: "getSyncStatus",
+    key: "getTransactions",
     value: function () {
-      var _getSyncStatus = _asyncToGenerator(
+      var _getTransactions = _asyncToGenerator(
       /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee7(server) {
+      regeneratorRuntime.mark(function _callee7(address) {
         return regeneratorRuntime.wrap(function _callee7$(_context7) {
           while (1) {
             switch (_context7.prev = _context7.next) {
               case 0:
-                return _context7.abrupt("return", makeApiRequest(this.getUrl('loader/status/sync', server)));
+                return _context7.abrupt("return", (0, _makeApiRequest.makeApiRequest)(this.getUrl('transactions'), {
+                  senderId: address,
+                  recipientId: address
+                }));
 
               case 1:
               case "end":
@@ -93918,25 +93839,29 @@ function () {
         }, _callee7, this);
       }));
 
-      function getSyncStatus(_x6) {
-        return _getSyncStatus.apply(this, arguments);
+      function getTransactions(_x4) {
+        return _getTransactions.apply(this, arguments);
       }
 
-      return getSyncStatus;
+      return getTransactions;
     }()
   }, {
-    key: "getTransactions",
+    key: "getUrl",
+    value: function getUrl(path) {
+      return (0, _makeApiRequest.getUrl)(this.apiServer, path);
+    }
+  }, {
+    key: "getVoters",
     value: function () {
-      var _getTransactions = _asyncToGenerator(
+      var _getVoters = _asyncToGenerator(
       /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee8(address) {
+      regeneratorRuntime.mark(function _callee8(publicKey) {
         return regeneratorRuntime.wrap(function _callee8$(_context8) {
           while (1) {
             switch (_context8.prev = _context8.next) {
               case 0:
-                return _context8.abrupt("return", makeApiRequest(this.getUrl('transactions'), {
-                  senderId: address,
-                  recipientId: address
+                return _context8.abrupt("return", (0, _makeApiRequest.makeApiRequest)(this.getUrl('delegates/voters'), {
+                  publicKey: publicKey
                 }));
 
               case 1:
@@ -93947,41 +93872,7 @@ function () {
         }, _callee8, this);
       }));
 
-      function getTransactions(_x7) {
-        return _getTransactions.apply(this, arguments);
-      }
-
-      return getTransactions;
-    }()
-  }, {
-    key: "getUrl",
-    value: function getUrl(path, alternateServer) {
-      var server = alternateServer || this.apiServer;
-      return "".concat(server, "/api/").concat(path);
-    }
-  }, {
-    key: "getVoters",
-    value: function () {
-      var _getVoters = _asyncToGenerator(
-      /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee9(publicKey) {
-        return regeneratorRuntime.wrap(function _callee9$(_context9) {
-          while (1) {
-            switch (_context9.prev = _context9.next) {
-              case 0:
-                return _context9.abrupt("return", makeApiRequest(this.getUrl('delegates/voters'), {
-                  publicKey: publicKey
-                }));
-
-              case 1:
-              case "end":
-                return _context9.stop();
-            }
-          }
-        }, _callee9, this);
-      }));
-
-      function getVoters(_x8) {
+      function getVoters(_x5) {
         return _getVoters.apply(this, arguments);
       }
 
@@ -93998,6 +93889,116 @@ function () {
 }();
 
 exports.default = NodeApi;
+
+/***/ }),
+
+/***/ "./src/shared/domain/api/makeApiRequest.js":
+/*!*************************************************!*\
+  !*** ./src/shared/domain/api/makeApiRequest.js ***!
+  \*************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.getUrl = getUrl;
+exports.makeApiRequest = makeApiRequest;
+
+var _nodeFetch = _interopRequireDefault(__webpack_require__(/*! node-fetch */ "./node_modules/node-fetch/browser.js"));
+
+var _querystring = _interopRequireDefault(__webpack_require__(/*! querystring */ "./node_modules/querystring-es3/index.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+function getUrl(host, path) {
+  return "".concat(host, "/api/").concat(path);
+}
+
+function makeApiRequest(_x, _x2) {
+  return _makeApiRequest.apply(this, arguments);
+}
+
+function _makeApiRequest() {
+  _makeApiRequest = _asyncToGenerator(
+  /*#__PURE__*/
+  regeneratorRuntime.mark(function _callee2(url, params) {
+    return regeneratorRuntime.wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            return _context2.abrupt("return", new Promise(
+            /*#__PURE__*/
+            function () {
+              var _ref = _asyncToGenerator(
+              /*#__PURE__*/
+              regeneratorRuntime.mark(function _callee(resolve, reject) {
+                var query, requestUrl, rawResponse, response;
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                  while (1) {
+                    switch (_context.prev = _context.next) {
+                      case 0:
+                        _context.prev = 0;
+                        query = params ? "?".concat(_querystring.default.stringify(params)) : '';
+                        requestUrl = "".concat(url).concat(query);
+                        _context.next = 5;
+                        return (0, _nodeFetch.default)(requestUrl, {
+                          method: 'GET'
+                        });
+
+                      case 5:
+                        rawResponse = _context.sent;
+                        _context.next = 8;
+                        return rawResponse.json();
+
+                      case 8:
+                        response = _context.sent;
+
+                        if (!response.hasOwnProperty('success') || response.success) {
+                          resolve(response);
+                        } else {
+                          console.log(response);
+                          reject(new Error("Request did not complete successfully."));
+                        }
+
+                        _context.next = 16;
+                        break;
+
+                      case 12:
+                        _context.prev = 12;
+                        _context.t0 = _context["catch"](0);
+                        console.log("Error from ".concat(url));
+                        reject(_context.t0);
+
+                      case 16:
+                      case "end":
+                        return _context.stop();
+                    }
+                  }
+                }, _callee, this, [[0, 12]]);
+              }));
+
+              return function (_x3, _x4) {
+                return _ref.apply(this, arguments);
+              };
+            }()));
+
+          case 1:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2, this);
+  }));
+  return _makeApiRequest.apply(this, arguments);
+}
 
 /***/ }),
 
@@ -94746,6 +94747,8 @@ var _mobx = __webpack_require__(/*! mobx */ "./node_modules/mobx/lib/mobx.module
 
 var _mobxTask = __webpack_require__(/*! mobx-task */ "./node_modules/mobx-task/lib/index.js");
 
+var _makeApiRequest = __webpack_require__(/*! ../domain/api/makeApiRequest */ "./src/shared/domain/api/makeApiRequest.js");
+
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -94786,43 +94789,21 @@ function () {
       regeneratorRuntime.mark(function _callee() {
         var _this = this;
 
-        var seedNodes, seedNodeStatus, i, server, status;
+        var networkStatus;
         return regeneratorRuntime.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                seedNodes = ['http://s01.mc.blockpool.io:9030', 'http://s02.mc.blockpool.io:9030', 'http://s03.mc.blockpool.io:9030', 'http://s04.mc.blockpool.io:9030', 'http://s05.mc.blockpool.io:9030', 'http://s06.mc.blockpool.io:9030', 'http://s07.mc.blockpool.io:9030', 'http://s08.mc.blockpool.io:9030', 'http://s09.mc.blockpool.io:9030', 'http://s10.mc.blockpool.io:9030'];
-                seedNodeStatus = [];
-                i = 0;
+                _context.next = 2;
+                return (0, _makeApiRequest.makeApiRequest)('/api/networkStatus');
 
-              case 3:
-                if (!(i < seedNodes.length)) {
-                  _context.next = 12;
-                  break;
-                }
-
-                server = seedNodes[i];
-                _context.next = 7;
-                return this.nodeApi.getSyncStatus(server);
-
-              case 7:
-                status = _context.sent;
-                seedNodeStatus.push({
-                  server: server,
-                  height: status.height
-                });
-
-              case 9:
-                i += 1;
-                _context.next = 3;
-                break;
-
-              case 12:
+              case 2:
+                networkStatus = _context.sent;
                 (0, _mobx.runInAction)(function () {
-                  _this.seedNodes.replace(seedNodeStatus);
+                  _this.seedNodes.replace(networkStatus.seedNodes);
                 });
 
-              case 13:
+              case 4:
               case "end":
                 return _context.stop();
             }

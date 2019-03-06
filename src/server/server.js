@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 
+import api from './api'
 import renderer from './middleware/renderer'
 
 
@@ -8,6 +9,7 @@ const app = express()
 
 app.use(cors())
 
+app.use('/api', api)
 app.get('^/$', renderer)
 
 app.use(express.static('public'))

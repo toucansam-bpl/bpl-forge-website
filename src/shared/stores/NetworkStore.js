@@ -6,6 +6,8 @@ import { action,
        } from 'mobx'
 import { task } from 'mobx-task'
 
+import { makeApiRequest } from '../domain/api/makeApiRequest'
+
 
 export default class NetworkStore {
   apiServers = [
@@ -22,31 +24,10 @@ export default class NetworkStore {
   }
 
   async init() {
-    const seedNodes = [
-      'http://s01.mc.blockpool.io:9030'
-    , 'http://s02.mc.blockpool.io:9030'
-    , 'http://s03.mc.blockpool.io:9030'
-    , 'http://s04.mc.blockpool.io:9030'
-    , 'http://s05.mc.blockpool.io:9030'
-    , 'http://s06.mc.blockpool.io:9030'
-    , 'http://s07.mc.blockpool.io:9030'
-    , 'http://s08.mc.blockpool.io:9030'
-    , 'http://s09.mc.blockpool.io:9030'
-    , 'http://s10.mc.blockpool.io:9030'
-    ]
-
-    const seedNodeStatus = []
-    for (let i = 0; i < seedNodes.length; i += 1) {
-      let server = seedNodes[i]
-      let status = await this.nodeApi.getSyncStatus(server)
-      seedNodeStatus.push({
-        server,
-        height: status.height,
-      })
-    }
+    const networkStatus = await makeApiRequest('/api/networkStatus')
 
     runInAction(() => {
-      this.seedNodes.replace(seedNodeStatus)
+      this.seedNodes.replace(networkStatus.seedNodes)
     })
   }
 
