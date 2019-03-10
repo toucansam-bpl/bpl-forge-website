@@ -92360,13 +92360,13 @@ var _red = _interopRequireDefault(__webpack_require__(/*! @material-ui/core/colo
 
 var _App = _interopRequireDefault(__webpack_require__(/*! ../shared/App */ "./src/shared/App.js"));
 
-var _BlockStore = _interopRequireDefault(__webpack_require__(/*! ../shared/stores/BlockStore */ "./src/shared/stores/BlockStore.js"));
-
 var _DelegateStore = _interopRequireDefault(__webpack_require__(/*! ../shared/stores/DelegateStore */ "./src/shared/stores/DelegateStore.js"));
 
 var _NodeApi = _interopRequireDefault(__webpack_require__(/*! ../shared/domain/api/NodeApi */ "./src/shared/domain/api/NodeApi.js"));
 
 var _PriceStore = _interopRequireDefault(__webpack_require__(/*! ../shared/stores/PriceStore */ "./src/shared/stores/PriceStore.js"));
+
+var _RoundStore = _interopRequireDefault(__webpack_require__(/*! ../shared/stores/RoundStore */ "./src/shared/stores/RoundStore.js"));
 
 var _SlotStore = _interopRequireDefault(__webpack_require__(/*! ../shared/stores/SlotStore */ "./src/shared/stores/SlotStore.js"));
 
@@ -92435,19 +92435,17 @@ var nodeApi = new _NodeApi.default();
 var priceStore = new _PriceStore.default();
 var delegateStore = new _DelegateStore.default(nodeApi);
 var networkStore = new _NetworkStore.default(nodeApi);
-var blockStore = new _BlockStore.default(nodeApi, networkStore);
-var slotStore = new _SlotStore.default(nodeApi, blockStore, delegateStore, networkStore);
+var roundStore = new _RoundStore.default(nodeApi);
+var slotStore = new _SlotStore.default(nodeApi, roundStore);
 var stores = {
-  blockStore: blockStore,
   delegateStore: delegateStore,
   networkStore: networkStore,
   priceStore: priceStore,
+  roundStore: roundStore,
   slotStore: slotStore
 };
-blockStore.init();
-delegateStore.init();
+roundStore.init();
 networkStore.init();
-slotStore.init();
 (0, _reactDom.hydrate)(_react.default.createElement(_styles.MuiThemeProvider, {
   theme: theme
 }, _react.default.createElement(_mobxReact.Provider, stores, _react.default.createElement(_reactRouterDom.BrowserRouter, null, _react.default.createElement(Main, null)))), document.querySelector('#root'));
@@ -93199,23 +93197,33 @@ function (_Component) {
     key: "render",
     value: function render() {
       var slotStore = this.props.slotStore;
-      return _react.default.createElement(_core.Card, null, _react.default.createElement(_core.CardContent, null, _react.default.createElement(_core.Grid, {
-        container: true,
-        direction: "column",
-        spacing: 8
-      }, _react.default.createElement(_core.Grid, {
-        item: true
-      }, _react.default.createElement(_core.Typography, {
-        variant: "subtitle1"
-      }, "Remaining Slots: ", slotStore.remainingSlotCount)), _react.default.createElement(_core.Grid, {
-        item: true
-      }, _react.default.createElement(_core.Typography, {
-        variant: "subtitle1"
-      }, "Successful Forges: ", slotStore.successfulForgeCount)), _react.default.createElement(_core.Grid, {
-        item: true
-      }, _react.default.createElement(_core.Typography, {
-        variant: "subtitle1"
-      }, "Missed Blocks: ", slotStore.missedBlockCount)))));
+      return _react.default.createElement(_core.Card, null, _react.default.createElement(_core.CardContent, null, slotStore.init.match({
+        pending: function pending() {
+          return _react.default.createElement("div", null, "Loading, please wait..");
+        },
+        rejected: function rejected(err) {
+          return _react.default.createElement("div", null, "Error: ", err.message);
+        },
+        resolved: function resolved() {
+          return _react.default.createElement(_core.Grid, {
+            container: true,
+            direction: "column",
+            spacing: 8
+          }, _react.default.createElement(_core.Grid, {
+            item: true
+          }, _react.default.createElement(_core.Typography, {
+            variant: "subtitle1"
+          }, "Remaining Slots: ", slotStore.remainingSlotCount)), _react.default.createElement(_core.Grid, {
+            item: true
+          }, _react.default.createElement(_core.Typography, {
+            variant: "subtitle1"
+          }, "Successful Forges: ", slotStore.successfulForgeCount)), _react.default.createElement(_core.Grid, {
+            item: true
+          }, _react.default.createElement(_core.Typography, {
+            variant: "subtitle1"
+          }, "Missed Blocks: ", slotStore.missedBlockCount)));
+        }
+      })));
     }
   }]);
 
@@ -93555,8 +93563,8 @@ function (_Component) {
   _createClass(RoundProgress, [{
     key: "render",
     value: function render() {
-      var blockStore = this.props.blockStore;
-      return _react.default.createElement(_core.Card, null, _react.default.createElement(_core.CardContent, null, blockStore.init.match({
+      var roundStore = this.props.roundStore;
+      return _react.default.createElement(_core.Card, null, _react.default.createElement(_core.CardContent, null, roundStore.init.match({
         pending: function pending() {
           return _react.default.createElement("div", null, "Loading, please wait..");
         },
@@ -93576,15 +93584,15 @@ function (_Component) {
             item: true
           }, _react.default.createElement(_core.Typography, {
             variant: "subtitle1"
-          }, "Current Height: ", blockStore.lastProcessedBlockHeight)), _react.default.createElement(_core.Grid, {
+          }, "Current Height: ", roundStore.currentHeight)), _react.default.createElement(_core.Grid, {
             item: true
           }, _react.default.createElement(_core.Typography, {
             variant: "subtitle1"
-          }, "Start Height: ", blockStore.startHeight)), _react.default.createElement(_core.Grid, {
+          }, "Start Height: ", roundStore.startHeight)), _react.default.createElement(_core.Grid, {
             item: true
           }, _react.default.createElement(_core.Typography, {
             variant: "subtitle1"
-          }, "End Height: ", blockStore.endHeight)));
+          }, "End Height: ", roundStore.endHeight)));
         }
       })));
     }
@@ -93593,7 +93601,7 @@ function (_Component) {
   return RoundProgress;
 }(_react.Component);
 
-var _default = (0, _mobxReact.inject)('blockStore')((0, _mobxReact.observer)(RoundProgress));
+var _default = (0, _mobxReact.inject)('roundStore')((0, _mobxReact.observer)(RoundProgress));
 
 exports.default = _default;
 
@@ -93616,6 +93624,12 @@ exports.default = void 0;
 
 var _makeApiRequest = __webpack_require__(/*! ./makeApiRequest */ "./src/shared/domain/api/makeApiRequest.js");
 
+var _rounds = __webpack_require__(/*! ../util/rounds */ "./src/shared/domain/util/rounds.js");
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -93632,11 +93646,12 @@ function () {
   function NodeApi() {
     _classCallCheck(this, NodeApi);
 
-    this.apiServer = 'https://explorer.dated.fun/node';
+    this.apiServer = 'https://api.bplforge.com';
   }
 
   _createClass(NodeApi, [{
     key: "getActiveDelegates",
+    // apiServer = 'https://explorer.dated.fun/node'
     value: function () {
       var _getActiveDelegates = _asyncToGenerator(
       /*#__PURE__*/
@@ -93671,6 +93686,7 @@ function () {
 
         var offset,
             limit,
+            params,
             _args3 = arguments;
         return regeneratorRuntime.wrap(function _callee3$(_context3) {
           while (1) {
@@ -93678,6 +93694,7 @@ function () {
               case 0:
                 offset = _args3.length > 0 && _args3[0] !== undefined ? _args3[0] : 0;
                 limit = _args3.length > 1 && _args3[1] !== undefined ? _args3[1] : 100;
+                params = _args3.length > 2 ? _args3[2] : undefined;
                 return _context3.abrupt("return", new Promise(
                 /*#__PURE__*/
                 function () {
@@ -93691,10 +93708,10 @@ function () {
                           case 0:
                             _context2.prev = 0;
                             _context2.next = 3;
-                            return (0, _makeApiRequest.makeApiRequest)(_this.getUrl('blocks'), {
+                            return (0, _makeApiRequest.makeApiRequest)(_this.getUrl('blocks'), _objectSpread({
                               limit: limit,
                               offset: offset
-                            });
+                            }, params));
 
                           case 3:
                             blockResponse = _context2.sent;
@@ -93720,7 +93737,7 @@ function () {
                   };
                 }()));
 
-              case 3:
+              case 4:
               case "end":
                 return _context3.stop();
             }
@@ -93761,25 +93778,92 @@ function () {
       return getCurrentRound;
     }()
   }, {
+    key: "getLastBlockOfRound",
+    value: function () {
+      var _getLastBlockOfRound = _asyncToGenerator(
+      /*#__PURE__*/
+      regeneratorRuntime.mark(function _callee6(round) {
+        var _this2 = this;
+
+        return regeneratorRuntime.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                return _context6.abrupt("return", new Promise(
+                /*#__PURE__*/
+                function () {
+                  var _ref2 = _asyncToGenerator(
+                  /*#__PURE__*/
+                  regeneratorRuntime.mark(function _callee5(resolve, reject) {
+                    var lastBlockResponse;
+                    return regeneratorRuntime.wrap(function _callee5$(_context5) {
+                      while (1) {
+                        switch (_context5.prev = _context5.next) {
+                          case 0:
+                            _context5.prev = 0;
+                            _context5.next = 3;
+                            return _this2.getBlocks(0, 1, {
+                              height: (0, _rounds.getLastBlockHeightOfRound)(round)
+                            });
+
+                          case 3:
+                            lastBlockResponse = _context5.sent;
+                            resolve(lastBlockResponse[0]);
+                            _context5.next = 10;
+                            break;
+
+                          case 7:
+                            _context5.prev = 7;
+                            _context5.t0 = _context5["catch"](0);
+                            reject(_context5.t0);
+
+                          case 10:
+                          case "end":
+                            return _context5.stop();
+                        }
+                      }
+                    }, _callee5, this, [[0, 7]]);
+                  }));
+
+                  return function (_x4, _x5) {
+                    return _ref2.apply(this, arguments);
+                  };
+                }()));
+
+              case 1:
+              case "end":
+                return _context6.stop();
+            }
+          }
+        }, _callee6, this);
+      }));
+
+      function getLastBlockOfRound(_x3) {
+        return _getLastBlockOfRound.apply(this, arguments);
+      }
+
+      return getLastBlockOfRound;
+    }()
+  }, {
     key: "getRoundForgerData",
     value: function () {
       var _getRoundForgerData = _asyncToGenerator(
       /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee5() {
-        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+      regeneratorRuntime.mark(function _callee7() {
+        return regeneratorRuntime.wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
-                return _context5.abrupt("return", (0, _makeApiRequest.makeApiRequest)(this.getUrl('delegates/getNextForgers'), {
+                return _context7.abrupt("return", (0, _makeApiRequest.makeApiRequest)(this.getUrl('delegates/getNextForgers'), {
                   limit: 201
                 }));
 
               case 1:
               case "end":
-                return _context5.stop();
+                return _context7.stop();
             }
           }
-        }, _callee5, this);
+        }, _callee7, this);
       }));
 
       function getRoundForgerData() {
@@ -93793,24 +93877,24 @@ function () {
     value: function () {
       var _getRewardBlocks = _asyncToGenerator(
       /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee6(generatorPublicKey) {
-        return regeneratorRuntime.wrap(function _callee6$(_context6) {
+      regeneratorRuntime.mark(function _callee8(generatorPublicKey) {
+        return regeneratorRuntime.wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
-                return _context6.abrupt("return", (0, _makeApiRequest.makeApiRequest)(this.getUrl('blocks'), {
+                return _context8.abrupt("return", (0, _makeApiRequest.makeApiRequest)(this.getUrl('blocks'), {
                   generatorPublicKey: generatorPublicKey
                 }));
 
               case 1:
               case "end":
-                return _context6.stop();
+                return _context8.stop();
             }
           }
-        }, _callee6, this);
+        }, _callee8, this);
       }));
 
-      function getRewardBlocks(_x3) {
+      function getRewardBlocks(_x6) {
         return _getRewardBlocks.apply(this, arguments);
       }
 
@@ -93821,25 +93905,25 @@ function () {
     value: function () {
       var _getTransactions = _asyncToGenerator(
       /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee7(address) {
-        return regeneratorRuntime.wrap(function _callee7$(_context7) {
+      regeneratorRuntime.mark(function _callee9(address) {
+        return regeneratorRuntime.wrap(function _callee9$(_context9) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context9.prev = _context9.next) {
               case 0:
-                return _context7.abrupt("return", (0, _makeApiRequest.makeApiRequest)(this.getUrl('transactions'), {
+                return _context9.abrupt("return", (0, _makeApiRequest.makeApiRequest)(this.getUrl('transactions'), {
                   senderId: address,
                   recipientId: address
                 }));
 
               case 1:
               case "end":
-                return _context7.stop();
+                return _context9.stop();
             }
           }
-        }, _callee7, this);
+        }, _callee9, this);
       }));
 
-      function getTransactions(_x4) {
+      function getTransactions(_x7) {
         return _getTransactions.apply(this, arguments);
       }
 
@@ -93855,24 +93939,24 @@ function () {
     value: function () {
       var _getVoters = _asyncToGenerator(
       /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee8(publicKey) {
-        return regeneratorRuntime.wrap(function _callee8$(_context8) {
+      regeneratorRuntime.mark(function _callee10(publicKey) {
+        return regeneratorRuntime.wrap(function _callee10$(_context10) {
           while (1) {
-            switch (_context8.prev = _context8.next) {
+            switch (_context10.prev = _context10.next) {
               case 0:
-                return _context8.abrupt("return", (0, _makeApiRequest.makeApiRequest)(this.getUrl('delegates/voters'), {
+                return _context10.abrupt("return", (0, _makeApiRequest.makeApiRequest)(this.getUrl('delegates/voters'), {
                   publicKey: publicKey
                 }));
 
               case 1:
               case "end":
-                return _context8.stop();
+                return _context10.stop();
             }
           }
-        }, _callee8, this);
+        }, _callee10, this);
       }));
 
-      function getVoters(_x5) {
+      function getVoters(_x8) {
         return _getVoters.apply(this, arguments);
       }
 
@@ -93999,6 +94083,25 @@ function _makeApiRequest() {
   }));
   return _makeApiRequest.apply(this, arguments);
 }
+
+/***/ }),
+
+/***/ "./src/shared/domain/util/delegates.js":
+/*!*********************************************!*\
+  !*** ./src/shared/domain/util/delegates.js ***!
+  \*********************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.delegateCount = void 0;
+var delegateCount = 201;
+exports.delegateCount = delegateCount;
 
 /***/ }),
 
@@ -94135,7 +94238,7 @@ exports.byAscending = byAscending;
 
 var byDescending = function byDescending(prop) {
   return function (a, b) {
-    return a[prop] > b[prop] ? -11 : b[prop] > a[prop] ? 1 : 0;
+    return a[prop] > b[prop] ? -1 : b[prop] > a[prop] ? 1 : 0;
   };
 };
 
@@ -94158,10 +94261,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.getApiTimestamp = getApiTimestamp;
 exports.getTimestamp = getTimestamp;
-exports.nextMsTimestamp = exports.fromApiToMs = exports.currentMsTimestamp = exports.blockInterval = void 0;
+exports.nextMsTimestamp = exports.fromApiToMs = exports.currentMsTimestamp = exports.blockIntervalInMs = exports.blockInterval = void 0;
 var blockInterval = 15;
 exports.blockInterval = blockInterval;
 var blockIntervalInMs = blockInterval * 1000;
+exports.blockIntervalInMs = blockIntervalInMs;
 var epochTimeUtc = Date.UTC(2017, 2, 21, 13, 0, 0, 0);
 var epochSeconds = Math.floor(epochTimeUtc / 1000);
 
@@ -94191,321 +94295,6 @@ exports.nextMsTimestamp = nextMsTimestamp;
 function getTimestamp(apiTimestamp) {
   return (apiTimestamp + epochSeconds) * 1000;
 }
-
-/***/ }),
-
-/***/ "./src/shared/stores/BlockStore.js":
-/*!*****************************************!*\
-  !*** ./src/shared/stores/BlockStore.js ***!
-  \*****************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _mobx = __webpack_require__(/*! mobx */ "./node_modules/mobx/lib/mobx.module.js");
-
-var _mobxTask = __webpack_require__(/*! mobx-task */ "./node_modules/mobx-task/lib/index.js");
-
-var _logger = __webpack_require__(/*! ../domain/util/logger */ "./src/shared/domain/util/logger.js");
-
-var _rounds = __webpack_require__(/*! ../domain/util/rounds */ "./src/shared/domain/util/rounds.js");
-
-var _sorters = __webpack_require__(/*! ../domain/util/sorters */ "./src/shared/domain/util/sorters.js");
-
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
-
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-var blockInterval = 15 * 1000;
-
-var BlockStore =
-/*#__PURE__*/
-function () {
-  function BlockStore(nodeApi, networkStore) {
-    var _this = this;
-
-    _classCallCheck(this, BlockStore);
-
-    this.blockListener = void 0;
-    this.endHeight = void 0;
-    this.isReady = false;
-    this.lastProcessedBlockHeight = void 0;
-    this.startHeight = void 0;
-    this.unprocessedBlocks = new Map();
-
-    this.resume = function () {
-      (0, _logger.log)('Resuming block listener.');
-      _this.blockListener = setInterval(function () {
-        return _this.listenForNewBlocks();
-      }, blockInterval);
-    };
-
-    this.suspend = function () {
-      (0, _logger.log)('Suspending block listener.');
-      clearInterval(_this.blockListener);
-    };
-
-    this.nodeApi = nodeApi;
-    this.networkStore = networkStore; // onBecomeObserved(this, 'hasNextBlock', this.resume)
-    // onBecomeUnobserved(this, 'hasNextBlock', this.suspend)
-
-    (0, _mobx.when)(function () {
-      return _this.networkStore.hasChangedServer;
-    }, function () {
-      return _this.init();
-    });
-  }
-
-  _createClass(BlockStore, [{
-    key: "init",
-    value: function () {
-      var _init = _asyncToGenerator(
-      /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee() {
-        return regeneratorRuntime.wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                (0, _logger.log)('Initializing Block Store.');
-                _context.next = 3;
-                return this.loadInitialBlocks();
-
-              case 3:
-                this.resume();
-
-              case 4:
-              case "end":
-                return _context.stop();
-            }
-          }
-        }, _callee, this);
-      }));
-
-      function init() {
-        return _init.apply(this, arguments);
-      }
-
-      return init;
-    }()
-  }, {
-    key: "listenForNewBlocks",
-    value: function () {
-      var _listenForNewBlocks = _asyncToGenerator(
-      /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee2() {
-        var _this2 = this;
-
-        var offset, hasLoadedNewBlocks, blocks, newBlocks;
-        return regeneratorRuntime.wrap(function _callee2$(_context2) {
-          while (1) {
-            switch (_context2.prev = _context2.next) {
-              case 0:
-                offset = 0;
-                hasLoadedNewBlocks = true;
-
-              case 2:
-                if (!(!this.hasNextBlock && hasLoadedNewBlocks)) {
-                  _context2.next = 10;
-                  break;
-                }
-
-                _context2.next = 5;
-                return this.nodeApi.getBlocks(offset, 10);
-
-              case 5:
-                blocks = _context2.sent;
-                newBlocks = blocks.filter(function (b) {
-                  return b.height > _this2.lastProcessedBlockHeight;
-                });
-
-                if (newBlocks.length > 0) {
-                  newBlocks.forEach(function (b) {
-                    return _this2.unprocessedBlocks.set(b.height, b);
-                  });
-                  (0, _logger.log)("There are ".concat(newBlocks.length, " new blocks awaiting processing out of ").concat(this.unprocessedBlocks.size, " total."));
-                  offset += 10;
-                } else {
-                  (0, _logger.log)("No new blocks loaded.");
-                  hasLoadedNewBlocks = false;
-                }
-
-                _context2.next = 2;
-                break;
-
-              case 10:
-              case "end":
-                return _context2.stop();
-            }
-          }
-        }, _callee2, this);
-      }));
-
-      function listenForNewBlocks() {
-        return _listenForNewBlocks.apply(this, arguments);
-      }
-
-      return listenForNewBlocks;
-    }()
-  }, {
-    key: "loadInitialBlocks",
-    value: function () {
-      var _loadInitialBlocks = _asyncToGenerator(
-      /*#__PURE__*/
-      regeneratorRuntime.mark(function _callee4() {
-        var _this3 = this;
-
-        return regeneratorRuntime.wrap(function _callee4$(_context4) {
-          while (1) {
-            switch (_context4.prev = _context4.next) {
-              case 0:
-                return _context4.abrupt("return", new Promise(
-                /*#__PURE__*/
-                function () {
-                  var _ref = _asyncToGenerator(
-                  /*#__PURE__*/
-                  regeneratorRuntime.mark(function _callee3(resolve, reject) {
-                    var blocks, currentBlock, roundNumber, lastBlockHeightOfLastRound, additionalBlocks, _additionalBlocks;
-
-                    return regeneratorRuntime.wrap(function _callee3$(_context3) {
-                      while (1) {
-                        switch (_context3.prev = _context3.next) {
-                          case 0:
-                            _context3.prev = 0;
-                            _context3.next = 3;
-                            return _this3.nodeApi.getBlocks();
-
-                          case 3:
-                            blocks = _context3.sent;
-                            currentBlock = blocks[0];
-                            roundNumber = (0, _rounds.getRoundNumberFromHeight)(currentBlock.height);
-                            lastBlockHeightOfLastRound = (0, _rounds.getLastBlockHeightOfRound)(roundNumber - 1);
-                            blocks = blocks.filter(function (b) {
-                              return b.height >= lastBlockHeightOfLastRound;
-                            });
-
-                            if (!(blocks.length === 100)) {
-                              _context3.next = 13;
-                              break;
-                            }
-
-                            _context3.next = 11;
-                            return _this3.nodeApi.getBlocks(100);
-
-                          case 11:
-                            additionalBlocks = _context3.sent;
-                            blocks = blocks.concat(additionalBlocks.filter(function (b) {
-                              return b.height >= lastBlockHeightOfLastRound;
-                            }));
-
-                          case 13:
-                            if (!(blocks.length === 200)) {
-                              _context3.next = 18;
-                              break;
-                            }
-
-                            _context3.next = 16;
-                            return _this3.nodeApi.getBlocks(200, 2);
-
-                          case 16:
-                            _additionalBlocks = _context3.sent;
-                            blocks = blocks.concat(_additionalBlocks.filter(function (b) {
-                              return b.height >= lastBlockHeightOfLastRound;
-                            }));
-
-                          case 18:
-                            (0, _mobx.runInAction)(function () {
-                              _this3.endHeight = (0, _rounds.getLastBlockHeightOfRound)(roundNumber);
-                              _this3.lastBlockOfLastRound = blocks.pop();
-                              _this3.lastProcessedBlockHeight = lastBlockHeightOfLastRound;
-                              _this3.startHeight = (0, _rounds.getFirstBlockHeightOfRound)(roundNumber);
-                              blocks.forEach(function (b) {
-                                return _this3.unprocessedBlocks.set(b.height, b);
-                              });
-                              _this3.isReady = true;
-                            });
-                            resolve();
-                            _context3.next = 25;
-                            break;
-
-                          case 22:
-                            _context3.prev = 22;
-                            _context3.t0 = _context3["catch"](0);
-                            reject(_context3.t0);
-
-                          case 25:
-                          case "end":
-                            return _context3.stop();
-                        }
-                      }
-                    }, _callee3, this, [[0, 22]]);
-                  }));
-
-                  return function (_x, _x2) {
-                    return _ref.apply(this, arguments);
-                  };
-                }()));
-
-              case 1:
-              case "end":
-                return _context4.stop();
-            }
-          }
-        }, _callee4, this);
-      }));
-
-      function loadInitialBlocks() {
-        return _loadInitialBlocks.apply(this, arguments);
-      }
-
-      return loadInitialBlocks;
-    }()
-  }, {
-    key: "nextBlock",
-    value: function nextBlock() {
-      var next = this.unprocessedBlocks.get(this.nextBlockHeight);
-      this.lastProcessedBlockHeight = this.nextBlockHeight;
-      (0, _logger.log)("Processing block height ".concat(this.lastProcessedBlockHeight));
-      return next;
-    }
-  }, {
-    key: "hasNextBlock",
-    get: function get() {
-      return this.unprocessedBlocks.has(this.nextBlockHeight);
-    }
-  }, {
-    key: "nextBlockHeight",
-    get: function get() {
-      return this.lastProcessedBlockHeight + 1;
-    }
-  }]);
-
-  return BlockStore;
-}();
-
-exports.default = BlockStore;
-(0, _mobx.decorate)(BlockStore, {
-  hasNextBlock: _mobx.computed,
-  isReady: _mobx.observable,
-  init: _mobxTask.task,
-  lastProcessedBlockHeight: _mobx.observable,
-  listenForNewBlocks: _mobx.action,
-  nextBlock: _mobx.action,
-  nextBlockHeight: _mobx.computed,
-  unprocessedBlocks: _mobx.observable
-});
 
 /***/ }),
 
@@ -94766,11 +94555,11 @@ function () {
     _classCallCheck(this, NetworkStore);
 
     this.apiServers = [{
-      name: 'https://explorer.dated.fun',
-      url: 'https://explorer.dated.fun/node'
-    }, {
       name: 'https://api.bplforge.com',
       url: 'https://api.bplforge.com'
+    }, {
+      name: 'https://explorer.dated.fun',
+      url: 'https://explorer.dated.fun/node'
     }, {
       name: 'https://api.blockpool.io',
       url: 'https://api.blockpool.io'
@@ -95000,6 +94789,311 @@ exports.default = PriceStore;
 
 /***/ }),
 
+/***/ "./src/shared/stores/RoundStore.js":
+/*!*****************************************!*\
+  !*** ./src/shared/stores/RoundStore.js ***!
+  \*****************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _mobx = __webpack_require__(/*! mobx */ "./node_modules/mobx/lib/mobx.module.js");
+
+var _mobxTask = __webpack_require__(/*! mobx-task */ "./node_modules/mobx-task/lib/index.js");
+
+var _logger = __webpack_require__(/*! ../domain/util/logger */ "./src/shared/domain/util/logger.js");
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _awaitAsyncGenerator(value) { return new _AwaitValue(value); }
+
+function _wrapAsyncGenerator(fn) { return function () { return new _AsyncGenerator(fn.apply(this, arguments)); }; }
+
+function _AsyncGenerator(gen) { var front, back; function send(key, arg) { return new Promise(function (resolve, reject) { var request = { key: key, arg: arg, resolve: resolve, reject: reject, next: null }; if (back) { back = back.next = request; } else { front = back = request; resume(key, arg); } }); } function resume(key, arg) { try { var result = gen[key](arg); var value = result.value; var wrappedAwait = value instanceof _AwaitValue; Promise.resolve(wrappedAwait ? value.wrapped : value).then(function (arg) { if (wrappedAwait) { resume("next", arg); return; } settle(result.done ? "return" : "normal", arg); }, function (err) { resume("throw", err); }); } catch (err) { settle("throw", err); } } function settle(type, value) { switch (type) { case "return": front.resolve({ value: value, done: true }); break; case "throw": front.reject(value); break; default: front.resolve({ value: value, done: false }); break; } front = front.next; if (front) { resume(front.key, front.arg); } else { back = null; } } this._invoke = send; if (typeof gen.return !== "function") { this.return = undefined; } }
+
+if (typeof Symbol === "function" && Symbol.asyncIterator) { _AsyncGenerator.prototype[Symbol.asyncIterator] = function () { return this; }; }
+
+_AsyncGenerator.prototype.next = function (arg) { return this._invoke("next", arg); };
+
+_AsyncGenerator.prototype.throw = function (arg) { return this._invoke("throw", arg); };
+
+_AsyncGenerator.prototype.return = function (arg) { return this._invoke("return", arg); };
+
+function _AwaitValue(value) { this.wrapped = value; }
+
+var RoundStore =
+/*#__PURE__*/
+function () {
+  function RoundStore(nodeApi) {
+    _classCallCheck(this, RoundStore);
+
+    this.activeDelegates = new Map();
+    this.addressToKeys = new Map();
+    this.endHeight = void 0;
+    this.isReady = false;
+    this.round = void 0;
+    this.roundBlocks = [];
+    this.startHeight = void 0;
+    this.nodeApi = nodeApi;
+  }
+
+  _createClass(RoundStore, [{
+    key: "init",
+    value: function () {
+      var _init = _asyncToGenerator(
+      /*#__PURE__*/
+      regeneratorRuntime.mark(function _callee() {
+        var _this2 = this;
+
+        var currentRound;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                (0, _logger.log)("Loading initial current round.");
+                _context.next = 3;
+                return this.nodeApi.getCurrentRound();
+
+              case 3:
+                currentRound = _context.sent;
+                (0, _logger.log)("Initial current round loaded.", currentRound);
+                currentRound.activeDelegates.forEach(function (delegate) {
+                  _this2.activeDelegates.set(delegate.publicKey, delegate);
+
+                  _this2.addressToKeys.set(delegate.address, delegate.publicKey);
+                });
+                this.endHeight = currentRound.endHeight;
+                this.round = currentRound.round;
+                this.roundBlocks = currentRound.blocks;
+                this.startHeight = currentRound.startHeight;
+                this.isReady = true;
+
+              case 11:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function init() {
+        return _init.apply(this, arguments);
+      }
+
+      return init;
+    }()
+  }, {
+    key: "blocks",
+    value: function blocks(fromBlockHeight) {
+      var _this = this;
+
+      return _wrapAsyncGenerator(
+      /*#__PURE__*/
+      regeneratorRuntime.mark(function _callee2() {
+        var _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, block, lastBlock, offset, blocks, newBlocks, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, newBlock;
+
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                _iteratorNormalCompletion = true;
+                _didIteratorError = false;
+                _iteratorError = undefined;
+                _context2.prev = 3;
+                _iterator = _this.roundBlocks.filter(function (b) {
+                  return b.height >= fromBlockHeight;
+                })[Symbol.iterator]();
+
+              case 5:
+                if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
+                  _context2.next = 12;
+                  break;
+                }
+
+                block = _step.value;
+                _context2.next = 9;
+                return block;
+
+              case 9:
+                _iteratorNormalCompletion = true;
+                _context2.next = 5;
+                break;
+
+              case 12:
+                _context2.next = 18;
+                break;
+
+              case 14:
+                _context2.prev = 14;
+                _context2.t0 = _context2["catch"](3);
+                _didIteratorError = true;
+                _iteratorError = _context2.t0;
+
+              case 18:
+                _context2.prev = 18;
+                _context2.prev = 19;
+
+                if (!_iteratorNormalCompletion && _iterator.return != null) {
+                  _iterator.return();
+                }
+
+              case 21:
+                _context2.prev = 21;
+
+                if (!_didIteratorError) {
+                  _context2.next = 24;
+                  break;
+                }
+
+                throw _iteratorError;
+
+              case 24:
+                return _context2.finish(21);
+
+              case 25:
+                return _context2.finish(18);
+
+              case 26:
+                lastBlock = _this.roundBlocks[_this.roundBlocks.length - 1];
+                offset = 0;
+
+              case 28:
+                if (!(lastBlock.height <= _this.endHeight)) {
+                  _context2.next = 66;
+                  break;
+                }
+
+                _context2.next = 31;
+                return _awaitAsyncGenerator(_this.nodeApi.getBlocks(offset, 10));
+
+              case 31:
+                blocks = _context2.sent;
+                newBlocks = blocks.filter(function (b) {
+                  return b.height > lastBlock.height;
+                });
+                newBlocks.reverse();
+                _iteratorNormalCompletion2 = true;
+                _didIteratorError2 = false;
+                _iteratorError2 = undefined;
+                _context2.prev = 37;
+                _iterator2 = newBlocks[Symbol.iterator]();
+
+              case 39:
+                if (_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done) {
+                  _context2.next = 48;
+                  break;
+                }
+
+                newBlock = _step2.value;
+                lastBlock = newBlock;
+
+                _this.roundBlocks.push(newBlock);
+
+                _context2.next = 45;
+                return newBlock;
+
+              case 45:
+                _iteratorNormalCompletion2 = true;
+                _context2.next = 39;
+                break;
+
+              case 48:
+                _context2.next = 54;
+                break;
+
+              case 50:
+                _context2.prev = 50;
+                _context2.t1 = _context2["catch"](37);
+                _didIteratorError2 = true;
+                _iteratorError2 = _context2.t1;
+
+              case 54:
+                _context2.prev = 54;
+                _context2.prev = 55;
+
+                if (!_iteratorNormalCompletion2 && _iterator2.return != null) {
+                  _iterator2.return();
+                }
+
+              case 57:
+                _context2.prev = 57;
+
+                if (!_didIteratorError2) {
+                  _context2.next = 60;
+                  break;
+                }
+
+                throw _iteratorError2;
+
+              case 60:
+                return _context2.finish(57);
+
+              case 61:
+                return _context2.finish(54);
+
+              case 62:
+                _context2.next = 64;
+                return _awaitAsyncGenerator(sleep(15000));
+
+              case 64:
+                _context2.next = 28;
+                break;
+
+              case 66:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this, [[3, 14, 18, 26], [19,, 21, 25], [37, 50, 54, 62], [55,, 57, 61]]);
+      }))();
+    }
+  }, {
+    key: "currentHeight",
+    get: function get() {
+      return this.roundBlocks[this.roundBlocks.length - 1].height;
+    }
+  }]);
+
+  return RoundStore;
+}();
+
+exports.default = RoundStore;
+
+function sleep(duration) {
+  return new Promise(function (resolve) {
+    return setTimeout(function () {
+      return resolve(0);
+    }, duration);
+  });
+}
+
+(0, _mobx.decorate)(RoundStore, {
+  activeDelegates: _mobx.observable,
+  currentHeight: _mobx.computed,
+  endHeight: _mobx.observable,
+  init: _mobxTask.task,
+  isReady: _mobx.observable,
+  round: _mobx.observable,
+  startHeight: _mobx.observable
+});
+
+/***/ }),
+
 /***/ "./src/shared/stores/SlotStore.js":
 /*!****************************************!*\
   !*** ./src/shared/stores/SlotStore.js ***!
@@ -95021,6 +95115,8 @@ var _mobx = __webpack_require__(/*! mobx */ "./node_modules/mobx/lib/mobx.module
 
 var _mobxTask = __webpack_require__(/*! mobx-task */ "./node_modules/mobx-task/lib/index.js");
 
+var _delegates = __webpack_require__(/*! ../domain/util/delegates */ "./src/shared/domain/util/delegates.js");
+
 var _logger = __webpack_require__(/*! ../domain/util/logger */ "./src/shared/domain/util/logger.js");
 
 var _slotFactory = __webpack_require__(/*! ./slotFactory */ "./src/shared/stores/slotFactory.js");
@@ -95039,27 +95135,23 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-var delegateCount = 201;
+function _asyncIterator(iterable) { var method; if (typeof Symbol === "function") { if (Symbol.asyncIterator) { method = iterable[Symbol.asyncIterator]; if (method != null) return method.call(iterable); } if (Symbol.iterator) { method = iterable[Symbol.iterator]; if (method != null) return method.call(iterable); } } throw new TypeError("Object is not async iterable"); }
 
 var SlotStore =
 /*#__PURE__*/
 function () {
-  function SlotStore(nodeApi, blockStore, delegateStore, networkStore) {
+  function SlotStore(nodeApi, roundStore) {
     var _this = this;
 
     _classCallCheck(this, SlotStore);
 
     this.completedSlots = [];
-    this.hasCompletedSlotsForRound = false;
-    this.isAwaitingBlock = true;
     this.roundSlots = new Map();
     this.upcomingSlots = [];
     this.nodeApi = nodeApi;
-    this.blockStore = blockStore;
-    this.delegateStore = delegateStore;
-    this.networkStore = networkStore;
+    this.roundStore = roundStore;
     (0, _mobx.when)(function () {
-      return _this.networkStore.hasChangedServer;
+      return _this.roundStore.isReady;
     }, function () {
       return _this.init();
     });
@@ -95073,59 +95165,50 @@ function () {
       regeneratorRuntime.mark(function _callee() {
         var _this2 = this;
 
-        var endOfLastRoundTimestamp, lastSlotOfLastRound, firstSlot, currentSlot, slotDiff, reverseIndex, firstForgerIndex, firstForgers, remainingForgers;
+        var lastBlockOfLastRound, lastProcessedTimestamp, slots, processedSlots;
         return regeneratorRuntime.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
                 (0, _logger.log)('Initializing Slot Store.');
                 _context.next = 3;
-                return this.nodeApi.getRoundForgerData();
+                return this.nodeApi.getLastBlockOfRound(this.roundStore.round - 1);
 
               case 3:
-                this.forgerData = _context.sent;
-                _context.next = 6;
-                return (0, _mobx.when)(function () {
-                  return _this2.blockStore.isReady && _this2.delegateStore.isInitialized;
-                });
-
-              case 6:
+                lastBlockOfLastRound = _context.sent;
                 (0, _logger.log)('Generating forging list');
-                endOfLastRoundTimestamp = this.blockStore.lastBlockOfLastRound.timestamp;
-                lastSlotOfLastRound = this.getSlotNumber(endOfLastRoundTimestamp);
-                firstSlot = lastSlotOfLastRound + 1;
-                currentSlot = this.forgerData.currentSlot;
-                slotDiff = firstSlot - currentSlot - 1;
-                reverseIndex = slotDiff % delegateCount;
-                firstForgerIndex = reverseIndex === 0 ? 0 : reverseIndex + delegateCount;
-                firstForgers = this.forgerData.delegates.slice(firstForgerIndex);
-                remainingForgers = this.forgerData.delegates.slice(0, firstForgerIndex);
-                (0, _mobx.runInAction)(function () {
-                  var result = firstForgers.concat(remainingForgers).reduce(function (all, publicKey, i) {
-                    var slotNumber = i + 1;
-                    var timestamp = (0, _time.nextMsTimestamp)(all.lastProcessedTimestamp);
-
-                    _this2.roundSlots.set(slotNumber, {
-                      slotNumber: slotNumber,
-                      publicKey: publicKey
-                    });
-
-                    all.upcomingSlots.push((0, _slotFactory.basicSlot)(slotNumber, _this2.delegateStore.get(publicKey), timestamp));
-                    all.lastProcessedTimestamp = timestamp;
-                    return all;
-                  }, {
-                    lastProcessedTimestamp: (0, _time.fromApiToMs)(endOfLastRoundTimestamp),
-                    upcomingSlots: []
+                console.log('last block of last round', lastBlockOfLastRound);
+                lastProcessedTimestamp = (0, _time.fromApiToMs)(lastBlockOfLastRound.timestamp);
+                slots = (0, _slotFactory.getSlotsFromActiveDelegates)(this.roundStore.activeDelegates, lastProcessedTimestamp);
+                slots.forEach(function (s) {
+                  return _this2.roundSlots.set(s.slot, {
+                    slotNumber: s.slot,
+                    publicKey: s.publicKey
                   });
+                });
+                processedSlots = this.roundStore.roundBlocks.reduce(function (all, block) {
+                  var _this2$processReceive = _this2.processReceivedBlock(all.completed, all.upcoming, block),
+                      completed = _this2$processReceive.completed,
+                      upcoming = _this2$processReceive.upcoming;
 
-                  _this2.upcomingSlots.replace(result.upcomingSlots);
+                  all.completed = completed;
+                  all.lastProcessedHeight = block.height;
+                  all.upcoming = upcoming;
+                  return all;
+                }, {
+                  completed: [],
+                  lastProcessedHeight: lastBlockOfLastRound.height,
+                  upcoming: slots
+                });
+                (0, _mobx.runInAction)(function () {
+                  _this2.completedSlots.replace(processedSlots.completed);
 
-                  _this2.isReady = true;
+                  _this2.upcomingSlots.replace(processedSlots.upcoming);
 
-                  _this2.watchForNextBlock();
+                  _this2.processNextBlocks(processedSlots.lastProcessedHeight);
                 });
 
-              case 17:
+              case 11:
               case "end":
                 return _context.stop();
             }
@@ -95145,66 +95228,149 @@ function () {
       return Math.floor(blockTimestamp / _time.blockInterval);
     }
   }, {
-    key: "watchForNextBlock",
-    value: function watchForNextBlock() {
-      var _this3 = this;
-
-      (0, _mobx.when)(function () {
-        return _this3.blockStore.hasNextBlock && _this3.isAwaitingBlock;
-      }, function () {
-        return _this3.processReceivedBlock();
-      });
-    }
-  }, {
     key: "getRoundSlot",
     value: function getRoundSlot(totalSlot) {
       // From BPL-node code
-      return this.roundSlots.get(totalSlot % 201);
+      return this.roundSlots.get(totalSlot % _delegates.delegateCount);
     }
   }, {
-    key: "processReceivedBlock",
-    value: function processReceivedBlock() {
-      var _this4 = this;
+    key: "processNextBlocks",
+    value: function () {
+      var _processNextBlocks = _asyncToGenerator(
+      /*#__PURE__*/
+      regeneratorRuntime.mark(function _callee2(lastProcessedHeight) {
+        var _this3 = this;
 
-      this.isAwaitingBlock = false;
-      this.watchForNextBlock();
-      var nextBlock = this.blockStore.nextBlock();
-      (0, _logger.log)('Processing next block.', nextBlock);
-      var blockSlots = this.upcomingSlots.reduce(function (all, slot) {
-        if (all.hasFoundProcessedSlot) {
-          all.upcomingSlots.push(slot);
-        } else {
-          var completedSlot = (0, _slotFactory.createSlotFromBlock)(slot, all.block);
-          all.hasFoundProcessedSlot = !completedSlot.hasMissedBlock;
-          all.completedSlots.push(completedSlot);
+        var _iteratorNormalCompletion, _didIteratorError, _iteratorError, _loop, _iterator, _step, _value;
 
-          if (completedSlot.hasMissedBlock) {
-            all.totalSlotCount += 1;
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                _iteratorNormalCompletion = true;
+                _didIteratorError = false;
+                _context2.prev = 2;
 
-            var roundSlot = _this4.getRoundSlot(all.totalSlotCount);
+                _loop = function _loop() {
+                  var block = _value;
 
-            var matchingDelegate = _this4.delegateStore.get(roundSlot.publicKey);
+                  var _this3$processReceive = _this3.processReceivedBlock(_this3.completedSlots, _this3.upcomingSlots, block),
+                      completed = _this3$processReceive.completed,
+                      upcoming = _this3$processReceive.upcoming;
 
-            var lastSlot = _this4.completedSlots[_this4.completedSlots.length - 1] || {
-              timestamp: _this4.lastProcessedTimestamp
-            };
-            all.additionalSlots.push((0, _slotFactory.basicSlot)(all.totalSlotCount, matchingDelegate, (0, _time.nextMsTimestamp)(lastSlot.timestamp)));
+                  (0, _mobx.runInAction)(function () {
+                    _this3.completedSlots.replace(completed);
+
+                    _this3.upcomingSlots.replace(upcoming);
+                  });
+                };
+
+                _iterator = _asyncIterator(this.roundStore.blocks(lastProcessedHeight + 1));
+
+              case 5:
+                _context2.next = 7;
+                return _iterator.next();
+
+              case 7:
+                _step = _context2.sent;
+                _iteratorNormalCompletion = _step.done;
+                _context2.next = 11;
+                return _step.value;
+
+              case 11:
+                _value = _context2.sent;
+
+                if (_iteratorNormalCompletion) {
+                  _context2.next = 17;
+                  break;
+                }
+
+                _loop();
+
+              case 14:
+                _iteratorNormalCompletion = true;
+                _context2.next = 5;
+                break;
+
+              case 17:
+                _context2.next = 23;
+                break;
+
+              case 19:
+                _context2.prev = 19;
+                _context2.t0 = _context2["catch"](2);
+                _didIteratorError = true;
+                _iteratorError = _context2.t0;
+
+              case 23:
+                _context2.prev = 23;
+                _context2.prev = 24;
+
+                if (!(!_iteratorNormalCompletion && _iterator.return != null)) {
+                  _context2.next = 28;
+                  break;
+                }
+
+                _context2.next = 28;
+                return _iterator.return();
+
+              case 28:
+                _context2.prev = 28;
+
+                if (!_didIteratorError) {
+                  _context2.next = 31;
+                  break;
+                }
+
+                throw _iteratorError;
+
+              case 31:
+                return _context2.finish(28);
+
+              case 32:
+                return _context2.finish(23);
+
+              case 33:
+              case "end":
+                return _context2.stop();
+            }
           }
-        }
+        }, _callee2, this, [[2, 19, 23, 33], [24,, 28, 32]]);
+      }));
 
-        return all;
-      }, {
-        additionalSlots: [],
-        block: nextBlock,
-        completedSlots: [],
-        hasFoundProcessedSlot: false,
-        totalSlotCount: this.completedSlots.length + this.upcomingSlots.length,
-        upcomingSlots: []
-      });
-      this.completedSlots.replace(this.completedSlots.concat(blockSlots.completedSlots));
-      this.upcomingSlots.replace(blockSlots.upcomingSlots.concat(blockSlots.additionalSlots));
-      this.hasCompletedSlotsForRound = this.upcomingSlots.length === 0;
-      this.isAwaitingBlock = true;
+      function processNextBlocks(_x) {
+        return _processNextBlocks.apply(this, arguments);
+      }
+
+      return processNextBlocks;
+    }()
+  }, {
+    key: "processReceivedBlock",
+    value: function processReceivedBlock(completedSlots, upcomingSlots, block) {
+      var completed = completedSlots.slice(0);
+      var upcoming = upcomingSlots.slice(0);
+      var hasFoundForger = false;
+
+      while (!hasFoundForger) {
+        var slot = upcoming.shift();
+        var completedSlot = (0, _slotFactory.createSlotFromBlock)(slot, block);
+        completed.push(completedSlot);
+
+        if (completedSlot.hasMissedBlock) {
+          var totalSlotCount = upcoming.length + completed.length + 1;
+          var roundSlot = this.getRoundSlot(totalSlotCount);
+          var matchingDelegate = this.roundStore.activeDelegates.get(roundSlot.publicKey);
+          var lastSlot = upcoming[upcoming.length - 1] || slot;
+          upcoming.push((0, _slotFactory.basicSlot)(totalSlotCount, matchingDelegate, (0, _time.nextMsTimestamp)(lastSlot.timestamp)));
+        } else {
+          hasFoundForger = true;
+        }
+      }
+
+      return {
+        completed: completed,
+        upcoming: upcoming
+      };
     }
   }, {
     key: "missedBlockCount",
@@ -95247,9 +95413,7 @@ function () {
 exports.default = SlotStore;
 (0, _mobx.decorate)(SlotStore, {
   completedSlots: _mobx.observable,
-  hasCompletedSlotsForRound: _mobx.observable,
   init: _mobxTask.task,
-  isAwaitingBlock: _mobx.observable,
   missedBlockCount: _mobx.computed,
   processReceivedBlock: _mobx.action,
   remainingSlotCount: _mobx.computed,
@@ -95277,6 +95441,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.createSlotFromBlock = createSlotFromBlock;
 exports.completedSlotFromDelegate = completedSlotFromDelegate;
 exports.basicSlot = basicSlot;
+exports.getSlotsFromActiveDelegates = getSlotsFromActiveDelegates;
 exports.default = getSlotsFromInitialData;
 
 var _format = __webpack_require__(/*! ../domain/util/format */ "./src/shared/domain/util/format.js");
@@ -95325,6 +95490,39 @@ function basicSlot(number, delegate, timestamp) {
     timestamp: timestamp,
     vote: (0, _format.fromApiString)(delegate.vote)
   };
+}
+
+function getSlotsFromActiveDelegates(activeDelegates, lastProcessedTimestamp) {
+  var timestamp = (0, _time.nextMsTimestamp)(lastProcessedTimestamp);
+  var slotNumber = 1;
+  var upcomingSlots = [];
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = activeDelegates.values()[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var delegate = _step.value;
+      upcomingSlots.push(basicSlot(slotNumber, delegate, timestamp));
+      timestamp = (0, _time.nextMsTimestamp)(timestamp);
+      slotNumber += 1;
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return != null) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
+  return upcomingSlots;
 }
 
 function getSlotsFromInitialData(forgingInfo, blockInfo, delegates) {

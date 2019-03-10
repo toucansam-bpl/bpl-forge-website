@@ -43,6 +43,21 @@ export function basicSlot(number, delegate, timestamp) {
   }
 }
 
+export function getSlotsFromActiveDelegates(activeDelegates, lastProcessedTimestamp) {
+  let timestamp = nextMsTimestamp(lastProcessedTimestamp)
+  let slotNumber = 1
+  const upcomingSlots = []
+
+  for (let delegate of activeDelegates.values()) {
+    upcomingSlots.push(basicSlot(slotNumber, delegate, timestamp))
+
+    timestamp = nextMsTimestamp(timestamp)
+    slotNumber += 1
+  }
+
+  return upcomingSlots
+}
+
 export default function getSlotsFromInitialData(forgingInfo, blockInfo, delegates) {
 
   const blocksToProcess = blockInfo.blocks.concat([])

@@ -11,8 +11,8 @@ import { makeApiRequest } from '../domain/api/makeApiRequest'
 
 export default class NetworkStore {
   apiServers = [
-    { name: 'https://explorer.dated.fun', url: 'https://explorer.dated.fun/node' },
     { name: 'https://api.bplforge.com', url: 'https://api.bplforge.com' },
+    { name: 'https://explorer.dated.fun', url: 'https://explorer.dated.fun/node' },
     { name: 'https://api.blockpool.io', url: 'https://api.blockpool.io' },
   ]
   apiServer = this.apiServers[0]

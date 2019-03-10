@@ -1,17 +1,19 @@
 import { getUrl, makeApiRequest } from './makeApiRequest'
+import { getLastBlockHeightOfRound } from '../util/rounds'
 
 
 export default class NodeApi {
-  apiServer = 'https://explorer.dated.fun/node'
+  apiServer = 'https://api.bplforge.com'
+  // apiServer = 'https://explorer.dated.fun/node'
 
   async getActiveDelegates() {
     return makeApiRequest(this.getUrl('delegates'), 0, 201)
   }
 
-  async getBlocks(offset = 0, limit = 100) {
+  async getBlocks(offset = 0, limit = 100, params) {
     return new Promise(async (resolve, reject) => {
       try {
-        const blockResponse = await makeApiRequest(this.getUrl('blocks'), { limit, offset })
+        const blockResponse = await makeApiRequest(this.getUrl('blocks'), { limit, offset, ... params, })
         resolve(blockResponse.blocks)
       } catch(ex) {
         reject(ex)
@@ -21,6 +23,17 @@ export default class NodeApi {
 
   async getCurrentRound() {
     return makeApiRequest(this.getUrl('rounds'))
+  }
+
+  async getLastBlockOfRound(round) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const lastBlockResponse = await this.getBlocks(0, 1, { height: getLastBlockHeightOfRound(round) })
+        resolve(lastBlockResponse[0])
+      } catch(ex) {
+        reject(ex)
+      }
+    })
   }
 
   async getRoundForgerData() {

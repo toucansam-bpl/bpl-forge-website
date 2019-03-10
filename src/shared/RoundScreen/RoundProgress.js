@@ -10,23 +10,29 @@ class RoundProgress extends Component {
     return (
       <Card>
         <CardContent>
-          <Grid container direction="column" spacing={8}>
-            <Grid item>
-              <Typography variant="subtitle1">
-                Remaining Slots: {slotStore.remainingSlotCount}
-              </Typography>
+        {slotStore.init.match({
+          pending: () => <div>Loading, please wait..</div>,
+          rejected: (err) => <div>Error: {err.message}</div>,
+          resolved: () => (
+            <Grid container direction="column" spacing={8}>
+              <Grid item>
+                <Typography variant="subtitle1">
+                  Remaining Slots: {slotStore.remainingSlotCount}
+                </Typography>
+              </Grid>
+              <Grid item>
+                <Typography variant="subtitle1">
+                  Successful Forges: {slotStore.successfulForgeCount}
+                </Typography>
+              </Grid>
+              <Grid item>
+                <Typography variant="subtitle1">
+                  Missed Blocks: {slotStore.missedBlockCount}
+                </Typography>
+              </Grid>
             </Grid>
-            <Grid item>
-              <Typography variant="subtitle1">
-                Successful Forges: {slotStore.successfulForgeCount}
-              </Typography>
-            </Grid>
-            <Grid item>
-              <Typography variant="subtitle1">
-                Missed Blocks: {slotStore.missedBlockCount}
-              </Typography>
-            </Grid>
-          </Grid>
+          )}
+        )}
         </CardContent>
       </Card>
     )

@@ -3,6 +3,7 @@ import { action,
          decorate,
          observable,
        } from 'mobx'
+import { task } from 'mobx-task'
 
 import { log } from '../domain/util/logger'
 
@@ -12,49 +13,68 @@ export default class RoundStore {
     this.nodeApi = nodeApi
   }
 
-  newRound = null
-
-  get hasNewRound() {
-    return this.newRound !== null
-  }
+  activeDelegates = new Map()
+  addressToKeys = new Map()
+  endHeight
+  isReady = false
+  round
+  roundBlocks = []
+  startHeight
 
   async init() {
     log(`Loading initial current round.`)
-    // const currentRound = await this.nodeApi.getCurrentRound()
+    const currentRound = await this.nodeApi.getCurrentRound()
     log(`Initial current round loaded.`, currentRound)
 
-    // this.newRound = currentRound
+    currentRound.activeDelegates.forEach(delegate => {
+      this.activeDelegates.set(delegate.publicKey, delegate)
+      this.addressToKeys.set(delegate.address, delegate.publicKey)
+    })
+    this.endHeight = currentRound.endHeight
+    this.round = currentRound.round
+    this.roundBlocks = currentRound.blocks
+    this.startHeight = currentRound.startHeight
+    
+    this.isReady = true
   }
 
-  get initialBlockHeight() {
-    return this.hasNewRound
-      ? this.newRound.delegateActivity.reduce((initialHeight, slot) => {
-            const slotValue = slot.hasMissedBlock ? 0 : 1
-            return initialHeight + slotValue
-          },
-          this.newRound.fromBlock - 1
-        ) 
-      : 0
+  async * blocks(fromBlockHeight) {
+    for (const block of this.roundBlocks.filter(b => b.height >= fromBlockHeight)) {
+      yield block
+    }
+
+    let lastBlock = this.roundBlocks[this.roundBlocks.length - 1]
+    let offset = 0
+    while (lastBlock.height <= this.endHeight) {
+      let blocks = await this.nodeApi.getBlocks(offset, 10)
+      let newBlocks = blocks.filter(b => b.height > lastBlock.height)
+      newBlocks.reverse()
+
+      for (const newBlock of newBlocks) {
+        lastBlock = newBlock
+        this.roundBlocks.push(newBlock)
+        yield newBlock
+      }
+
+      await sleep(15000)
+    }
   }
 
-  get endHeight() {
-    return this.hasNewRound
-      ? this.startHeight + 200
-      : 'n/a'
-  }
-
-  get startHeight() {
-    return this.hasNewRound
-      ? this.newRound.fromBlock
-      : 'n/a'
+  get currentHeight() {
+    return this.roundBlocks[this.roundBlocks.length - 1].height
   }
 }
 
+function sleep(duration) {
+  return new Promise(resolve => setTimeout(() => resolve(0), duration))
+}
+
 decorate(RoundStore, {
-  endHeight: computed,
-  hasNewRound: computed,
-  init: action,
-  initialBlockHeight: computed,
-  newRound: observable,
-  startHeight: computed,
+  activeDelegates: observable,
+  currentHeight: computed,
+  endHeight: observable,
+  init: task,
+  isReady: observable,
+  round: observable,
+  startHeight: observable,
 })

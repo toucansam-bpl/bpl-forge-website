@@ -8,10 +8,10 @@ import red from '@material-ui/core/colors/red'
 
 
 import App from '../shared/App'
-import BlockStore from '../shared/stores/BlockStore'
 import DelegateStore from '../shared/stores/DelegateStore'
 import NodeApi from '../shared/domain/api/NodeApi'
 import PriceStore from '../shared/stores/PriceStore'
+import RoundStore from '../shared/stores/RoundStore'
 import SlotStore from '../shared/stores/SlotStore'
 import NetworkStore from '../shared/stores/NetworkStore';
 
@@ -43,21 +43,19 @@ const nodeApi = new NodeApi()
 const priceStore = new PriceStore()
 const delegateStore = new DelegateStore(nodeApi)
 const networkStore = new NetworkStore(nodeApi)
-const blockStore = new BlockStore(nodeApi, networkStore)
-const slotStore = new SlotStore(nodeApi, blockStore, delegateStore, networkStore)
+const roundStore = new RoundStore(nodeApi)
+const slotStore = new SlotStore(nodeApi, roundStore)
 
 const stores = {
-  blockStore,
   delegateStore,
   networkStore,
   priceStore,
+  roundStore,
   slotStore,
 }
 
-blockStore.init()
-delegateStore.init()
+roundStore.init()
 networkStore.init()
-slotStore.init()
 
 
 hydrate(

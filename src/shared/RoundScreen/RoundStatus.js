@@ -5,12 +5,12 @@ import { Card, CardContent, Grid, Typography, } from '@material-ui/core'
 
 class RoundProgress extends Component {
   render() {
-    const { blockStore, } = this.props
+    const { roundStore, } = this.props
 
     return (
       <Card>
         <CardContent>
-        {blockStore.init.match({
+        {roundStore.init.match({
           pending: () => <div>Loading, please wait..</div>,
           rejected: (err) => <div>Error: {err.message}</div>,
           resolved: () => (
@@ -22,17 +22,17 @@ class RoundProgress extends Component {
               </Grid>
               <Grid item>
                 <Typography variant="subtitle1">
-                  Current Height: {blockStore.lastProcessedBlockHeight}
+                  Current Height: {roundStore.currentHeight}
                 </Typography>
               </Grid>
               <Grid item>
                 <Typography variant="subtitle1">
-                  Start Height: {blockStore.startHeight}
+                  Start Height: {roundStore.startHeight}
                 </Typography>
               </Grid>
               <Grid item>
                 <Typography variant="subtitle1">
-                  End Height: {blockStore.endHeight}
+                  End Height: {roundStore.endHeight}
                 </Typography>
               </Grid>
             </Grid>
@@ -44,4 +44,4 @@ class RoundProgress extends Component {
   }
 }
 
-export default inject('blockStore')(observer(RoundProgress))
+export default inject('roundStore')(observer(RoundProgress))

@@ -8,66 +8,56 @@ import { action,
        } from 'mobx'
 import { task } from 'mobx-task'
 
+import { delegateCount } from '../domain/util/delegates'
 import { log } from '../domain/util/logger'
-import { createSlotFromBlock, basicSlot } from './slotFactory'
+import { createSlotFromBlock, basicSlot, getSlotsFromActiveDelegates } from './slotFactory'
 import { blockInterval, nextMsTimestamp, fromApiToMs, } from '../domain/util/time'
-
-const delegateCount = 201
 
 
 export default class SlotStore {
   completedSlots = []
-  hasCompletedSlotsForRound = false
-  isAwaitingBlock = true
   roundSlots = new Map()
   upcomingSlots = []
 
-  constructor(nodeApi, blockStore, delegateStore, networkStore) {
+  constructor(nodeApi, roundStore) {
     this.nodeApi = nodeApi
-    this.blockStore = blockStore
-    this.delegateStore = delegateStore
-    this.networkStore = networkStore
+    this.roundStore = roundStore
 
-    when(() => this.networkStore.hasChangedServer, () => this.init())
+    when(() => this.roundStore.isReady, () => this.init())
   }
 
   async init() {
     log('Initializing Slot Store.')
-    this.forgerData = await this.nodeApi.getRoundForgerData()
-    await when(() => this.blockStore.isReady && this.delegateStore.isInitialized)
+
+    const lastBlockOfLastRound = await this.nodeApi.getLastBlockOfRound(this.roundStore.round - 1)
 
     log('Generating forging list')
-    const endOfLastRoundTimestamp = this.blockStore.lastBlockOfLastRound.timestamp
-    const lastSlotOfLastRound = this.getSlotNumber(endOfLastRoundTimestamp)
-    const firstSlot = lastSlotOfLastRound + 1
-    const currentSlot = this.forgerData.currentSlot
-    const slotDiff = firstSlot - currentSlot - 1
-    const reverseIndex = slotDiff % delegateCount
-    const firstForgerIndex = reverseIndex === 0 ? 0 : reverseIndex + delegateCount
 
-    const firstForgers = this.forgerData.delegates.slice(firstForgerIndex)
-    const remainingForgers = this.forgerData.delegates.slice(0, firstForgerIndex)
+    console.log('last block of last round', lastBlockOfLastRound)
+    const lastProcessedTimestamp = fromApiToMs(lastBlockOfLastRound.timestamp)
+    const slots = getSlotsFromActiveDelegates(this.roundStore.activeDelegates, lastProcessedTimestamp)
+
+    slots.forEach(s => this.roundSlots.set(s.slot, {
+      slotNumber: s.slot,
+      publicKey: s.publicKey,
+    }))
+
+    const processedSlots = this.roundStore.roundBlocks.reduce((all, block) => {
+      const { completed, upcoming } = this.processReceivedBlock(all.completed, all.upcoming, block)
+      all.completed = completed
+      all.lastProcessedHeight = block.height
+      all.upcoming = upcoming
+      return all
+    }, {
+      completed: [],
+      lastProcessedHeight: lastBlockOfLastRound.height,
+      upcoming: slots,
+    })
     
     runInAction(() => {
-      const result = firstForgers.concat(remainingForgers).reduce((all, publicKey, i) => {
-        const slotNumber = i + 1
-        const timestamp = nextMsTimestamp(all.lastProcessedTimestamp)
-        this.roundSlots.set(slotNumber, {
-          slotNumber,
-          publicKey
-        })
-        all.upcomingSlots.push(basicSlot(slotNumber, this.delegateStore.get(publicKey), timestamp))
-        all.lastProcessedTimestamp = timestamp
-        return all
-      }, {
-        lastProcessedTimestamp: fromApiToMs(endOfLastRoundTimestamp),
-        upcomingSlots: [],
-      })
-
-      this.upcomingSlots.replace(result.upcomingSlots)
-      this.isReady = true
-
-      this.watchForNextBlock()
+      this.completedSlots.replace(processedSlots.completed)
+      this.upcomingSlots.replace(processedSlots.upcoming)
+      this.processNextBlocks(processedSlots.lastProcessedHeight)
     }) 
   }
 
@@ -75,55 +65,43 @@ export default class SlotStore {
 		return Math.floor(blockTimestamp / blockInterval)
 	}
 
-  watchForNextBlock() {
-    when(() => this.blockStore.hasNextBlock && this.isAwaitingBlock, () => this.processReceivedBlock())
-  }
-
   getRoundSlot(totalSlot) {
     // From BPL-node code
-    return this.roundSlots.get(totalSlot % 201)
+    return this.roundSlots.get(totalSlot % delegateCount)
   }
 
-  processReceivedBlock() {
-    this.isAwaitingBlock = false
-    this.watchForNextBlock()
+  async processNextBlocks(lastProcessedHeight) {
+    for await (const block of this.roundStore.blocks(lastProcessedHeight + 1)) {
+      let { completed, upcoming } = this.processReceivedBlock(this.completedSlots, this.upcomingSlots, block)
+      runInAction(() => {
+        this.completedSlots.replace(completed)
+        this.upcomingSlots.replace(upcoming)
+      })
+    }
+  }
 
-    const nextBlock = this.blockStore.nextBlock()
-    log('Processing next block.', nextBlock)
+  processReceivedBlock(completedSlots, upcomingSlots, block) {
+    const completed = completedSlots.slice(0)
+    const upcoming = upcomingSlots.slice(0)
+    let hasFoundForger = false
 
-    const blockSlots = this.upcomingSlots.reduce((all, slot) => {
-      if (all.hasFoundProcessedSlot) {
-        all.upcomingSlots.push(slot)
+    while (!hasFoundForger) {
+      let slot = upcoming.shift()
+      let completedSlot = createSlotFromBlock(slot, block)
+      completed.push(completedSlot)
+  
+      if(completedSlot.hasMissedBlock) {
+        let totalSlotCount = upcoming.length + completed.length + 1
+        let roundSlot = this.getRoundSlot(totalSlotCount)
+        let matchingDelegate = this.roundStore.activeDelegates.get(roundSlot.publicKey)
+        let lastSlot = upcoming[upcoming.length - 1] || slot
+        upcoming.push(basicSlot(totalSlotCount, matchingDelegate, nextMsTimestamp(lastSlot.timestamp)))
       } else {
-        const completedSlot = createSlotFromBlock(slot, all.block)
-        all.hasFoundProcessedSlot = !completedSlot.hasMissedBlock
-        all.completedSlots.push(completedSlot)
-
-        if (completedSlot.hasMissedBlock) {
-          all.totalSlotCount += 1
-          let roundSlot = this.getRoundSlot(all.totalSlotCount)
-          let matchingDelegate = this.delegateStore.get(roundSlot.publicKey)
-          let lastSlot = this.completedSlots[this.completedSlots.length - 1] || {
-            timestamp: this.lastProcessedTimestamp,
-          }
-          all.additionalSlots.push(basicSlot(all.totalSlotCount, matchingDelegate, nextMsTimestamp(lastSlot.timestamp)))
-        }
+        hasFoundForger = true
       }
-      return all
-    }, {
-      additionalSlots: [],
-      block: nextBlock,
-      completedSlots: [],
-      hasFoundProcessedSlot: false,
-      totalSlotCount: this.completedSlots.length + this.upcomingSlots.length,
-      upcomingSlots: [],
-    })
+    }
 
-    this.completedSlots.replace(this.completedSlots.concat(blockSlots.completedSlots))
-    this.upcomingSlots.replace(blockSlots.upcomingSlots.concat(blockSlots.additionalSlots))
-
-    this.hasCompletedSlotsForRound = this.upcomingSlots.length === 0
-    this.isAwaitingBlock = true
+    return { completed, upcoming }
   }
 
   get missedBlockCount() {
@@ -151,9 +129,7 @@ export default class SlotStore {
 
 decorate(SlotStore, {
   completedSlots: observable,
-  hasCompletedSlotsForRound: observable,
   init: task,
-  isAwaitingBlock: observable,
   missedBlockCount: computed,
   processReceivedBlock: action,
   remainingSlotCount: computed,
