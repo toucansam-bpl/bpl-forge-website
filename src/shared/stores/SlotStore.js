@@ -66,8 +66,8 @@ export default class SlotStore {
 	}
 
   getRoundSlot(totalSlot) {
-    // From BPL-node code
-    return this.roundSlots.get(totalSlot % delegateCount)
+    const roundSlot = this.roundSlots.get(totalSlot % delegateCount)
+    return roundSlot === 0 ? 201 : roundSlot
   }
 
   async processNextBlocks(lastProcessedHeight) {

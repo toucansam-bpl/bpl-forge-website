@@ -95230,8 +95230,8 @@ function () {
   }, {
     key: "getRoundSlot",
     value: function getRoundSlot(totalSlot) {
-      // From BPL-node code
-      return this.roundSlots.get(totalSlot % _delegates.delegateCount);
+      var roundSlot = this.roundSlots.get(totalSlot % _delegates.delegateCount);
+      return roundSlot === 0 ? 201 : roundSlot;
     }
   }, {
     key: "processNextBlocks",
