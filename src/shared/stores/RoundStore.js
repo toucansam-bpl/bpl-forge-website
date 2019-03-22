@@ -44,17 +44,16 @@ export default class RoundStore {
       yield block
     }
 
-    let lastBlock = this.roundBlocks[this.roundBlocks.length - 1]
-    while (lastBlock.height <= this.endHeight) {
+    let lastBlock = this.roundBlocks[this.roundBlocks.length - 1] || { height: this.startHeight - 1 }
+    while (lastBlock.height < this.endHeight) {
       const nextHeight = lastBlock.height + 1
       const newBlocks = []
       let offset = 0
       do {
         let blocks = await this.nodeApi.getBlocks(offset, 10)
-        newBlocks = newBlocks.concat(blocks.filter(b => b.height > lastBlock.height))
+        newBlocks = newBlocks.concat(blocks.filter(b => b.height > lastBlock.height && b.height <= this.endHeight))
         newBlocks.sort(byAscending('height'))
 
-        console.log(newBlocks)
         offset += 10
       } while (newBlocks.length && newBlocks[0].height > nextHeight)
 
@@ -66,6 +65,8 @@ export default class RoundStore {
 
       await sleep(15000)
     }
+
+    return
   }
 
   get currentHeight() {

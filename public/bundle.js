@@ -94971,11 +94971,13 @@ function () {
                 return _context2.finish(18);
 
               case 26:
-                lastBlock = _this.roundBlocks[_this.roundBlocks.length - 1];
+                lastBlock = _this.roundBlocks[_this.roundBlocks.length - 1] || {
+                  height: _this.startHeight - 1
+                };
 
               case 27:
-                if (!(lastBlock.height <= _this.endHeight)) {
-                  _context2.next = 71;
+                if (!(lastBlock.height < _this.endHeight)) {
+                  _context2.next = 70;
                   break;
                 }
 
@@ -94990,28 +94992,27 @@ function () {
               case 33:
                 blocks = _context2.sent;
                 newBlocks = newBlocks.concat(blocks.filter(function (b) {
-                  return b.height > lastBlock.height;
+                  return b.height > lastBlock.height && b.height <= _this.endHeight;
                 }));
                 newBlocks.sort((0, _sorters.byAscending)('height'));
-                console.log(newBlocks);
                 offset += 10;
 
-              case 38:
+              case 37:
                 if (newBlocks.length && newBlocks[0].height > nextHeight) {
                   _context2.next = 31;
                   break;
                 }
 
-              case 39:
+              case 38:
                 _iteratorNormalCompletion2 = true;
                 _didIteratorError2 = false;
                 _iteratorError2 = undefined;
-                _context2.prev = 42;
+                _context2.prev = 41;
                 _iterator2 = newBlocks[Symbol.iterator]();
 
-              case 44:
+              case 43:
                 if (_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done) {
-                  _context2.next = 53;
+                  _context2.next = 52;
                   break;
                 }
 
@@ -95020,62 +95021,65 @@ function () {
 
                 _this.roundBlocks.push(newBlock);
 
-                _context2.next = 50;
+                _context2.next = 49;
                 return newBlock;
 
-              case 50:
+              case 49:
                 _iteratorNormalCompletion2 = true;
-                _context2.next = 44;
+                _context2.next = 43;
                 break;
 
-              case 53:
-                _context2.next = 59;
+              case 52:
+                _context2.next = 58;
                 break;
 
-              case 55:
-                _context2.prev = 55;
-                _context2.t1 = _context2["catch"](42);
+              case 54:
+                _context2.prev = 54;
+                _context2.t1 = _context2["catch"](41);
                 _didIteratorError2 = true;
                 _iteratorError2 = _context2.t1;
 
-              case 59:
+              case 58:
+                _context2.prev = 58;
                 _context2.prev = 59;
-                _context2.prev = 60;
 
                 if (!_iteratorNormalCompletion2 && _iterator2.return != null) {
                   _iterator2.return();
                 }
 
-              case 62:
-                _context2.prev = 62;
+              case 61:
+                _context2.prev = 61;
 
                 if (!_didIteratorError2) {
-                  _context2.next = 65;
+                  _context2.next = 64;
                   break;
                 }
 
                 throw _iteratorError2;
 
+              case 64:
+                return _context2.finish(61);
+
               case 65:
-                return _context2.finish(62);
+                return _context2.finish(58);
 
               case 66:
-                return _context2.finish(59);
-
-              case 67:
-                _context2.next = 69;
+                _context2.next = 68;
                 return _awaitAsyncGenerator(sleep(15000));
 
-              case 69:
+              case 68:
                 _context2.next = 27;
                 break;
+
+              case 70:
+                return _context2.abrupt("return");
 
               case 71:
               case "end":
                 return _context2.stop();
             }
           }
-        }, _callee2, this, [[3, 14, 18, 26], [19,, 21, 25], [42, 55, 59, 67], [60,, 62, 66]]);
+        }, _callee2, this, [[3, 14, 18, 26], [19,, 21, 25], [41, 54, 58, 66], [59,, 61, 65]]);
       }))();
     }
   }, {
