@@ -94810,6 +94810,8 @@ var _mobxTask = __webpack_require__(/*! mobx-task */ "./node_modules/mobx-task/l
 
 var _logger = __webpack_require__(/*! ../domain/util/logger */ "./src/shared/domain/util/logger.js");
 
+var _sorters = __webpack_require__(/*! ../domain/util/sorters */ "./src/shared/domain/util/sorters.js");
+
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -94905,7 +94907,7 @@ function () {
       return _wrapAsyncGenerator(
       /*#__PURE__*/
       regeneratorRuntime.mark(function _callee2() {
-        var _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, block, lastBlock, offset, blocks, newBlocks, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, newBlock;
+        var _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, block, lastBlock, nextHeight, newBlocks, offset, blocks, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, newBlock;
 
         return regeneratorRuntime.wrap(function _callee2$(_context2) {
           while (1) {
@@ -94970,32 +94972,46 @@ function () {
 
               case 26:
                 lastBlock = _this.roundBlocks[_this.roundBlocks.length - 1];
-                offset = 0;
 
-              case 28:
+              case 27:
                 if (!(lastBlock.height <= _this.endHeight)) {
-                  _context2.next = 66;
+                  _context2.next = 71;
                   break;
                 }
 
-                _context2.next = 31;
-                return _awaitAsyncGenerator(_this.nodeApi.getBlocks(offset, 10));
+                nextHeight = lastBlock.height + 1;
+                newBlocks = [];
+                offset = 0;
 
               case 31:
+                _context2.next = 33;
+                return _awaitAsyncGenerator(_this.nodeApi.getBlocks(offset, 10));
+
+              case 33:
                 blocks = _context2.sent;
-                newBlocks = blocks.filter(function (b) {
+                newBlocks = newBlocks.concat(blocks.filter(function (b) {
                   return b.height > lastBlock.height;
-                });
-                newBlocks.reverse();
+                }));
+                newBlocks.sort((0, _sorters.byAscending)('height'));
+                console.log(newBlocks);
+                offset += 10;
+
+              case 38:
+                if (newBlocks.length && newBlocks[0].height > nextHeight) {
+                  _context2.next = 31;
+                  break;
+                }
+
+              case 39:
                 _iteratorNormalCompletion2 = true;
                 _didIteratorError2 = false;
                 _iteratorError2 = undefined;
-                _context2.prev = 37;
+                _context2.prev = 42;
                 _iterator2 = newBlocks[Symbol.iterator]();
 
-              case 39:
+              case 44:
                 if (_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done) {
-                  _context2.next = 48;
+                  _context2.next = 53;
                   break;
                 }
 
@@ -95004,62 +95020,62 @@ function () {
 
                 _this.roundBlocks.push(newBlock);
 
-                _context2.next = 45;
+                _context2.next = 50;
                 return newBlock;
 
-              case 45:
-                _iteratorNormalCompletion2 = true;
-                _context2.next = 39;
-                break;
-
-              case 48:
-                _context2.next = 54;
-                break;
-
               case 50:
-                _context2.prev = 50;
-                _context2.t1 = _context2["catch"](37);
+                _iteratorNormalCompletion2 = true;
+                _context2.next = 44;
+                break;
+
+              case 53:
+                _context2.next = 59;
+                break;
+
+              case 55:
+                _context2.prev = 55;
+                _context2.t1 = _context2["catch"](42);
                 _didIteratorError2 = true;
                 _iteratorError2 = _context2.t1;
 
-              case 54:
-                _context2.prev = 54;
-                _context2.prev = 55;
+              case 59:
+                _context2.prev = 59;
+                _context2.prev = 60;
 
                 if (!_iteratorNormalCompletion2 && _iterator2.return != null) {
                   _iterator2.return();
                 }
 
-              case 57:
-                _context2.prev = 57;
+              case 62:
+                _context2.prev = 62;
 
                 if (!_didIteratorError2) {
-                  _context2.next = 60;
+                  _context2.next = 65;
                   break;
                 }
 
                 throw _iteratorError2;
 
-              case 60:
-                return _context2.finish(57);
-
-              case 61:
-                return _context2.finish(54);
-
-              case 62:
-                _context2.next = 64;
-                return _awaitAsyncGenerator(sleep(15000));
-
-              case 64:
-                _context2.next = 28;
-                break;
+              case 65:
+                return _context2.finish(62);
 
               case 66:
+                return _context2.finish(59);
+
+              case 67:
+                _context2.next = 69;
+                return _awaitAsyncGenerator(sleep(15000));
+
+              case 69:
+                _context2.next = 27;
+                break;
+
+              case 71:
               case "end":
                 return _context2.stop();
             }
           }
-        }, _callee2, this, [[3, 14, 18, 26], [19,, 21, 25], [37, 50, 54, 62], [55,, 57, 61]]);
+        }, _callee2, this, [[3, 14, 18, 26], [19,, 21, 25], [42, 55, 59, 67], [60,, 62, 66]]);
       }))();
     }
   }, {

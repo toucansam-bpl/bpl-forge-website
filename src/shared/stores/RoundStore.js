@@ -6,6 +6,7 @@ import { action,
 import { task } from 'mobx-task'
 
 import { log } from '../domain/util/logger'
+import { byAscending } from '../domain/util/sorters'
 
 
 export default class RoundStore {
@@ -44,11 +45,18 @@ export default class RoundStore {
     }
 
     let lastBlock = this.roundBlocks[this.roundBlocks.length - 1]
-    let offset = 0
     while (lastBlock.height <= this.endHeight) {
-      let blocks = await this.nodeApi.getBlocks(offset, 10)
-      let newBlocks = blocks.filter(b => b.height > lastBlock.height)
-      newBlocks.reverse()
+      const nextHeight = lastBlock.height + 1
+      const newBlocks = []
+      let offset = 0
+      do {
+        let blocks = await this.nodeApi.getBlocks(offset, 10)
+        newBlocks = newBlocks.concat(blocks.filter(b => b.height > lastBlock.height))
+        newBlocks.sort(byAscending('height'))
+
+        console.log(newBlocks)
+        offset += 10
+      } while (newBlocks.length && newBlocks[0].height > nextHeight)
 
       for (const newBlock of newBlocks) {
         lastBlock = newBlock
